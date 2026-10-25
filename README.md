@@ -10,12 +10,10 @@ Descargá `betometro.apk` desde la última [versión publicada](https://github.c
 
 - `www/index.html`: toda la app (pantalla, motor de cálculo, historial). El motor no depende de la plataforma.
 - `android/`: proyecto Android generado con Capacitor. El código propio está en `android/app/src/main/java/ar/com/betometro/app/BetoPlugin.java` (voz sin demora, teclas del pulsador, actualizador).
-- `.github/workflows/compilar.yml`: compila el APK. Cada etiqueta `vX.Y.Z` publica una versión nueva firmada.
+- `.github/workflows/compilar.yml`: compila el APK en cada cambio. Si la versión de `package.json` todavía no está publicada, publica una versión nueva firmada.
 
 ## Publicar una versión
 
-```
-git tag v1.0.1 && git push origin v1.0.1
-```
+Subir el número de `version` en `package.json` (por ejemplo `1.0.1`) y enviar el cambio a `main`.
 
 Requiere los secretos `BETO_KEYSTORE_B64` y `BETO_PASS` en el repositorio (la llave de firma; siempre la misma).

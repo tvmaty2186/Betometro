@@ -3,7 +3,6 @@ name: Compilar APK
 on:
   push:
     branches: [main]
-    tags: ['v*']
   workflow_dispatch:
 
 permissions:
@@ -32,10 +31,13 @@ jobs:
       - name: Número de versión
         id: ver
         run: |
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            echo "name=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          # La versión sale de package.json. Si todavía no está publicada, este build la publica.
+          V=$(node -p "require('./package.json').version")
+          echo "name=$V" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$V" > /dev/null; then
+            echo "nueva=0" >> "$GITHUB_OUTPUT"; echo "La versión $V ya está publicada: solo se compila."
           else
-            echo "name=0.0.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+            echo "nueva=1" >> "$GITHUB_OUTPUT"; echo "Versión nueva: $V"
           fi
 
       - name: Llave de firma
@@ -70,14 +72,16 @@ jobs:
           path: salida/betometro.apk
 
       - name: Publicar versión
-        if: startsWith(github.ref, 'refs/tags/v') && env.FIRMADO == '1'
+        if: steps.ver.outputs.nueva == '1' && env.FIRMADO == '1'
         uses: softprops/action-gh-release@v2
         with:
-          files: salida/betometro.apk
+          tag_name: v${{ steps.ver.outputs.name }}
+          target_commitish: ${{ github.sha }}
           name: Betómetro ${{ steps.ver.outputs.name }}
+          files: salida/betometro.apk
 
       - name: Falta la llave de firma
-        if: startsWith(github.ref, 'refs/tags/v') && env.FIRMADO != '1'
+        if: steps.ver.outputs.nueva == '1' && env.FIRMADO != '1'
         run: |
           echo "::error::Para publicar una versión hay que cargar los secretos BETO_KEYSTORE_B64 y BETO_PASS en el repositorio."
           exit 1
