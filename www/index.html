@@ -1888,7 +1888,7 @@ const entero = (id, max) => { const v = parseInt(String($(id).value).replace(/\D
 const num = (id, def, min, max) => { const v = parseFloat($(id).value); return isFinite(v) ? Math.min(max, Math.max(min, v)) : def; };
 function leerForm() {
   if (!(motor && motor.enCurso)) {
-    const T = (entero('tMin', 99) * 60 + entero('tSeg', 59)) * 1000 + entero('tDec', 9) * 100;
+    const T = (entero('tMin', 99) * 60 + entero('tSeg', 5999)) * 1000 + entero('tDec', 9) * 100;
     if (T >= 5000) cfg.tiempoIdealMs = Math.round(T);
     cfg.distanciaM = Math.round(num('distancia', cfg.distanciaM, 0, 1e6));
     cfg.patron = $('patron').value;
@@ -2373,7 +2373,13 @@ $('practicaLargar').addEventListener('click', () => {
   setTimeout(() => { leerForm(); practicaLibre(); }, 60);
 });
 $('p-practica').addEventListener('input', leerForm);
-$('p-practica').addEventListener('change', leerForm);
+$('p-practica').addEventListener('change', ev => {
+  leerForm();
+  if (ev.target.id === 'tSeg' && entero('tSeg', 5999) > 59) {   // al salir del campo se acomoda: 0:90.0 → 1:30.0
+    const T = cfg.tiempoIdealMs; $('tMin').value = Math.floor(T / 60000); $('tSeg').value = Math.floor((T % 60000) / 1000); $('tDec').value = Math.floor((T % 1000) / 100);
+    velBase();
+  }
+});
 $('mChequeo').addEventListener('click', () => mostrar('chequeo'));
 $('mAjustes').addEventListener('click', () => { cargarForm(); $('config').hidden = false; $('medirRes').textContent = Audio.diagnostico(); });
 $('inicioAct').addEventListener('click', () => { if (ultimaRel) instalarActualizacion(); else $('mAjustes').click(); });   // instala directo
