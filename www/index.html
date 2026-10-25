@@ -105,6 +105,7 @@ body.practica { background: var(--practica); }
 .menu .btn { min-height: 76px; font-size: 18px; background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); text-align: left; padding: 12px 14px; }
 .menu .btn small { display: block; font-size: 13px; font-weight: 400; color: var(--ink-dim); margin-top: 2px; }
 .aviso-act { background: var(--warn); color: #111; border: 0; border-radius: 10px; padding: 10px 14px; font: 600 15px var(--font-ui); text-align: left; cursor: pointer; }
+.grupo { font-family: var(--font-num); font-weight: 600; font-size: 18px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-dim); margin: 6px 0 0; }
 .tabs { display: flex; gap: 6px; background: var(--panel-2); border-radius: 12px; padding: 4px; }
 .tabs button { flex: 1; font: 600 16px var(--font-ui); color: var(--ink-dim); background: none; border: 0; border-radius: 9px; min-height: 42px; cursor: pointer; }
 .tabs button.activa { background: var(--panel); color: var(--ink); }
@@ -200,10 +201,9 @@ input[type=color] { width: 56px; height: 40px; border: 1px solid var(--line); bo
   <div class="config-in">
     <div class="marca">BETÓMETRO<small>Regularidad para el navegante</small></div>
     <button class="aviso-act" id="inicioAct" type="button" hidden>Hay una actualización de Betómetro. Tocá para instalarla.</button>
-    <div class="proxima" id="inicioProxima"></div>
     <div class="menu">
       <button class="btn" id="mCarreras" type="button">Carreras<small>Crear y ver resultados</small></button>
-      <button class="btn" id="mPractica" type="button">Práctica libre<small>Largar sin cargar nada</small></button>
+      <button class="btn" id="mPractica" type="button">Práctica libre<small>Elegí el tiempo y largá</small></button>
       <button class="btn" id="mChequeo" type="button">Chequeo previo<small>Pulsador, GPS, voz, batería</small></button>
       <button class="btn" id="mAjustes" type="button">Ajustes<small>Voz, velocidad, pulsador</small></button>
     </div>
@@ -215,10 +215,6 @@ input[type=color] { width: 56px; height: 40px; border: 1px solid var(--line); bo
   <div class="config-in">
     <div class="cab"><h2>Carreras</h2><button class="btn sec" id="carrerasVolver" type="button">Volver</button></div>
     <button class="btn" id="carrerasNueva" type="button">+ Nueva carrera</button>
-    <div class="tabs" role="tablist">
-      <button type="button" id="tabProx" role="tab">Próximas</button>
-      <button type="button" id="tabAnt" role="tab">Anteriores</button>
-    </div>
     <div id="carrerasLista"></div>
   </div>
 </div>
@@ -284,28 +280,12 @@ input[type=color] { width: 56px; height: 40px; border: 1px solid var(--line); bo
   </div>
 </div>
 
-<!-- ===== Chequeo previo ===== -->
-<div class="pantalla" id="p-chequeo" hidden>
+<!-- ===== Práctica libre ===== -->
+<div class="pantalla" id="p-practica" hidden>
   <div class="config-in">
-    <div class="cab"><h2>Chequeo previo</h2><button class="btn sec" id="chequeoVolver" type="button">Volver</button></div>
-    <div id="chequeoLista"></div>
-    <fieldset>
-      <h3>Probar el pulsador</h3>
-      <p class="hint" id="chkPulsador">Tocá el botón y después apretá el pulsador: vas a escuchar un pitido si llega.</p>
-      <div class="row"><button class="btn sec" id="chkProbar" type="button">Probar pulsador</button></div>
-    </fieldset>
-  </div>
-</div>
-
-<div class="config" id="config" hidden>
-  <div class="config-in">
-    <div class="cfg-bar">
-      <h2>Configuración</h2>
-      <button class="btn" id="btnCerrar" type="button">Listo</button>
-    </div>
-
+    <div class="cab"><h2>Práctica libre</h2><button class="btn sec" id="practicaVolver" type="button">Volver</button></div>
     <fieldset id="fsCarrera">
-      <h3>Práctica libre (valores por defecto)</h3>
+      <h3>Prueba</h3>
       <div class="row">
         <label for="tMin">Tiempo ideal por vuelta</label>
         <div class="tiempo">
@@ -328,6 +308,31 @@ input[type=color] { width: 56px; height: 40px; border: 1px solid var(--line); bo
       </div>
       <p class="hint" id="carreraHint" hidden>Con la carrera en curso no se puede cambiar el tiempo, la distancia ni el patrón. Tocá Terminar primero.</p>
     </fieldset>
+    <button class="btn largar" id="practicaLargar" type="button">Ir a largar</button>
+    <p class="hint">Estos valores quedan guardados para la próxima práctica.</p>
+  </div>
+</div>
+
+<!-- ===== Chequeo previo ===== -->
+<div class="pantalla" id="p-chequeo" hidden>
+  <div class="config-in">
+    <div class="cab"><h2>Chequeo previo</h2><button class="btn sec" id="chequeoVolver" type="button">Volver</button></div>
+    <div id="chequeoLista"></div>
+    <fieldset>
+      <h3>Probar el pulsador</h3>
+      <p class="hint" id="chkPulsador">Tocá el botón y después apretá el pulsador: vas a escuchar un pitido si llega.</p>
+      <div class="row"><button class="btn sec" id="chkProbar" type="button">Probar pulsador</button></div>
+    </fieldset>
+  </div>
+</div>
+
+<div class="config" id="config" hidden>
+  <div class="config-in">
+    <div class="cfg-bar">
+      <h2>Configuración</h2>
+      <button class="btn" id="btnCerrar" type="button">Listo</button>
+    </div>
+
 
     <fieldset>
       <h3>Cuenta regresiva</h3>
@@ -1126,7 +1131,7 @@ $('btnProbar').addEventListener('click', () => {
 });
 
 /* ================= PANTALLAS ================= */
-const PANTALLAS = ['inicio', 'carreras', 'editor', 'detalle', 'chequeo'];
+const PANTALLAS = ['inicio', 'carreras', 'editor', 'detalle', 'chequeo', 'practica'];
 let pantalla = 'inicio', seleccion = null, editando = null, pestanaCarreras = 'proximas';
 function mostrar(p) {
   pantalla = p;
@@ -1139,9 +1144,10 @@ function mostrar(p) {
 }
 function volver() {   // botón atrás de Android y botones "Volver"
   if (!$('config').hidden) { leerForm(); $('config').hidden = true; return; }
-  if (pantalla === 'crono') { if (motor && motor.enCurso) { avisar('Para salir, terminá la carrera'); return; } mostrar(seleccion && !seleccion.practica ? 'detalle' : 'inicio'); return; }
+  if (pantalla === 'crono') { if (motor && motor.enCurso) { avisar('Para salir, terminá la carrera'); return; } mostrar(seleccion && !seleccion.practica ? 'detalle' : 'practica'); return; }
   if (pantalla === 'editor') { mostrar(editando && Store.buscar(editando.id) ? 'detalle' : 'carreras'); return; }
   if (pantalla === 'detalle') { mostrar(seleccion && seleccion.practica ? 'inicio' : 'carreras'); return; }
+  if (pantalla === 'practica') { leerForm(); mostrar('inicio'); return; }
   if (pantalla === 'carreras' || pantalla === 'chequeo') { mostrar('inicio'); return; }
   if (AppInfo) AppInfo.exitApp();
 }
@@ -1157,42 +1163,30 @@ function proximaCarrera() {
   const hoy = hoyISO();
   return Store.carreras.filter(c => !c.practica && c.fecha >= hoy).sort((a, b) => a.fecha.localeCompare(b.fecha))[0] || null;
 }
-function dibujarInicio() {
-  const cont = $('inicioProxima'); cont.innerHTML = '';
-  const c = proximaCarrera();
-  if (!c) {
-    cont.append(el('span', 'Próxima carrera', 'lbl'), el('p', 'No hay carreras cargadas para los próximos días.', 'vacio'),
-                boton('Crear carrera', 'btn', () => abrirEditor(null)));
-    return;
-  }
-  const hoy = c.fecha === hoyISO();
-  cont.append(el('span', hoy ? 'Hoy' : 'Próxima carrera', 'lbl'), el('h3', c.nombre, 'prox-nombre'),
-              el('p', fechaLarga(c.fecha) + (c.lugar ? ' · ' + c.lugar : ''), 'hint'),
-              el('p', 'Vuelta ideal ' + fmt(c.tiempoIdealMs) + (c.distanciaM ? ' · ' + c.distanciaM.toLocaleString('es-AR') + ' m' : '') + ' · ' + nombrePatron(c.patron), 'hint'));
-  const fila = el('div', undefined, 'row');
-  fila.append(boton('LARGAR', 'btn largar', () => irACrono(c)), boton('Ver carrera', 'btn sec', () => { seleccion = c; mostrar('detalle'); }));
-  cont.append(fila);
-}
+function dibujarInicio() { }   // el inicio es solo el menú: las carreras se largan desde su ficha
+
 const nombrePatron = p => p === 'alt1' ? 'alternadas, 1.ª medida' : p === 'alt2' ? 'alternadas, 1.ª práctica' : 'todas medidas';
 
 /* ---------- Carreras ---------- */
 function dibujarCarreras() {
   const hoy = hoyISO(), cont = $('carrerasLista'); cont.innerHTML = '';
-  $('tabProx').classList.toggle('activa', pestanaCarreras === 'proximas');
-  $('tabAnt').classList.toggle('activa', pestanaCarreras === 'anteriores');
-  let lista = Store.carreras.filter(c => pestanaCarreras === 'proximas' ? (!c.practica && c.fecha >= hoy) : (c.practica || c.fecha < hoy));
-  lista.sort((a, b) => pestanaCarreras === 'proximas' ? a.fecha.localeCompare(b.fecha) : (b.fecha.localeCompare(a.fecha) || String(b.creada).localeCompare(String(a.creada))));
-  if (!lista.length) {
-    cont.append(el('p', pestanaCarreras === 'proximas' ? 'No hay carreras próximas. Tocá «Nueva carrera» para cargar una.' : 'Todavía no hay carreras anteriores.', 'vacio'));
-    return;
-  }
-  for (const c of lista) {
-    const item = boton('', 'item-carrera', () => { seleccion = c; mostrar('detalle'); });
-    const r = resumen(c);
-    item.append(el('span', fechaCorta(c.fecha), 'item-fecha'), el('b', c.nombre),
-                el('span', [c.lugar, c.practica ? 'práctica libre' : null, r.total ? r.total + ' vueltas' + (r.medidas ? ' · error ' + seg(r.sumaMs) + ' s' : '') : 'sin correr'].filter(Boolean).join(' · '), 'hint'));
-    cont.append(item);
-  }
+  const prox = Store.carreras.filter(c => !c.practica && c.fecha >= hoy).sort((a, b) => a.fecha.localeCompare(b.fecha));
+  const ant = Store.carreras.filter(c => c.practica || c.fecha < hoy)
+    .sort((a, b) => b.fecha.localeCompare(a.fecha) || String(b.creada).localeCompare(String(a.creada)));
+  if (!prox.length && !ant.length) { cont.append(el('p', 'Todavía no hay carreras. Tocá «Nueva carrera» para cargar la primera.', 'vacio')); return; }
+  const grupo = (titulo, lista) => {
+    if (!lista.length) return;
+    cont.append(el('h3', titulo, 'grupo'));
+    lista.forEach((c, i) => {
+      const item = boton('', 'item-carrera', () => { seleccion = c; mostrar('detalle'); });
+      const r = resumen(c);
+      const fecha = c.fecha === hoy ? 'Hoy' : fechaCorta(c.fecha);
+      item.append(el('span', fecha + (titulo === 'Próximas' && i === 0 ? ' · la próxima' : ''), 'item-fecha'), el('b', c.nombre),
+                  el('span', [c.lugar, c.practica ? 'práctica libre' : null, r.total ? r.total + ' vueltas' + (r.medidas ? ' · error ' + seg(r.sumaMs) + ' s' : '') : 'sin correr'].filter(Boolean).join(' · '), 'hint'));
+      cont.append(item);
+    });
+  };
+  grupo('Próximas', prox); grupo('Anteriores', ant);
 }
 
 /* ---------- Editor de carrera ---------- */
@@ -1372,14 +1366,16 @@ async function exportar(nombre, texto) {
 }
 $('btnSalir').addEventListener('click', volver);
 $('mCarreras').addEventListener('click', () => mostrar('carreras'));
-$('mPractica').addEventListener('click', practicaLibre);
+$('mPractica').addEventListener('click', () => { cargarForm(); mostrar('practica'); });
+$('practicaVolver').addEventListener('click', volver);
+$('practicaLargar').addEventListener('click', () => { leerForm(); practicaLibre(); });
+$('p-practica').addEventListener('input', leerForm);
+$('p-practica').addEventListener('change', leerForm);
 $('mChequeo').addEventListener('click', () => mostrar('chequeo'));
 $('mAjustes').addEventListener('click', () => { cargarForm(); $('config').hidden = false; $('medirRes').textContent = Audio.diagnostico(); });
 $('inicioAct').addEventListener('click', () => { $('mAjustes').click(); });
 $('carrerasVolver').addEventListener('click', volver);
 $('carrerasNueva').addEventListener('click', () => abrirEditor(null));
-$('tabProx').addEventListener('click', () => { pestanaCarreras = 'proximas'; dibujarCarreras(); });
-$('tabAnt').addEventListener('click', () => { pestanaCarreras = 'anteriores'; dibujarCarreras(); });
 $('editorCancelar').addEventListener('click', volver);
 $('e-guardar').addEventListener('click', guardarEditor);
 $('e-borrar').addEventListener('click', borrarEditor);
