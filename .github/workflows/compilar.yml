@@ -48,7 +48,9 @@ jobs:
           if [ -n "$KS" ]; then
             printf '%s' "$KS" | tr -d ' \r\n' | base64 -d > "$RUNNER_TEMP/beto.keystore"
             # La contraseña se limpia: espacios, saltos de línea o el texto "Contraseña...:" pegado de más
-            PASS=$(printf '%s' "$PASS_CRUDA" | tr -d '\r\n' | sed 's/.*: *//' | tr -d ' ')
+            # Si se pegó el texto entero del archivo LEEME, se toma la contraseña (24 letras y números seguidos)
+            PASS=$(printf '%s' "$PASS_CRUDA" | grep -oE '[A-Za-z0-9]{24}' | head -1)
+            [ -z "$PASS" ] && PASS=$(printf '%s' "$PASS_CRUDA" | tr -d '\r\n' | sed 's/.*: *//' | tr -d ' ')
             echo "::add-mask::$PASS"
             echo "Llave: $(wc -c < "$RUNNER_TEMP/beto.keystore") bytes (debe ser 2670). Contraseña: ${#PASS} caracteres (debe ser 24)."
             if ! keytool -list -keystore "$RUNNER_TEMP/beto.keystore" -storepass "$PASS" -alias betometro > "$RUNNER_TEMP/k.log" 2>&1; then
