@@ -1,5 +1,9 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Betómetro</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <style>
 @font-face { font-family: "Big Shoulders Display"; font-weight: 800; font-display: swap; src: url("fuentes/big-shoulders-display-latin-800-normal.woff2") format("woff2"); }
 @font-face { font-family: "Barlow Condensed"; font-weight: 500; font-display: swap; src: url("fuentes/barlow-condensed-latin-500-normal.woff2") format("woff2"); }
@@ -341,7 +345,66 @@ body.ind-fondo.medida .app, body.ind-fondo.practica .app { background: transpare
 :root.sol .ico .disco { box-shadow: 0 0 0 3px #000; }
 .ico svg { width: 38px; height: 38px; }
 .ico:active .disco { filter: brightness(1.5); }
+
+/* ===== 1.3.1: formularios, tablas y ajustes con un mismo criterio ===== */
+html, body { margin: 0; }
+*, *::before, *::after { box-sizing: border-box; }
+.pantalla .config-in, .config .config-in { gap: 14px; padding-block: calc(env(safe-area-inset-top, 0px) + 14px) 32px; }
+.cab h2, .config h2 { font-size: 26px; }
+.form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+.f { display: flex; flex-direction: column; gap: 6px; min-width: 0; margin: 0; }
+.f-2 { grid-column: 1 / -1; }
+.f > span { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-dim); }
+.form p.hint { margin: 0; }
+.f input, .f select, .f textarea, .t-campo { width: 100%; min-width: 0; height: 48px; margin: 0; font: 600 17px var(--font-ui); color: var(--ink);
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 0 12px; }
+.f textarea { height: 84px; padding: 10px 12px; resize: vertical; }
+.f input:focus, .f select:focus, .f textarea:focus, .t-campo:focus-within { outline: 2px solid var(--warn); outline-offset: 1px; }
+.t-campo { display: flex; align-items: center; gap: 2px; padding: 0 10px; font-family: var(--font-num); font-size: 20px; color: var(--ink-dim); }
+.t-campo input { width: 2.4em; height: 40px; border: 0; background: transparent; padding: 0; text-align: center; font: 700 19px var(--font-ui); color: var(--ink); outline: none; }
+.t-campo input:last-child { width: 1.6em; }
+.f input:disabled, .f select:disabled, .t-campo input:disabled { opacity: .5; }
+.acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.acciones .btn { width: 100%; min-height: 52px; }
+.acciones .btn:only-child { grid-column: 1 / -1; }
+.acciones .btn.largar { font-size: 20px; letter-spacing: .06em; padding: 8px 10px; }
+.dato-c b.txt { font-size: 16px; font-family: var(--font-ui); font-weight: 600; }
+.tabla th, .tabla td { padding-left: 8px; padding-right: 8px; }
+.tabla { font-size: 14px; }
+.datos-c { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.dato-c { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.dato-c span { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-dim); }
+.dato-c b { font-family: var(--font-num); font-weight: var(--peso-num); font-size: 22px; color: var(--ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.res-c { display: flex; flex-direction: column; gap: 12px; }
+.tabla-wrap { overflow-x: auto; background: var(--panel-2); border: 1px solid var(--line); border-radius: 14px; }
+.tabla { font-size: 15px; }
+.tabla th { position: sticky; top: 0; background: var(--panel-2); padding: 10px 10px; text-align: left; }
+.tabla td { padding: 11px 10px; text-align: left; vertical-align: middle; }
+.tabla td:last-child, .tabla th:last-child { text-align: right; }
+.tabla tbody tr:nth-child(even) td { background: rgba(255,255,255,.025); }
+:root.sol .tabla tbody tr:nth-child(even) td { background: rgba(0,0,0,.04); }
+.tabla-c .fila-carrera { cursor: pointer; }
+.tabla-c .fila-carrera:active td { background: var(--line); }
+.tabla-c td b { display: block; font-weight: 600; color: var(--ink); }
+.tabla-c td .sub { display: block; font-size: 12px; color: var(--ink-dim); margin-top: 2px; }
+.tabla-c td:first-child { white-space: nowrap; color: var(--ink-dim); font-size: 14px; }
+.tabla-c td:nth-child(2) { white-space: normal; min-width: 120px; }
+.tabla-c .proxima-fila td:first-child { color: var(--warn); font-weight: 700; }
+.tabla-c .grupo-fila td { text-align: left !important; background: transparent !important; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-dim); padding: 14px 10px 6px; border-bottom: 1px solid var(--line); }
+/* Ajustes: cada fila con el texto a la izquierda y el control alineado a la derecha */
+.config fieldset { padding: 14px 16px; gap: 0; border-radius: 16px; }
+.config fieldset h3 { font-size: 15px; margin: 0 0 4px; }
+.config .row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+.config h3 + .row, .config h3 + p + .row { border-top: 0; }
+.config .row > label { font-size: 15px; line-height: 1.3; }
+.config .row select { width: 168px; min-width: 0; height: 44px; font-size: 15px; }
+.config .row input[type=number] { width: 88px; height: 44px; text-align: center; }
+.config .row:has(> .btn + .btn) { grid-template-columns: 1fr 1fr; }
+.config .row > .btn { width: 100%; }
+.config fieldset > .hint { margin: 6px 0; }
 </style>
+</head>
+<body>
 
 <div class="app" id="app">
   <span class="crono-nombre" id="cronoNombre">Betómetro</span>
@@ -396,49 +459,26 @@ body.ind-fondo.medida .app, body.ind-fondo.practica .app { background: transpare
 <div class="pantalla" id="p-editor" hidden>
   <div class="config-in">
     <div class="cab"><h2 id="editorTitulo">Nueva carrera</h2><button class="btn sec" id="editorCancelar" type="button">Cancelar</button></div>
-    <fieldset>
-      <h3>Datos</h3>
-      <label class="campo" for="e-nombre">Nombre de la carrera<input type="text" id="e-nombre" maxlength="80" autocomplete="off"></label>
-      <label class="campo" for="e-fecha">Fecha<input type="date" id="e-fecha"></label>
-      <label class="campo" for="e-lugar">Lugar o circuito<input type="text" id="e-lugar" maxlength="80"></label>
-      <label class="campo" for="e-notas">Notas<textarea id="e-notas" maxlength="500"></textarea></label>
-    </fieldset>
-    <fieldset id="e-config">
-      <h3>Prueba</h3>
-      <div class="row">
-        <label for="e-min">Tiempo ideal por vuelta</label>
-        <div class="tiempo">
-          <input type="number" id="e-min" min="0" max="99" inputmode="numeric" aria-label="Minutos">:
-          <input type="number" id="e-seg" min="0" max="59" inputmode="numeric" aria-label="Segundos">.
-          <input type="number" id="e-dec" min="0" max="9" inputmode="numeric" aria-label="Décimas" style="width:56px">
-        </div>
+    <div class="form">
+      <label class="f f-2" for="e-nombre"><span>Nombre de la carrera</span><input type="text" id="e-nombre" maxlength="80" autocomplete="off"></label>
+      <label class="f" for="e-fecha"><span>Fecha</span><input type="date" id="e-fecha"></label>
+      <label class="f" for="e-vueltas"><span>Cantidad de vueltas</span><input type="number" id="e-vueltas" min="1" max="300" inputmode="numeric"></label>
+      <div class="f"><span>Tiempo ideal por vuelta</span>
+        <div class="t-campo"><input type="number" id="e-min" min="0" max="99" inputmode="numeric" aria-label="Minutos" placeholder="m">:<input type="number" id="e-seg" min="0" max="59" inputmode="numeric" aria-label="Segundos" placeholder="ss">.<input type="number" id="e-dec" min="0" max="9" inputmode="numeric" aria-label="Décimas" placeholder="d"></div>
       </div>
-      <div class="row">
-        <label for="e-distancia">Distancia de la vuelta (metros)</label>
-        <input type="number" id="e-distancia" min="0" step="1" inputmode="numeric">
-      </div>
-      <div class="row">
-        <label for="e-patron">Vueltas medidas</label>
+      <label class="f" for="e-distancia"><span>Distancia por vuelta (m)</span><input type="number" id="e-distancia" min="0" step="1" inputmode="numeric"></label>
+      <label class="f f-2" for="e-patron"><span>Vueltas medidas</span>
         <select id="e-patron">
           <option value="todas">Todas medidas</option>
-          <option value="alt1">Alternadas: 1.ª medida, 2.ª práctica…</option>
-          <option value="alt2">Alternadas: 1.ª práctica, 2.ª medida…</option>
-        </select>
-      </div>
-      <p class="hint" id="e-configHint" hidden>Esta carrera ya tiene vueltas corridas: el tiempo, la distancia y el patrón no se pueden cambiar.</p>
-    </fieldset>
-    <fieldset>
-      <h3>Equipo (opcional)</h3>
-      <div class="dos">
-        <label class="campo" for="e-piloto">Piloto<input type="text" id="e-piloto" maxlength="60"></label>
-        <label class="campo" for="e-navegante">Navegante<input type="text" id="e-navegante" maxlength="60"></label>
-        <label class="campo" for="e-auto">Auto<input type="text" id="e-auto" maxlength="60"></label>
-        <label class="campo" for="e-numero">Número<input type="text" id="e-numero" maxlength="10"></label>
-      </div>
-      <label class="campo" for="e-categoria">Categoría<input type="text" id="e-categoria" maxlength="60"></label>
-    </fieldset>
+          <option value="alt1">Alternadas: la 1.ª medida</option>
+          <option value="alt2">Alternadas: la 1.ª de práctica</option>
+        </select></label>
+      <p class="hint f-2" id="e-configHint" hidden>Esta carrera ya tiene vueltas corridas: el tiempo, la distancia y las vueltas medidas no se pueden cambiar.</p>
+      <label class="f f-2" for="e-lugar"><span>Lugar o circuito</span><input type="text" id="e-lugar" maxlength="80"></label>
+      <label class="f f-2" for="e-notas"><span>Notas</span><textarea id="e-notas" maxlength="500"></textarea></label>
+    </div>
     <p class="error" id="editorError" role="alert"></p>
-    <div class="row">
+    <div class="acciones">
       <button class="btn" id="e-guardar" type="button">Guardar carrera</button>
       <button class="btn sec" id="e-borrar" type="button" hidden>Borrar carrera</button>
     </div>
@@ -457,30 +497,20 @@ body.ind-fondo.medida .app, body.ind-fondo.practica .app { background: transpare
 <div class="pantalla" id="p-practica" hidden>
   <div class="config-in">
     <div class="cab"><h2>Práctica libre</h2><button class="btn sec" id="practicaVolver" type="button">Volver</button></div>
-    <fieldset id="fsCarrera">
-      <h3>Prueba</h3>
-      <div class="row">
-        <label for="tMin">Tiempo ideal por vuelta</label>
-        <div class="tiempo">
-          <input type="number" id="tMin" min="0" max="99" inputmode="numeric" aria-label="Minutos">:
-          <input type="number" id="tSeg" min="0" max="59" inputmode="numeric" aria-label="Segundos">.
-          <input type="number" id="tDec" min="0" max="9" inputmode="numeric" aria-label="Décimas" style="width:56px">
-        </div>
+    <div class="form" id="fsCarrera">
+      <div class="f"><span>Tiempo ideal por vuelta</span>
+        <div class="t-campo"><input type="number" id="tMin" min="0" max="99" inputmode="numeric" aria-label="Minutos" placeholder="m">:<input type="number" id="tSeg" min="0" max="59" inputmode="numeric" aria-label="Segundos" placeholder="ss">.<input type="number" id="tDec" min="0" max="9" inputmode="numeric" aria-label="Décimas" placeholder="d"></div>
       </div>
-      <div class="row">
-        <label for="distancia">Distancia de la vuelta (metros)<br><span class="hint" id="velBase"></span></label>
-        <input type="number" id="distancia" min="0" step="1" inputmode="numeric">
-      </div>
-      <div class="row">
-        <label for="patron">Vueltas medidas</label>
+      <label class="f" for="distancia"><span>Distancia por vuelta (m)</span><input type="number" id="distancia" min="0" step="1" inputmode="numeric"></label>
+      <label class="f f-2" for="patron"><span>Vueltas medidas</span>
         <select id="patron">
           <option value="todas">Todas medidas</option>
-          <option value="alt1">Alternadas: 1.ª medida, 2.ª práctica…</option>
-          <option value="alt2">Alternadas: 1.ª práctica, 2.ª medida…</option>
-        </select>
-      </div>
-      <p class="hint" id="carreraHint" hidden>Con la carrera en curso no se puede cambiar el tiempo, la distancia ni el patrón. Tocá Terminar primero.</p>
-    </fieldset>
+          <option value="alt1">Alternadas: la 1.ª medida</option>
+          <option value="alt2">Alternadas: la 1.ª de práctica</option>
+        </select></label>
+      <p class="hint f-2" id="velBase"></p>
+      <p class="hint f-2" id="carreraHint" hidden>Con la carrera en curso no se puede cambiar el tiempo, la distancia ni las vueltas medidas.</p>
+    </div>
     <button class="btn largar" id="practicaLargar" type="button">Ir a largar</button>
     <p class="hint">Estos valores quedan guardados para la próxima práctica.</p>
   </div>
@@ -825,7 +855,7 @@ const Store = (() => {
   const q = (statement, values) => SQL.query({ database: BASE, statement, values: values || [], readonly: false }).then(r => r.values || []);
   const run = (statement, values) => SQL.run({ database: BASE, statement, values: values || [], transaction: true, readonly: false });
   const COLS = ['id', 'nombre', 'fecha', 'lugar', 'notas', 'piloto', 'navegante', 'auto', 'numero', 'categoria',
-                'tiempoIdealMs', 'distanciaM', 'patron', 'practica', 'creada'];
+                'tiempoIdealMs', 'distanciaM', 'patron', 'practica', 'creada', 'vueltasTotal'];
   async function abrirSql() {
     try { await SQL.createConnection({ database: BASE, version: 1, encrypted: false, mode: 'no-encryption', readonly: false }); }
     catch (e) { if (!/already exists/i.test(String(e && e.message))) throw e; }
@@ -836,6 +866,7 @@ const Store = (() => {
         navegante TEXT, auto TEXT, numero TEXT, categoria TEXT, tiempoIdealMs INTEGER, distanciaM INTEGER, patron TEXT,
         practica INTEGER, creada TEXT);
       CREATE TABLE IF NOT EXISTS vueltas (carreraId TEXT, largada INTEGER, n INTEGER, datos TEXT, PRIMARY KEY (carreraId, largada, n));` });
+    try { await SQL.execute({ database: BASE, transaction: true, readonly: false, statements: 'ALTER TABLE carreras ADD COLUMN vueltasTotal INTEGER;' }); } catch (e) { }   // bases de la 1.1 a 1.3
   }
   const sqlCarrera = c => run('INSERT OR REPLACE INTO carreras (' + COLS.join(',') + ') VALUES (' + COLS.map(() => '?').join(',') + ')',
                               COLS.map(k => k === 'practica' ? (c.practica ? 1 : 0) : (c[k] === undefined ? null : c[k])));
@@ -974,7 +1005,7 @@ let largadaN = 1;
 function nuevaCarrera() {   // datos de la carrera elegida → lo que necesita el motor para esta largada
   const c = seleccion;
   largadaN = c.vueltas.reduce((m, v) => Math.max(m, v.largada || 1), 0) + 1;
-  carrera = { tiempoIdealMs: c.tiempoIdealMs, distanciaM: c.distanciaM, patron: c.patron, antirreboteMs: cfg.antirreboteMs,
+  carrera = { tiempoIdealMs: c.tiempoIdealMs, distanciaM: c.distanciaM, patron: c.patron, antirreboteMs: cfg.antirreboteMs, vueltasTotal: c.vueltasTotal || 0,
               umbralPrecisionM: cfg.umbralPrecisionM, calibrar: cfg.calibrar, congelarMs: Math.max(cfg.cuentaN, 3) * 1000,
               factorGps: 1, vueltas: [] };
   motor = Motor.crear(carrera, alEvento);
@@ -1054,10 +1085,13 @@ function alEvento(tipo, d) {
   if (tipo === 'vuelta') {
     velMaxVuelta = 0;
     resetVueltaAudio();
-    if (cfg.avisoInicio) Audio.hablar('Vuelta ' + d.n + ', ' + (d.medida ? 'medida' : 'práctica'));
+    const tot = carrera && carrera.vueltasTotal;
+    if (tot && d.n > tot) return;   // la carrera ya terminó
+    if (cfg.avisoInicio) Audio.hablar((tot && d.n === tot ? 'Última vuelta' : 'Vuelta ' + d.n) + ', ' + (d.medida ? 'medida' : 'práctica'));
   } else if (tipo === 'cerrada') {
     Store.agregarVuelta(seleccion, Object.assign({ largada: largadaN }, d));
     mostrarUltima(d);
+    if (carrera.vueltasTotal && d.n >= carrera.vueltasTotal) setTimeout(() => terminarCarrera('Carrera completa'), 0);
   } else if (tipo === 'ignorada') {
     avisar('Marca ignorada (antirrebote)');
   }
@@ -1147,8 +1181,8 @@ const TIPOS_W = {
   ideal: { nombre: 'Tiempo ideal' },
   proxima: { nombre: 'Próxima vuelta' },
   ultima: { nombre: 'Última vuelta', extra: true },
-  simulador: { nombre: 'Simulador de velocidad', formas: false, fijo: true },
-  marcar: { nombre: 'Botón MARCAR', formas: false, fijo: true }
+  simulador: { nombre: 'Simulador de velocidad', formas: false, unico: true },
+  marcar: { nombre: 'Botón MARCAR', formas: false, unico: true, pideBoton: true }
 };
 // Posiciones como fracción del tablero (sirve para cualquier tamaño de pantalla). En los redondos, w es el diámetro (fracción del ancho).
 const REF_W = 378, REF_H = 800;
@@ -1165,8 +1199,8 @@ const WIDGETS_DEF = [
 ];
 function normalizarWidgets() {
   if (cfg.widgetsV !== 3 || !Array.isArray(cfg.widgets)) { cfg.widgets = JSON.parse(JSON.stringify(WIDGETS_DEF)); cfg.widgetsV = 3; }
-  for (const t of ['marcar', 'simulador'])   // estos dos siempre existen
-    if (!cfg.widgets.some(w => w.t === t)) cfg.widgets.push(JSON.parse(JSON.stringify(WIDGETS_DEF.find(w => w.t === t))));
+  // sin pulsador físico asignado, el botón MARCAR de la pantalla es obligatorio
+  if (!cfg.teclaNombre && !cfg.widgets.some(w => w.t === 'marcar')) cfg.widgets.push(JSON.parse(JSON.stringify(WIDGETS_DEF.find(w => w.t === 'marcar'))));
 }
 let wInst = [], modoEdicion = false, selW = -1, velMaxVuelta = 0, mejorDif = null;
 const NS = 'http://www.w3.org/2000/svg';
@@ -1235,7 +1269,8 @@ function crearWidget(def) {
   switch (def.t) {
     case 'tipo': {
       box.innerHTML = ''; const chip = el('span', '', 'chip-vuelta'); box.append(num, chip);
-      upd = v => { ponerNum(num, v.enCurso ? 'VUELTA ' + v.n : 'LISTO'); ponerTxt(chip, v.medida ? 'MEDIDA' : 'PRÁCTICA');
+      upd = v => { const tot = v.enCurso ? (carrera && carrera.vueltasTotal) : (seleccion && seleccion.vueltasTotal);
+                   ponerNum(num, v.enCurso ? 'VUELTA ' + v.n + (tot ? '/' + tot : '') : (tot ? tot + ' VUELTAS' : 'LISTO')); ponerTxt(chip, v.medida ? 'MEDIDA' : 'PRÁCTICA');
                    box.classList.toggle('es-medida', !!v.medida); box.classList.toggle('es-practica', !v.medida); };
       break;
     }
@@ -1312,6 +1347,7 @@ function construirTablero() {
   normalizarWidgets();
   const tab = $('tablero'), app = $('app');
   app.append($('btnMarcar'), $('sim'));   // se guardan antes de vaciar el tablero
+  $('btnMarcar').hidden = true;
   tab.innerHTML = ''; wInst = [];
   tab.classList.toggle('editando', modoEdicion);
   const W = tab.clientWidth, H = tab.clientHeight;
@@ -1352,7 +1388,10 @@ function dibujarEdicion() {
     else { const d = Math.min(def.w * W, def.h * H); def.forma = 'redondo'; def.w = d / W; }
   });
   if (tipo.extra) b(def.extra ? 'Sin dato extra' : 'Dato extra', () => { def.extra = !def.extra; });
-  if (!tipo.fijo) b('✕ Quitar', () => { cfg.widgets.splice(selW, 1); selW = -1; });
+  b('✕ Quitar', () => {
+    if (tipo.pideBoton && !cfg.teclaNombre) { avisar('Para quitar MARCAR, primero asigná un pulsador en Ajustes → Pulsador'); return; }
+    cfg.widgets.splice(selW, 1); selW = -1;
+  });
   menu.hidden = !menu.children.length;
   const tr = tab.getBoundingClientRect(), ar = $('app').getBoundingClientRect();
   let my = tr.top - ar.top + T - 62; if (my < 70) my = tr.top - ar.top + T + Hd + 16;
@@ -1461,12 +1500,18 @@ function abrirConfigPantalla() {   // desde el inicio: la pantalla de carrera re
 function cerrarConfigPantalla() { modoEdicion = false; selW = -1; construirTablero(); mostrar('inicio'); }
 (() => {
   const sel = $('wAgregar');
-  for (const k in TIPOS_W) { if (TIPOS_W[k].fijo) continue; const o = el('option', TIPOS_W[k].nombre); o.value = k; sel.append(o); }
+  const llenar = () => {   // los únicos (MARCAR, simulador) solo se ofrecen si no están en pantalla
+    sel.length = 1;
+    for (const k in TIPOS_W) { if (TIPOS_W[k].unico && cfg.widgets.some(w => w.t === k)) continue; const o = el('option', TIPOS_W[k].nombre); o.value = k; sel.append(o); }
+  };
+  $('edFab').addEventListener('pointerdown', llenar);
   sel.addEventListener('change', () => {
     const t = sel.value; sel.value = ''; if (!t) return;
     const est = TIPOS_W[t].estilos;
-    cfg.widgets.push(Object.assign({ t, e: est ? Object.keys(est)[0] : undefined, forma: t === 'velocimetro' ? 'redondo' : undefined },
-                                   t === 'velocimetro' ? caja(80, 280, 220, 220) : caja(70, 340, 240, 90)));
+    const base = WIDGETS_DEF.find(w => w.t === t);
+    cfg.widgets.push(base && TIPOS_W[t].unico ? JSON.parse(JSON.stringify(base)) :
+      Object.assign({ t, e: est ? Object.keys(est)[0] : undefined, forma: t === 'velocimetro' ? 'redondo' : undefined },
+                    t === 'velocimetro' ? caja(80, 280, 220, 220) : caja(70, 340, 240, 90)));
     selW = cfg.widgets.length - 1; $('edPanel').hidden = true;
     Store.setConfig(cfg); construirTablero();
   });
@@ -1598,13 +1643,18 @@ $('btnTerminar').addEventListener('click', () => {
     return;
   }
   clearTimeout(terminarArmado); terminarArmado = null; b.classList.remove('armed'); b.textContent = 'Terminar';
+  terminarCarrera('Carrera terminada');
+});
+function terminarCarrera(motivo) {
+  if (!motor || !motor.enCurso) return;
   motor.terminar();
   if (wakeLock) { try { wakeLock.release(); } catch (e) {} }
   if (KeepAwake) KeepAwake.allowSleep().catch(() => {});
   if (Beto) Beto.volumenCarrera({ activo: false }).catch(() => {});
-  avisar('Carrera terminada: ' + carrera.vueltas.length + ' vueltas guardadas');
+  avisar(motivo + ': ' + carrera.vueltas.length + ' vueltas guardadas');
+  if (motivo === 'Carrera completa') Audio.hablar('Carrera completa');
   mostrar('detalle');
-});
+}
 
 /* ================= PANEL DE CONFIGURACIÓN ================= */
 function cargarForm() {
@@ -1620,7 +1670,8 @@ function cargarForm() {
   $('tema').value = cfg.tema; $('modoSol').value = cfg.modoSol; $('indicador').value = cfg.indicador;
   $('volumenMax').checked = cfg.volumenMax; $('canalAudio').value = cfg.canalAudio;
   const enCurso = !!(motor && motor.enCurso);
-  $('fsCarrera').disabled = enCurso; $('carreraHint').hidden = !enCurso;
+  for (const id of ['tMin', 'tSeg', 'tDec', 'distancia', 'patron']) $(id).disabled = enCurso;
+  $('carreraHint').hidden = !enCurso;
   velBase(); infoPulsador();
 }
 const num = (id, def, min, max) => { const v = parseFloat($(id).value); return isFinite(v) ? Math.min(max, Math.max(min, v)) : def; };
@@ -1745,23 +1796,32 @@ function dibujarCarreras() {
   const ant = Store.carreras.filter(c => c.practica || c.fecha < hoy)
     .sort((a, b) => b.fecha.localeCompare(a.fecha) || String(b.creada).localeCompare(String(a.creada)));
   if (!prox.length && !ant.length) { cont.append(el('p', 'Todavía no hay carreras. Tocá «Nueva carrera» para cargar la primera.', 'vacio')); return; }
+  const t = el('table', undefined, 'tabla tabla-c'), th = el('thead'), hr = el('tr');
+  ['Fecha', 'Carrera', 'Vueltas', 'Error'].forEach(h => hr.append(el('th', h)));
+  th.append(hr); t.append(th);
+  const tb = el('tbody');
   const grupo = (titulo, lista) => {
     if (!lista.length) return;
-    cont.append(el('h3', titulo, 'grupo'));
+    const g = el('tr', undefined, 'grupo-fila'), td = el('td', titulo); td.colSpan = 4; g.append(td); tb.append(g);
     lista.forEach((c, i) => {
-      const item = boton('', 'item-carrera', () => { seleccion = c; mostrar('detalle'); });
-      const r = resumen(c);
-      const fecha = c.fecha === hoy ? 'Hoy' : fechaCorta(c.fecha);
-      item.append(el('span', fecha + (titulo === 'Próximas' && i === 0 ? ' · la próxima' : ''), 'item-fecha'), el('b', c.nombre),
-                  el('span', [c.lugar, c.practica ? 'práctica libre' : null, r.total ? r.total + ' vueltas' + (r.medidas ? ' · error ' + seg(r.sumaMs) + ' s' : '') : 'sin correr'].filter(Boolean).join(' · '), 'hint'));
-      cont.append(item);
+      const r = resumen(c), tr = el('tr', undefined, 'fila-carrera' + (titulo === 'Próximas' && i === 0 ? ' proxima-fila' : ''));
+      tr.tabIndex = 0; tr.setAttribute('role', 'button');
+      const abrir = () => { seleccion = c; mostrar('detalle'); };
+      tr.onclick = abrir; tr.onkeydown = ev => { if (ev.key === 'Enter') abrir(); };
+      const nom = el('td'); nom.append(el('b', c.nombre)); if (c.lugar) nom.append(el('span', c.lugar, 'sub'));
+      tr.append(el('td', c.fecha === hoy ? 'Hoy' : fechaCorta(c.fecha).replace(/ de /g, ' ')), nom,
+                el('td', (r.total ? new Set(c.vueltas.map(v => (v.largada || 1) + '-' + v.n)).size : 0) + (c.vueltasTotal ? '/' + c.vueltasTotal : '')),
+                el('td', r.medidas ? seg(r.sumaMs) + ' s' : '–'));
+      tb.append(tr);
     });
   };
   grupo('Próximas', prox); grupo('Anteriores', ant);
+  t.append(tb);
+  const wrap = el('div', undefined, 'tabla-wrap'); wrap.append(t); cont.append(wrap);
 }
 
 /* ---------- Editor de carrera ---------- */
-const CAMPOS = ['nombre', 'fecha', 'lugar', 'notas', 'piloto', 'navegante', 'auto', 'numero', 'categoria'];
+const CAMPOS = ['nombre', 'fecha', 'lugar', 'notas'];
 function abrirEditor(c) {
   editando = c;
   const d = c || { nombre: '', fecha: hoyISO(), tiempoIdealMs: cfg.tiempoIdealMs, distanciaM: cfg.distanciaM, patron: cfg.patron };
@@ -1771,17 +1831,22 @@ function abrirEditor(c) {
   $('editorTitulo').textContent = c ? 'Editar carrera' : 'Nueva carrera';
   $('e-borrar').hidden = !c; $('e-borrar').textContent = 'Borrar carrera'; $('editorError').textContent = '';
   const corrida = !!(c && c.vueltas.length);
-  $('e-config').disabled = corrida; $('e-configHint').hidden = !corrida;
+  for (const id of ['e-min', 'e-seg', 'e-dec', 'e-distancia', 'e-patron']) $(id).disabled = corrida;
+  $('e-configHint').hidden = !corrida;
+  $('e-vueltas').value = d.vueltasTotal || '';
   mostrar('editor');
 }
 function guardarEditor() {
   const v = id => $(id).value.trim();
   if (!v('e-nombre')) { $('editorError').textContent = 'Poné un nombre a la carrera.'; $('e-nombre').focus(); return; }
   if (!v('e-fecha')) { $('editorError').textContent = 'Elegí la fecha de la carrera.'; return; }
+  const nV = Math.round(+v('e-vueltas') || 0);
+  if (nV < 1) { $('editorError').textContent = 'Poné la cantidad de vueltas de la carrera.'; $('e-vueltas').focus(); return; }
   const T = ((+v('e-min') || 0) * 60 + (+v('e-seg') || 0)) * 1000 + (+v('e-dec') || 0) * 100;
   if (T < 5000) { $('editorError').textContent = 'El tiempo ideal tiene que ser de al menos 5 segundos.'; return; }
   const c = editando || { id: nuevaId(), practica: false, creada: new Date().toISOString(), vueltas: [] };
   for (const k of CAMPOS) c[k] = v('e-' + k);
+  c.vueltasTotal = nV;
   if (!c.vueltas.length) { c.tiempoIdealMs = Math.round(T); c.distanciaM = Math.max(0, Math.round(+v('e-distancia') || 0)); c.patron = $('e-patron').value; }
   Store.guardarCarrera(c);
   seleccion = c; mostrar('detalle');
@@ -1805,27 +1870,31 @@ function dibujarDetalle() {
   const c = seleccion, cont = $('detalleCont'); cont.innerHTML = '';
   if (!c) { mostrar('carreras'); return; }
   cont.append(el('h2', c.nombre), el('p', fechaLarga(c.fecha) + (c.lugar ? ' · ' + c.lugar : ''), 'hint'));
-  const ficha = el('dl', undefined, 'ficha');
-  const fila = (k, val) => { if (val) ficha.append(el('dt', k), el('dd', val)); };
-  fila('Vuelta ideal', fmt(c.tiempoIdealMs)); fila('Distancia', c.distanciaM ? c.distanciaM.toLocaleString('es-AR') + ' m (' + (c.distanciaM / (c.tiempoIdealMs / 1000) * 3.6).toFixed(1).replace('.', ',') + ' km/h)' : '');
-  fila('Vueltas medidas', nombrePatron(c.patron)); fila('Piloto', c.piloto); fila('Navegante', c.navegante); fila('Auto', c.auto);
-  fila('Número', c.numero); fila('Categoría', c.categoria); fila('Notas', c.notas);
-  const acc = el('div', undefined, 'row');
-  acc.append(boton(c.vueltas.length ? 'LARGAR DE NUEVO' : 'LARGAR', 'btn largar', () => irACrono(c)));
+  const datos = el('div', undefined, 'datos-c');
+  const dato = (k, val) => { if (!val) return; const d = el('div', undefined, 'dato-c'); d.append(el('span', k), el('b', val)); datos.append(d); };
+  dato('Vueltas', c.vueltasTotal ? String(c.vueltasTotal) : 'sin límite');
+  dato('Tiempo ideal', fmt(c.tiempoIdealMs));
+  dato('Distancia', c.distanciaM ? c.distanciaM.toLocaleString('es-AR') + ' m' : '');
+  dato('Promedio', c.distanciaM ? (c.distanciaM / (c.tiempoIdealMs / 1000) * 3.6).toFixed(1).replace('.', ',') + ' km/h' : '');
+  dato('Medidas', nombrePatron(c.patron)); datos.lastChild.querySelector('b').classList.add('txt');
+  cont.append(datos);
+  if (c.notas) cont.append(el('p', c.notas, 'hint'));
+  const acc = el('div', undefined, 'acciones');
+  acc.append(boton(c.vueltas.length ? 'LARGAR OTRA VEZ' : 'LARGAR', 'btn largar', () => irACrono(c)));
   if (!c.practica) acc.append(boton('Editar', 'btn sec', () => abrirEditor(c)));
-  cont.append(ficha, acc);
+  cont.append(acc);
   const res = el('div'); cont.append(el('h3', 'Resultados'), res);
   renderResultados(c, res);
 }
 function renderResultados(c, cont) {
   if (!c.vueltas.length) { cont.append(el('p', 'Todavía no se corrió. Los resultados aparecen acá al terminar.', 'vacio')); return; }
-  const r = resumen(c), box = el('div', undefined, 'hist-carrera'), res = el('div', undefined, 'hist-res');
-  const dato = (lbl, val) => { const s = el('span', lbl + ' '); s.append(el('strong', val)); return s; };
-  res.append(dato('Vueltas', String(r.total)), dato('Medidas', String(r.medidas)));
-  if (r.medidas) res.append(dato('Error total', seg(r.sumaMs) + ' s'), dato('Promedio', seg(r.promMs) + ' s'), dato('Mejor', seg(r.mejorMs) + ' s'));
+  const r = resumen(c), box = el('div', undefined, 'res-c'), res = el('div', undefined, 'datos-c');
+  const dato = (lbl, val) => { const d = el('div', undefined, 'dato-c'); d.append(el('span', lbl), el('b', val)); return d; };
+  res.append(dato('Corridas', String(r.total)), dato('Medidas', String(r.medidas)));
+  if (r.medidas) res.append(dato('Error total', seg(r.sumaMs) + ' s'), dato('Error promedio', seg(r.promMs) + ' s'), dato('Mejor vuelta', seg(r.mejorMs) + ' s'));
   const varias = new Set(c.vueltas.map(v => v.largada || 1)).size > 1;
   const wrap = el('div', undefined, 'tabla-wrap'), t = el('table', undefined, 'tabla');
-  const hr = el('tr'); [varias ? 'Larg.' : null, 'Vuelta', 'Tipo', 'Tiempo', 'Diferencia', 'Metros', 'km/h', 'Marca'].filter(Boolean).forEach(h => hr.append(el('th', h)));
+  const hr = el('tr'); [varias ? 'Larg.' : null, 'Vuelta', 'Tipo', 'Tiempo', 'Diferencia', 'km/h'].filter(Boolean).forEach(h => hr.append(el('th', h)));
   const thead = el('thead'); thead.append(hr); t.append(thead);
   const tb = el('tbody');
   for (const v of c.vueltas) {
@@ -1833,8 +1902,7 @@ function renderResultados(c, cont) {
     tipo.append(el('span', undefined, 'tag ' + (v.medida ? 'm' : 'p')), document.createTextNode(v.medida ? 'Medida' : 'Práctica'));
     if (varias) tr.append(el('td', String(v.largada || 1)));
     tr.append(el('td', String(v.n)), tipo, el('td', fmt(v.realMs)), el('td', fmtDif(v.difMs), v.difMs !== 0 ? 'dif-mas' : ''),
-              el('td', v.distM ? v.distM.toLocaleString('es-AR') : '–'), el('td', v.velPromKmh ? String(v.velPromKmh).replace('.', ',') : '–'),
-              el('td', v.fuente === 'pulsador' ? 'Pulsador' : v.fuente === 'teclado' ? 'Teclado' : 'Pantalla'));
+              el('td', v.velPromKmh ? String(v.velPromKmh).replace('.', ',') : '–'));
     tb.append(tr);
   }
   t.append(tb); wrap.append(t);
@@ -2017,3 +2085,5 @@ requestAnimationFrame(dibujar);
 })();
 })();
 </script>
+</body>
+</html>
