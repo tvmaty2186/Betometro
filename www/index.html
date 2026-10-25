@@ -402,6 +402,15 @@ html, body { margin: 0; }
 .config .row:has(> .btn + .btn) { grid-template-columns: 1fr 1fr; }
 .config .row > .btn { width: 100%; }
 .config fieldset > .hint { margin: 6px 0; }
+
+/* ===== 1.3.2 ===== */
+.w-tipo { flex-direction: column; justify-content: center; align-items: center; gap: 0; padding: 6px; }
+.w-tipo.es-medida { background: var(--medida); } .w-tipo.es-practica { background: var(--practica); }
+.w-tipo .w-num { color: #fff; font-size: min(36cqh, calc(var(--k) * .9cqw / var(--n, 8) / var(--ancho, 1))); }
+.w-tipo .chip-vuelta { background: none !important; color: #fff; padding: 0; font-size: min(34cqh, calc(var(--k) * .9cqw / 8 / var(--ancho, 1))); transform: scaleX(var(--ancho, 1)); }
+.w-num { transform: scaleX(var(--ancho, 1)); font-size: min(58cqh, calc(var(--k) * 1cqw / var(--n, 4) / var(--ancho, 1))); }
+.w-cuenta .w-num { font-size: min(82cqh, calc(var(--k) * 1.05cqw / var(--n, 6) / var(--ancho, 1))); }
+.w-delta.e-numero .w-num { font-size: min(70cqh, calc(var(--k) * .95cqw / var(--n, 12) / var(--ancho, 1))); }
 </style>
 </head>
 <body>
@@ -680,6 +689,16 @@ html, body { margin: 0; }
     </fieldset>
 
     <fieldset>
+      <h3>Modo carrera</h3>
+      <div class="row">
+        <label for="modoCarreraChk">Al largar: No molestar y pantalla completa (sin llamadas, mensajes ni notificaciones)</label>
+        <input type="checkbox" id="modoCarreraChk">
+      </div>
+      <p class="hint" id="noMolestarInfo"></p>
+      <div class="row"><button class="btn sec" id="btnNoMolestar" type="button">Dar permiso de No molestar</button></div>
+    </fieldset>
+
+    <fieldset>
       <h3>Pulsador</h3>
       <p class="hint" id="pulsadorInfo"></p>
       <div class="row">
@@ -934,7 +953,7 @@ const DEF = { tiempoIdealMs: 240000, distanciaM: 3200, patron: 'alt1', cuentaN: 
               anticipoMs: 250, avisoInicio: true, avisoProx: true, antirreboteMs: 3000, colMedida: '#b3132b', colPractica: '#0f6e3a',
               velActiva: true, fuenteVel: 'sim', simModo: 'fija', simRuido: false, simVelKmh: 48, umbralPrecisionM: 20,
               calibrar: true, vozVel: false, vozVelCadaS: 15, teclas: null, teclaWeb: null, teclaNombre: '', pulsadorNombre: '',
-              tema: 'rally', modoSol: 'no', indicador: 'marco', volumenMax: true, canalAudio: 'alarma', widgets: null };
+              modoCarrera: true, tema: 'sport', modoSol: 'no', indicador: 'marco', volumenMax: true, canalAudio: 'alarma', widgets: null };
 if (NATIVO) DEF.anticipoMs = 40;   // en nativa los números ya están grabados: solo queda el silencio inicial del audio
 const cfg = Object.assign({}, DEF, Store.config || {});
 
@@ -1187,18 +1206,16 @@ const TIPOS_W = {
 // Posiciones como fracción del tablero (sirve para cualquier tamaño de pantalla). En los redondos, w es el diámetro (fracción del ancho).
 const REF_W = 378, REF_H = 800;
 const caja = (x, y, w, h) => ({ x: x / REF_W, y: y / REF_H, w: w / REF_W, h: h / REF_H });
-const WIDGETS_DEF = [
-  Object.assign({ t: 'tipo' }, caja(12, 40, 354, 56)),
-  Object.assign({ t: 'cuenta', e: 'numeros', extra: true }, caja(12, 108, 354, 160)),
-  Object.assign({ t: 'delta', e: 'numero' }, caja(12, 280, 354, 64)),
-  Object.assign({ t: 'velocimetro', e: 'analogico', forma: 'redondo', extra: true }, caja(8, 358, 232, 232)),
-  Object.assign({ t: 'necesaria' }, caja(252, 358, 116, 108)),
-  Object.assign({ t: 'faltan' }, caja(252, 480, 116, 108)),
-  Object.assign({ t: 'simulador' }, caja(12, 604, 354, 52)),
-  Object.assign({ t: 'marcar' }, caja(12, 668, 354, 124))
+const WIDGETS_DEF = [   // pantalla de fábrica (la que armó Matías)
+  Object.assign({ t: 'velocimetro', e: 'analogico', forma: 'redondo' }, caja(27, 0, 321, 321)),
+  Object.assign({ t: 'tipo' }, caja(14, 233, 98, 86)),
+  Object.assign({ t: 'necesaria' }, caja(280, 229, 98, 90)),
+  Object.assign({ t: 'cuenta', e: 'numeros', ancho: 1.2 }, caja(0, 325, 378, 139)),
+  Object.assign({ t: 'faltan' }, caja(302, 403, 76, 59)),
+  Object.assign({ t: 'marcar' }, caja(0, 481, 378, 284))
 ];
 function normalizarWidgets() {
-  if (cfg.widgetsV !== 3 || !Array.isArray(cfg.widgets)) { cfg.widgets = JSON.parse(JSON.stringify(WIDGETS_DEF)); cfg.widgetsV = 3; }
+  if (cfg.widgetsV !== 4 || !Array.isArray(cfg.widgets)) { cfg.widgets = JSON.parse(JSON.stringify(WIDGETS_DEF)); cfg.widgetsV = 4; }
   // sin pulsador físico asignado, el botón MARCAR de la pantalla es obligatorio
   if (!cfg.teclaNombre && !cfg.widgets.some(w => w.t === 'marcar')) cfg.widgets.push(JSON.parse(JSON.stringify(WIDGETS_DEF.find(w => w.t === 'marcar'))));
 }
@@ -1359,6 +1376,7 @@ function construirTablero() {
     const w = crearWidget(def), g = geom(def, W, H);
     Object.assign(w.el.style, { left: g.left + 'px', top: g.top + 'px', width: g.width + 'px', height: g.height + 'px' });
     w.el.classList.toggle('redondo', def.forma === 'redondo');
+    w.el.style.setProperty('--ancho', def.ancho || 1);
     w.el.classList.toggle('elegido', modoEdicion && i === selW);
     w.el.dataset.i = i; w.el.hidden = false;
     tab.append(w.el); wInst.push(w);
@@ -1388,11 +1406,17 @@ function dibujarEdicion() {
     else { const d = Math.min(def.w * W, def.h * H); def.forma = 'redondo'; def.w = d / W; }
   });
   if (tipo.extra) b(def.extra ? 'Sin dato extra' : 'Dato extra', () => { def.extra = !def.extra; });
+  const conNumero = !['marcar', 'simulador'].includes(def.t) && !(def.t === 'velocimetro' && def.e !== 'digital') && !(def.t === 'delta' && def.e === 'barra');
+  if (conNumero) {   // números más angostos o más anchos (el alto lo pone el tamaño del widget)
+    b('Números −', () => { def.ancho = Math.max(0.7, Math.round(((def.ancho || 1) - 0.1) * 10) / 10); });
+    b('Números +', () => { def.ancho = Math.min(1.8, Math.round(((def.ancho || 1) + 0.1) * 10) / 10); });
+  }
   b('✕ Quitar', () => {
     if (tipo.pideBoton && !cfg.teclaNombre) { avisar('Para quitar MARCAR, primero asigná un pulsador en Ajustes → Pulsador'); return; }
     cfg.widgets.splice(selW, 1); selW = -1;
   });
   menu.hidden = !menu.children.length;
+  menu.style.flexWrap = 'wrap'; menu.style.maxWidth = 'calc(100vw - 12px)';
   const tr = tab.getBoundingClientRect(), ar = $('app').getBoundingClientRect();
   let my = tr.top - ar.top + T - 62; if (my < 70) my = tr.top - ar.top + T + Hd + 16;
   menu.style.top = my + 'px';
@@ -1567,6 +1591,20 @@ function dibujar() {
   requestAnimationFrame(dibujar);
 }
 
+/* ================= MODO CARRERA: No molestar y pantalla completa ================= */
+let avisoNoMolestar = false;
+function modoCarrera(activo) {
+  if (!Beto || (activo && !cfg.modoCarrera)) return;
+  Beto.modoCarrera({ activo }).then(r => {
+    if (activo && !r.noMolestar && !avisoNoMolestar) { avisoNoMolestar = true; avisar('Para silenciar llamadas y notificaciones, permití «No molestar» en Ajustes → Modo carrera'); }
+  }).catch(() => {});
+}
+async function estadoNoMolestar() {
+  if (!Beto) return 'Solo en la app instalada.';
+  try { const r = await Beto.estadoNoMolestar(); return r.permitido ? 'Permiso concedido: al largar se silencian llamadas, mensajes y notificaciones.' : 'Falta el permiso de «No molestar». Tocá el botón para darlo.'; }
+  catch (e) { return 'No se pudo consultar.'; }
+}
+
 /* ================= MARCAR ================= */
 let wakeLock = null;
 async function pedirPantallaEncendida() {
@@ -1582,7 +1620,7 @@ function marcar(tMarca, fuente) {
   const enCurso = !!(motor && motor.enCurso);
   if (!enCurso && (pantalla !== 'crono' || !$('config').hidden || !seleccion)) return;   // fuera del cronómetro no se larga sin querer
   Audio.desbloquear();
-  if (!motor || !motor.enCurso) { nuevaCarrera(); if (!Store.buscar(seleccion.id)) Store.guardarCarrera(seleccion); ultimaVuelta = null; mejorDif = null; velMaxVuelta = 0; if (Beto && cfg.volumenMax) Beto.volumenCarrera({ activo: true, canal: cfg.canalAudio }).catch(() => {}); pedirPantallaEncendida(); }
+  if (!motor || !motor.enCurso) { nuevaCarrera(); if (!Store.buscar(seleccion.id)) Store.guardarCarrera(seleccion); ultimaVuelta = null; mejorDif = null; velMaxVuelta = 0; modoCarrera(true); if (Beto && cfg.volumenMax) Beto.volumenCarrera({ activo: true, canal: cfg.canalAudio }).catch(() => {}); pedirPantallaEncendida(); }
   const largada = !motor.enCurso;
   motor.marcar(t, fuente || 'pantalla');
   if (largada && ultimaMuestra) motor.muestra(Object.assign({}, ultimaMuestra, { t }));   // la distancia arranca en la largada
@@ -1635,6 +1673,8 @@ if (Beto) {
 }
 
 let terminarArmado = null;
+$('btnNoMolestar').addEventListener('click', () => { if (Beto) Beto.pedirNoMolestar().catch(() => {}); else avisar('Solo en la app instalada'); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && !$('config').hidden) estadoNoMolestar().then(t => { $('noMolestarInfo').textContent = t; }); });
 $('btnTerminar').addEventListener('click', () => {
   const b = $('btnTerminar');
   if (!terminarArmado) {
@@ -1651,6 +1691,7 @@ function terminarCarrera(motivo) {
   if (wakeLock) { try { wakeLock.release(); } catch (e) {} }
   if (KeepAwake) KeepAwake.allowSleep().catch(() => {});
   if (Beto) Beto.volumenCarrera({ activo: false }).catch(() => {});
+  modoCarrera(false);
   avisar(motivo + ': ' + carrera.vueltas.length + ' vueltas guardadas');
   if (motivo === 'Carrera completa') Audio.hablar('Carrera completa');
   mostrar('detalle');
@@ -1669,6 +1710,7 @@ function cargarForm() {
   $('vozVel').checked = cfg.vozVel; $('vozVelCada').value = cfg.vozVelCadaS;
   $('tema').value = cfg.tema; $('modoSol').value = cfg.modoSol; $('indicador').value = cfg.indicador;
   $('volumenMax').checked = cfg.volumenMax; $('canalAudio').value = cfg.canalAudio;
+  $('modoCarreraChk').checked = cfg.modoCarrera !== false; estadoNoMolestar().then(t => { $('noMolestarInfo').textContent = t; });
   const enCurso = !!(motor && motor.enCurso);
   for (const id of ['tMin', 'tSeg', 'tDec', 'distancia', 'patron']) $(id).disabled = enCurso;
   $('carreraHint').hidden = !enCurso;
@@ -1694,7 +1736,7 @@ function leerForm() {
   cfg.calibrar = $('calibrar').checked; cfg.vozVel = $('vozVel').checked;
   const antes = { vel: cfg.velActiva, sol: cfg.modoSol, canal: cfg.canalAudio };
   cfg.tema = $('tema').value; cfg.modoSol = $('modoSol').value; cfg.indicador = $('indicador').value;
-  cfg.volumenMax = $('volumenMax').checked; cfg.canalAudio = $('canalAudio').value;
+  cfg.volumenMax = $('volumenMax').checked; cfg.canalAudio = $('canalAudio').value; cfg.modoCarrera = $('modoCarreraChk').checked;
   setTimeout(() => {   // efectos que dependen de lo que cambió
     if (antes.sol !== cfg.modoSol) actualizarSensorLuz();
     if (antes.canal !== cfg.canalAudio && Beto) Beto.configurarAudio({ canal: cfg.canalAudio }).catch(() => {});
@@ -1959,6 +2001,9 @@ async function dibujarChequeo() {
     try { if (navigator.getBattery) { const b = await navigator.getBattery(); const p = Math.round(b.level * 100);
           bat = { ok: p >= 30 || b.charging, txt: p + ' %' + (b.charging ? ', cargando.' : p < 30 ? ': conviene cargar antes de largar.' : '.') }; } } catch (e) {}
     filas.push(['Batería', bat]);
+    if (Beto) { let nm = { ok: null, txt: 'No se pudo consultar.' };
+      try { const r = await Beto.estadoNoMolestar(); nm = r.permitido ? { ok: true, txt: 'Al largar se silencian llamadas y notificaciones.' } : { ok: false, txt: 'Falta el permiso: Ajustes → Modo carrera.' }; } catch (e) {}
+      filas.push(['No molestar', nm]); }
     // Base de datos
     filas.push(['Datos', { ok: true, txt: Store.motor === 'sqlite' ? 'Base de datos del teléfono, con respaldo.' : 'Guardado local (modo web).' }]);
     const cont = $('chequeoLista'); cont.innerHTML = '';

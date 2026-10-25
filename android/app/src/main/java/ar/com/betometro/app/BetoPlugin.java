@@ -8,6 +8,11 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.hardware.input.InputManager;
 import android.media.AudioManager;
+import android.app.NotificationManager;
+import android.view.Window;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
 import android.net.Uri;
@@ -112,8 +117,78 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
         }
     }
 
+    // ======================= MODO CARRERA =======================
+    private int filtroPrevio = -1;
+    private NotificationManager.Policy politicaPrevia = null;
+
+    private NotificationManager notificaciones() { return (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE); }
+
+    @PluginMethod
+    public void estadoNoMolestar(PluginCall call) {
+        NotificationManager nm = notificaciones();
+        call.resolve(new JSObject().put("permitido", nm != null && nm.isNotificationPolicyAccessGranted()));
+    }
+
+    @PluginMethod
+    public void pedirNoMolestar(PluginCall call) {
+        Intent i = new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getContext().startActivity(i);
+        call.resolve();
+    }
+
+    /** Al largar: pantalla completa y No molestar (solo suenan las alarmas, que es el canal de Betómetro). Al terminar: todo como estaba. */
+    @PluginMethod
+    public void modoCarrera(PluginCall call) {
+        final boolean activo = call.getBoolean("activo", false);
+        getActivity().runOnUiThread(() -> {
+            Window w = getActivity().getWindow();
+            WindowInsetsControllerCompat c = WindowCompat.getInsetsController(w, w.getDecorView());
+            if (activo) {
+                c.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+                c.hide(WindowInsetsCompat.Type.systemBars());
+            } else {
+                c.show(WindowInsetsCompat.Type.systemBars());
+            }
+        });
+        boolean ok = activo ? activarNoMolestar() : restaurarNoMolestar();
+        call.resolve(new JSObject().put("noMolestar", ok));
+    }
+
+    private boolean activarNoMolestar() {
+        NotificationManager nm = notificaciones();
+        if (nm == null || !nm.isNotificationPolicyAccessGranted()) return false;
+        try {
+            if (filtroPrevio < 0) { filtroPrevio = nm.getCurrentInterruptionFilter(); politicaPrevia = nm.getNotificationPolicy(); }
+            int efectos;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                efectos = NotificationManager.Policy.SUPPRESSED_EFFECT_FULL_SCREEN_INTENT | NotificationManager.Policy.SUPPRESSED_EFFECT_LIGHTS
+                        | NotificationManager.Policy.SUPPRESSED_EFFECT_PEEK | NotificationManager.Policy.SUPPRESSED_EFFECT_STATUS_BAR
+                        | NotificationManager.Policy.SUPPRESSED_EFFECT_BADGE | NotificationManager.Policy.SUPPRESSED_EFFECT_AMBIENT
+                        | NotificationManager.Policy.SUPPRESSED_EFFECT_NOTIFICATION_LIST;
+            } else {
+                efectos = NotificationManager.Policy.SUPPRESSED_EFFECT_SCREEN_ON | NotificationManager.Policy.SUPPRESSED_EFFECT_SCREEN_OFF;
+            }
+            nm.setNotificationPolicy(new NotificationManager.Policy(0, 0, 0, efectos));   // nadie interrumpe: ni llamadas ni mensajes
+            nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALARMS);
+            return true;
+        } catch (Exception e) { return false; }
+    }
+
+    private boolean restaurarNoMolestar() {
+        NotificationManager nm = notificaciones();
+        if (nm == null || filtroPrevio < 0 || !nm.isNotificationPolicyAccessGranted()) return false;
+        try {
+            if (politicaPrevia != null) nm.setNotificationPolicy(politicaPrevia);
+            nm.setInterruptionFilter(filtroPrevio);
+        } catch (Exception ignored) { }
+        filtroPrevio = -1; politicaPrevia = null;
+        return true;
+    }
+
     @Override
     protected void handleOnDestroy() {
+        restaurarNoMolestar();
         restaurarVolumen();
         if (sensores != null) sensores.unregisterListener(oyenteLuz);
         if (tts != null) tts.shutdown();
