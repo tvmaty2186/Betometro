@@ -1112,11 +1112,11 @@ const Store = (() => {
 })();
 
 /* ================= CONFIGURACIÓN ================= */
-const DEF = { tiempoIdealMs: 240000, distanciaM: 3200, patron: 'alt1', cuentaN: 21, modoCuenta: 'voz', pitidoCero: true,
-              anticipoMs: 250, avisoInicio: true, avisoProx: true, antirreboteMs: 3000, colMedida: '#b3132b', colPractica: '#0f6e3a',
-              velActiva: true, fuenteVel: 'sim', simModo: 'fija', simRuido: false, simVelKmh: 48, umbralPrecisionM: 20,
-              calibrar: true, vozVel: false, vozVelCadaS: 15, teclas: null, teclaWeb: null, teclaNombre: '', pulsadorNombre: '',
-              modoCarrera: true, tema: 'sport', modoSol: 'no', indicador: 'marco', volumenMax: true, canalAudio: 'alarma', widgets: null };
+const DEF = { tiempoIdealMs: 240000, distanciaM: 3200, patron: 'alt1', cuentaN: 60, modoCuenta: 'voz', pitidoCero: true,   // valores de fábrica (los que eligió Matías)
+              anticipoMs: 250, avisoInicio: true, avisoProx: false, antirreboteMs: 3000, colMedida: '#b3132b', colPractica: '#0f6e3a',
+              velActiva: true, fuenteVel: NATIVO ? 'gps' : 'sim', simModo: 'variable', simRuido: true, simVelKmh: 48, umbralPrecisionM: 20,
+              calibrar: true, vozVel: true, vozVelCadaS: 15, teclas: null, teclaWeb: null, teclaNombre: '', pulsadorNombre: '',
+              modoCarrera: true, tema: 'sport', modoSol: 'auto', indicador: 'fondo', volumenMax: true, canalAudio: 'alarma', widgets: null };
 if (NATIVO) DEF.anticipoMs = 40;   // en nativa los números ya están grabados: solo queda el silencio inicial del audio
 const cfg = Object.assign({}, DEF, Store.config || {});
 
