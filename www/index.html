@@ -320,7 +320,8 @@ body.ind-fondo.medida .app, body.ind-fondo.practica .app { background: transpare
 .asa { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; background: #ffd23f; border: 3px solid #111; z-index: 25; touch-action: none; }
 .guia { position: absolute; z-index: 24; pointer-events: none; }
 .guia.v { top: 0; bottom: 0; width: 0; border-left: 2px dashed #ff3df0; } .guia.h { left: 0; right: 0; height: 0; border-top: 2px dashed #ff3df0; }
-.ed-menu { position: absolute; z-index: 26; display: flex; gap: 6px; background: rgba(18,18,18,.94); border: 1px solid #444; border-radius: 14px; padding: 6px; }
+.ed-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding-bottom: 10px; border-bottom: 1px solid #444; }
+.ed-menu .ed-tit { grid-column: 1 / -1; color: #ffd23f; font: 700 13px var(--font-ui); letter-spacing: .08em; text-transform: uppercase; }
 .ed-menu button { color: #fff; font: 600 14px var(--font-ui); padding: 9px 11px; border-radius: 9px; background: #2a2a2a; border: 0; min-height: 40px; }
 .ed-fab { position: absolute; top: max(10px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); width: 52px; height: 52px; border-radius: 50%;
           background: #ffd23f; color: #111; border: 0; font: 700 24px var(--font-ui); z-index: 27; box-shadow: 0 6px 18px rgba(0,0,0,.6); }
@@ -337,7 +338,8 @@ body.ind-fondo.medida .app, body.ind-fondo.practica .app { background: transpare
 .inicio-logo b { display: block; font-family: var(--font-num); font-weight: var(--peso-num); font-size: clamp(34px, 12.4vw, 64px); white-space: nowrap; letter-spacing: .06em; line-height: 1; color: var(--ink); text-shadow: 0 0 18px var(--glow); }
 .inicio-logo small { display: block; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-dim); margin-top: 6px; }
 .inicio-logo .ver { display: block; font-size: 12px; color: var(--ink-dim); margin-top: 4px; }
-#inicioAct { position: absolute; left: 22px; right: 22px; top: calc(env(safe-area-inset-top, 0px) + 6vh + 140px); z-index: 3; font-weight: 700; }
+.inicio-logo .ver-act { font: inherit; color: #ffd400; background: none; border: 0; padding: 8px 6px; margin: -8px 0 -8px 4px; cursor: pointer; }
+:root[data-tema="rally"] .inicio-logo .ver-act { color: #b88a00; }
 .inicio .w { pointer-events: none; }
 .ico { position: absolute; width: 104px; margin: -46px 0 0 -52px; text-align: center; background: none; border: 0; color: var(--ink); font: 700 15px var(--font-ui); line-height: 1.15; cursor: pointer; padding: 0; z-index: 2; }
 .ico .disco { width: 72px; height: 72px; margin: 0 auto 7px; border-radius: 50%; display: grid; place-items: center;
@@ -610,12 +612,12 @@ html, body { margin: 0; }
   <button class="w marcar" id="btnMarcar" type="button"><span class="m-txt">LARGAR</span><small>Tocá en la largada</small></button>
   <button class="ed-fab" id="edFab" type="button" aria-label="Opciones del editor" hidden>✎</button>
   <div class="ed-panel" id="edPanel" hidden>
+    <div class="ed-menu" id="edMenu" hidden></div>
     <select id="wAgregar" aria-label="Agregar widget"><option value="">+ Agregar widget…</option></select>
     <button class="btn sec" id="wRestablecer" type="button">Restablecer</button>
     <button class="btn" id="wListo" type="button">Listo</button>
   </div>
-  <div class="ed-menu" id="edMenu" hidden></div>
-  <div class="ed-toast" id="edToast" hidden>Mantené apretado un widget para moverlo · tocalo para cambiar el tamaño</div>
+  <div class="ed-toast" id="edToast" hidden>Mantené apretado un widget para moverlo · tocalo para cambiar el tamaño · ✎ para sus opciones</div>
 </div>
 
 <div class="aviso" id="aviso" hidden></div>
@@ -623,9 +625,8 @@ html, body { margin: 0; }
 <!-- ===== Inicio ===== -->
 <div class="pantalla" id="p-inicio">
   <div class="inicio" id="inicio">
-    <div class="inicio-logo"><b>BETÓMETRO</b><small>Regularidad para el navegante</small><span class="ver" id="inicioVersion"></span></div>
+    <div class="inicio-logo"><b>BETÓMETRO</b><small>Regularidad para el navegante</small><span class="ver"><span id="inicioVersion"></span><button class="ver-act" id="inicioAct" type="button" hidden>· Actualizar</button></span></div>
     <button class="compartir-c" id="mCompartir" type="button" aria-label="Compartir Betómetro"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg><span>Compartir</span></button>
-    <button class="aviso-act" id="inicioAct" type="button" hidden>Hay una actualización de Betómetro. Tocá para instalarla.</button>
     <div class="w redondo w-velocimetro" id="inicioGauge"></div>
     <button class="ico" id="mCarreras" type="button"><span class="disco"><svg viewBox="0 0 40 40"><path d="M8 36V5" stroke="var(--ink)" stroke-width="3"/><path d="M9 6h24v16H9z" fill="var(--ink)"/><path d="M9 6h6v4H9zm12 0h6v4h-6zM15 10h6v4h-6zm12 0h6v4h-6zM9 14h6v4H9zm12 0h6v4h-6zM15 18h6v4h-6zm12 0h6v4h-6z" fill="var(--cara2)"/></svg></span>Carreras</button>
     <button class="ico" id="mPractica" type="button"><span class="disco"><svg viewBox="0 0 40 40"><circle cx="20" cy="22" r="13" fill="none" stroke="var(--ink)" stroke-width="3"/><path d="M20 22V13M16 4h8M20 4v5" stroke="var(--dig)" stroke-width="3" stroke-linecap="round"/></svg></span>Práctica libre</button>
@@ -1348,7 +1349,7 @@ const TIPOS_W = {
   cuenta: { nombre: 'Cuenta regresiva', estilos: { numeros: 'Números', anillo: 'Anillo' }, extra: true },
   delta: { nombre: 'Adelantado / atrasado', estilos: { numero: 'Número', barra: 'Barra' }, vel: true },
   velocimetro: { nombre: 'Velocímetro', estilos: { analogico: 'Analógico', digital: 'Digital' }, vel: true, extra: true },
-  necesaria: { nombre: 'Velocidad necesaria', vel: true, extra: true },
+  necesaria: { nombre: 'Velocidad sugerida', vel: true, extra: true },
   faltan: { nombre: 'Metros que faltan', vel: true, extra: true },
   transcurrido: { nombre: 'Tiempo transcurrido' },
   ideal: { nombre: 'Tiempo ideal' },
@@ -1363,12 +1364,11 @@ const WIDGETS_DEF = [   // pantalla de fábrica (la que armó Matías)
   Object.assign({ t: 'velocimetro', e: 'analogico', forma: 'redondo' }, caja(21, 0, 333, 333)),
   Object.assign({ t: 'tipo' }, caja(0, 246, 105, 88)),
   Object.assign({ t: 'necesaria' }, caja(276, 242, 102, 92)),
-  Object.assign({ t: 'cuenta', e: 'numeros', ancho: 1.2 }, caja(0, 338, 378, 141)),
-  Object.assign({ t: 'faltan' }, caja(294, 416, 84, 63)),
+  Object.assign({ t: 'cuenta', e: 'numeros', ancho: 1.2, extra: true }, caja(0, 338, 378, 141)),
   Object.assign({ t: 'marcar' }, caja(0, 485, 378, 276))
 ];
 function normalizarWidgets() {
-  if (cfg.widgetsV !== 5 || !Array.isArray(cfg.widgets)) { cfg.widgets = JSON.parse(JSON.stringify(WIDGETS_DEF)); cfg.widgetsV = 5; }
+  if (cfg.widgetsV !== 6 || !Array.isArray(cfg.widgets)) { cfg.widgets = JSON.parse(JSON.stringify(WIDGETS_DEF)); cfg.widgetsV = 6; }
   // sin pulsador físico asignado, el botón MARCAR de la pantalla es obligatorio
   if (!cfg.teclaNombre && !cfg.widgets.some(w => w.t === 'marcar')) cfg.widgets.push(JSON.parse(JSON.stringify(WIDGETS_DEF.find(w => w.t === 'marcar'))));
 }
@@ -1446,7 +1446,7 @@ function crearWidget(def) {
     }
     case 'cuenta': {
       if (def.e !== 'anillo') box.append(num);   // el número va antes que el dato extra
-      const fx = conExt(v => 'Ideal ' + fmt(v.T));
+      const fx = conExt(v => v.restanteM === null || v.restanteM === undefined || !v.D ? 'faltan – m' : 'faltan ' + Math.max(0, Math.round(v.restanteM)).toLocaleString('es-AR') + ' m');
       if (def.e === 'anillo') {
         const L = 2 * Math.PI * 86, svg = svgEl('svg', { viewBox: '0 0 200 200', class: 'w-svg' }, box);
         svg.style.position = 'absolute'; svg.style.inset = '6%'; svg.style.width = '88%'; svg.style.height = '88%';
@@ -1493,7 +1493,7 @@ function crearWidget(def) {
       } else { box.innerHTML = ''; upd = velocimetro(box, fx); }
       break;
     }
-    case 'necesaria': { ponerTxt(lbl, 'Necesaria'); box.append(num); const fx = conExt(v => 'base ' + kmhN(v.vBaseKmh));
+    case 'necesaria': { ponerTxt(lbl, 'Velocidad sugerida'); box.append(num); const fx = conExt(v => 'base ' + kmhN(v.vBaseKmh));
       upd = v => { ponerNum(num, kmhN(v.vNecKmh) + (v.congelada ? '■' : '')); fx(v); }; break; }
     case 'faltan': { ponerTxt(lbl, 'Faltan'); box.append(num); const fx = conExt(v => 'de ' + (v.D || 0).toLocaleString('es-AR') + ' m');
       upd = v => { ponerNum(num, v.restanteM === null || v.restanteM === undefined ? '–' : Math.max(0, Math.round(v.restanteM)).toLocaleString('es-AR') + ' m'); fx(v); }; break; }
@@ -1546,14 +1546,14 @@ function dibujarEdicion() {
   const tab = $('tablero');
   tab.querySelectorAll('.asa, .guia').forEach(x => x.remove());
   $('edFab').hidden = !modoEdicion;
-  if (!modoEdicion) { $('edPanel').hidden = true; $('edMenu').hidden = true; $('edToast').hidden = true; return; }
+  if (!modoEdicion) { $('edPanel').hidden = true; $('edToast').hidden = true; return; }
   const def = cfg.widgets[selW], wEl = def ? tab.querySelector(`.w[data-i="${selW}"]`) : null, menu = $('edMenu');
   if (!wEl) { menu.hidden = true; return; }
   const L = wEl.offsetLeft, T = wEl.offsetTop, Wd = wEl.offsetWidth, Hd = wEl.offsetHeight;
   const asa = (x, y, id) => { const a = el('span', undefined, 'asa'); a.style.left = x + 'px'; a.style.top = y + 'px'; a.dataset.asa = id; tab.append(a); };
   if (def.forma === 'redondo') { const r = Wd / 2, k = Math.SQRT1_2; asa(L + r + r * k, T + r + r * k, 'r'); }
   else { asa(L, T, 'nw'); asa(L + Wd, T, 'ne'); asa(L, T + Hd, 'sw'); asa(L + Wd, T + Hd, 'se'); }
-  menu.innerHTML = '';
+  menu.innerHTML = ''; menu.append(el('span', 'Widget: ' + TIPOS_W[def.t].nombre, 'ed-tit'));
   const tipo = TIPOS_W[def.t], W = tab.clientWidth, H = tab.clientHeight;
   const b = (txt, fn) => menu.append(boton(txt, '', ev => { ev.stopPropagation(); fn(); Store.setConfig(cfg); construirTablero(); }));
   if (tipo.estilos) b('Estilo', () => { const ks = Object.keys(tipo.estilos); def.e = ks[(ks.indexOf(def.e) + 1) % ks.length]; });
@@ -1571,12 +1571,7 @@ function dibujarEdicion() {
     if (tipo.pideBoton && !cfg.teclaNombre) { avisar('Para quitar MARCAR, primero asigná un pulsador en Ajustes → Pulsador'); return; }
     cfg.widgets.splice(selW, 1); selW = -1;
   });
-  menu.hidden = !menu.children.length;
-  menu.style.flexWrap = 'wrap'; menu.style.maxWidth = 'calc(100vw - 12px)';
-  const tr = tab.getBoundingClientRect(), ar = $('app').getBoundingClientRect();
-  let my = tr.top - ar.top + T - 62; if (my < 70) my = tr.top - ar.top + T + Hd + 16;
-  menu.style.top = my + 'px';
-  menu.style.left = Math.max(6, Math.min(ar.width - menu.offsetWidth - 6, tr.left - ar.left + L + Wd / 2 - menu.offsetWidth / 2)) + 'px';
+  menu.hidden = false;   // las opciones del widget elegido están en el panel ✎ (no tapan las asas)
 }
 
 // Arrastre libre: mantener apretado levanta el widget (semitransparente) y se mueve el dibujo mismo; al soltar queda ahí.
@@ -1607,7 +1602,7 @@ function dibujarEdicion() {
     if (by) { T += by.d; guia('h', by.y); }
     return [L, T];
   }
-  const adornos = ver => { tab.querySelectorAll('.asa').forEach(x => x.hidden = !ver); $('edMenu').hidden = !ver || !$('edMenu').children.length; };
+  const adornos = ver => { tab.querySelectorAll('.asa').forEach(x => x.hidden = !ver); };
   tab.addEventListener('pointerdown', ev => {
     if (!modoEdicion) return;
     ev.preventDefault(); $('edPanel').hidden = true; $('edToast').hidden = true;
@@ -2408,13 +2403,13 @@ async function buscarActualizacion(silencioso) {
       ultimaRel = { ver, url: apk.browser_download_url };
       $('actRes').textContent = 'Hay una versión nueva: ' + ver + '.';
       $('btnActualizar').textContent = 'Descargar e instalar ' + ver;
-      if (silencioso) { $('inicioAct').textContent = 'Hay una versión nueva (' + ver + '). Tocá acá para instalarla.'; $('inicioAct').hidden = false; }
+      if (silencioso) { $('inicioAct').textContent = '· Actualizar a ' + ver; $('inicioAct').hidden = false; }
     } else { ultimaRel = null; if (!silencioso) $('actRes').textContent = 'Tenés la última versión.'; }
   } catch (e) { if (!silencioso) $('actRes').textContent = 'No se pudo buscar: ' + e.message + '. Revisá la conexión a internet.'; }
 }
 function estadoAct(txt) {   // el progreso se ve en Ajustes y en el cartel del inicio
   $('actRes').textContent = txt;
-  if (!$('inicioAct').hidden) $('inicioAct').textContent = txt;
+  if (!$('inicioAct').hidden) $('inicioAct').textContent = '· ' + txt;
 }
 async function instalarActualizacion() {
   if (motor && motor.enCurso) { estadoAct('Terminá la carrera antes de actualizar.'); return; }
