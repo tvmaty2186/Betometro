@@ -1,0 +1,328 @@
+package ar.com.betometro.app;
+
+import android.content.Context;
+import android.content.Intent;
+import android.hardware.input.InputManager;
+import android.media.AudioAttributes;
+import android.media.SoundPool;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
+import android.provider.Settings;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
+import android.view.InputDevice;
+import android.view.KeyEvent;
+
+import androidx.core.content.FileProvider;
+
+import com.getcapacitor.JSArray;
+import com.getcapacitor.JSObject;
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.CapacitorPlugin;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * Código nativo de Betómetro:
+ *  - Voz sin demora: los números se sintetizan una vez a archivos y se reproducen con SoundPool.
+ *  - Pulsador: captura de teclas (incluidos los botones de volumen) y aviso de desconexión.
+ *  - Actualizador: descarga el APK de la última versión y abre el instalador de Android.
+ */
+@CapacitorPlugin(name = "Beto")
+public class BetoPlugin extends Plugin implements InputManager.InputDeviceListener {
+
+    static BetoPlugin instancia;
+
+    // ---------- Voz ----------
+    private TextToSpeech tts;
+    private boolean ttsListo = false;
+    private String idioma = "";
+    private SoundPool pool;
+    private final Map<String, Integer> sonidos = new HashMap<>();   // texto -> id en SoundPool (cargado)
+    private final Map<Integer, String> cargando = new HashMap<>();  // id SoundPool -> texto
+    private final Map<String, File> archivos = new HashMap<>();     // utteranceId -> archivo
+    private int total = 0;
+    private float velocidadVoz = 1.15f;
+
+    // ---------- Teclas ----------
+    private final Set<Integer> teclas = new HashSet<>();
+    private boolean aprender = false;
+    private final Map<Integer, String> dispositivos = new HashMap<>();
+
+    @Override
+    public void load() {
+        instancia = this;
+        teclas.add(KeyEvent.KEYCODE_ENTER);
+        teclas.add(KeyEvent.KEYCODE_NUMPAD_ENTER);
+        teclas.add(KeyEvent.KEYCODE_SPACE);
+        teclas.add(KeyEvent.KEYCODE_F9);
+
+        AudioAttributes attrs = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                .build();
+        pool = new SoundPool.Builder().setMaxStreams(2).setAudioAttributes(attrs).build();
+        pool.setOnLoadCompleteListener((sp, id, status) -> {
+            String texto = cargando.remove(id);
+            if (texto != null && status == 0) sonidos.put(texto, id);
+            emitirEstadoVoz();
+        });
+
+        InputManager im = (InputManager) getContext().getSystemService(Context.INPUT_SERVICE);
+        if (im != null) {
+            for (int id : im.getInputDeviceIds()) registrarDispositivo(id);
+            im.registerInputDeviceListener(this, new Handler(Looper.getMainLooper()));
+        }
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        if (tts != null) tts.shutdown();
+        if (pool != null) pool.release();
+        instancia = null;
+    }
+
+    // ======================= VOZ =======================
+
+    @PluginMethod
+    public void prepararVoz(PluginCall call) {
+        JSArray lista = call.getArray("textos");
+        velocidadVoz = call.getFloat("velocidad", 1.15f);
+        final String[] textos;
+        try {
+            textos = new String[lista.length()];
+            for (int i = 0; i < lista.length(); i++) textos[i] = lista.getString(i);
+        } catch (Exception e) {
+            call.reject("Lista de textos inválida");
+            return;
+        }
+        if (tts != null) {
+            sintetizar(textos);
+            call.resolve(estadoVozObj());
+            return;
+        }
+        tts = new TextToSpeech(getContext(), status -> {
+            if (status != TextToSpeech.SUCCESS) { ttsListo = false; emitirEstadoVoz(); return; }
+            Locale[] candidatos = { new Locale("es", "AR"), new Locale("es", "US"), new Locale("es", "MX"), new Locale("es", "ES"), new Locale("es") };
+            for (Locale l : candidatos) {
+                int r = tts.setLanguage(l);
+                if (r != TextToSpeech.LANG_MISSING_DATA && r != TextToSpeech.LANG_NOT_SUPPORTED) { idioma = l.toString(); break; }
+            }
+            tts.setSpeechRate(velocidadVoz);
+            ttsListo = true;
+            tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                @Override public void onStart(String id) { }
+                @Override public void onError(String id) { archivos.remove(id); }
+                @Override public void onDone(String id) {
+                    File f = archivos.remove(id);
+                    if (f == null || !id.startsWith("arch:")) return;
+                    String texto = id.substring(5);
+                    int sid = pool.load(f.getAbsolutePath(), 1);
+                    cargando.put(sid, texto);
+                }
+            });
+            sintetizar(textos);
+        });
+        call.resolve(estadoVozObj());
+    }
+
+    private void sintetizar(String[] textos) {
+        if (!ttsListo) return;
+        File dir = new File(getContext().getCacheDir(), "voz");
+        if (!dir.exists()) dir.mkdirs();
+        total = textos.length;
+        for (String t : textos) {
+            if (sonidos.containsKey(t)) continue;
+            File f = new File(dir, "v_" + Integer.toHexString(t.hashCode()) + "_" + (int) (velocidadVoz * 100) + ".wav");
+            String uid = "arch:" + t;
+            archivos.put(uid, f);
+            Bundle p = new Bundle();
+            tts.synthesizeToFile(t, p, f, uid);
+        }
+    }
+
+    @PluginMethod
+    public void reproducir(PluginCall call) {
+        String texto = call.getString("texto", "");
+        Integer id = sonidos.get(texto);
+        if (id != null) {
+            pool.play(id, 1f, 1f, 1, 0, 1f);
+            call.resolve(new JSObject().put("modo", "audio"));
+        } else if (ttsListo) {
+            tts.speak(texto, TextToSpeech.QUEUE_FLUSH, null, "vivo");
+            call.resolve(new JSObject().put("modo", "voz"));
+        } else {
+            call.resolve(new JSObject().put("modo", "nada"));
+        }
+    }
+
+    @PluginMethod
+    public void hablar(PluginCall call) {
+        String texto = call.getString("texto", "");
+        if (ttsListo) tts.speak(texto, TextToSpeech.QUEUE_FLUSH, null, "vivo");
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void estadoVoz(PluginCall call) { call.resolve(estadoVozObj()); }
+
+    private JSObject estadoVozObj() {
+        JSObject o = new JSObject();
+        o.put("motor", ttsListo);
+        o.put("idioma", idioma);
+        o.put("listos", sonidos.size());
+        o.put("total", total);
+        return o;
+    }
+
+    private void emitirEstadoVoz() { notifyListeners("voz", estadoVozObj()); }
+
+    // ======================= TECLAS =======================
+
+    @PluginMethod
+    public void configurarTeclas(PluginCall call) {
+        JSArray lista = call.getArray("teclas", null);
+        if (lista != null) {
+            teclas.clear();
+            try { for (int i = 0; i < lista.length(); i++) teclas.add(lista.getInt(i)); } catch (Exception ignored) { }
+        }
+        aprender = call.getBoolean("aprender", false);
+        call.resolve();
+    }
+
+    /** Llamado desde MainActivity.dispatchKeyEvent. Devuelve true si la tecla se consume. */
+    boolean manejarTecla(KeyEvent e) {
+        int code = e.getKeyCode();
+        boolean esNuestra = aprender || teclas.contains(code);
+        if (!esNuestra) return false;
+        if (e.getAction() == KeyEvent.ACTION_DOWN && e.getRepeatCount() == 0) {
+            JSObject o = new JSObject();
+            o.put("codigo", code);
+            o.put("nombre", KeyEvent.keyCodeToString(code).replace("KEYCODE_", ""));
+            InputDevice d = e.getDevice();
+            o.put("dispositivo", d != null ? d.getName() : "");
+            o.put("edadMs", SystemClock.uptimeMillis() - e.getEventTime());   // cuánto hace que se apretó
+            if (aprender) {
+                aprender = false;
+                notifyListeners("aprendida", o);
+            } else {
+                notifyListeners("marca", o);
+            }
+        }
+        return true;
+    }
+
+    // ======================= DISPOSITIVOS =======================
+
+    private void registrarDispositivo(int id) {
+        InputDevice d = InputDevice.getDevice(id);
+        if (d != null && !d.isVirtual()) dispositivos.put(id, d.getName());
+    }
+
+    @Override public void onInputDeviceAdded(int id) {
+        registrarDispositivo(id);
+        JSObject o = new JSObject();
+        o.put("evento", "conectado");
+        o.put("nombre", dispositivos.containsKey(id) ? dispositivos.get(id) : "");
+        notifyListeners("dispositivo", o);
+    }
+
+    @Override public void onInputDeviceRemoved(int id) {
+        JSObject o = new JSObject();
+        o.put("evento", "desconectado");
+        o.put("nombre", dispositivos.containsKey(id) ? dispositivos.remove(id) : "");
+        notifyListeners("dispositivo", o);
+    }
+
+    @Override public void onInputDeviceChanged(int id) { registrarDispositivo(id); }
+
+    @PluginMethod
+    public void listarDispositivos(PluginCall call) {
+        JSArray a = new JSArray();
+        for (String n : dispositivos.values()) a.put(n);
+        call.resolve(new JSObject().put("dispositivos", a));
+    }
+
+    // ======================= ACTUALIZADOR =======================
+
+    @PluginMethod
+    public void puedeInstalar(PluginCall call) {
+        boolean ok = Build.VERSION.SDK_INT < Build.VERSION_CODES.O || getContext().getPackageManager().canRequestPackageInstalls();
+        call.resolve(new JSObject().put("permitido", ok));
+    }
+
+    @PluginMethod
+    public void pedirPermisoInstalar(PluginCall call) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Intent i = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getContext().getPackageName()));
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(i);
+        }
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void descargarEInstalar(PluginCall call) {
+        final String url = call.getString("url");
+        if (url == null) { call.reject("Falta la dirección de descarga"); return; }
+        new Thread(() -> {
+            try {
+                File dir = new File(getContext().getExternalFilesDir(null), "actualizaciones");
+                if (!dir.exists()) dir.mkdirs();
+                File apk = new File(dir, "betometro.apk");
+                if (apk.exists()) apk.delete();
+
+                String actual = url;
+                HttpURLConnection con = null;
+                for (int saltos = 0; saltos < 6; saltos++) {   // GitHub redirige a otro dominio: se siguen a mano
+                    con = (HttpURLConnection) new URL(actual).openConnection();
+                    con.setInstanceFollowRedirects(false);
+                    con.setConnectTimeout(15000);
+                    con.setReadTimeout(30000);
+                    int code = con.getResponseCode();
+                    if (code >= 300 && code < 400) { actual = con.getHeaderField("Location"); con.disconnect(); continue; }
+                    if (code != 200) throw new Exception("El servidor respondió " + code);
+                    break;
+                }
+                long largo = con.getContentLengthLong();
+                try (InputStream in = con.getInputStream(); FileOutputStream out = new FileOutputStream(apk)) {
+                    byte[] buf = new byte[64 * 1024];
+                    long leido = 0; int n; int ultimoPct = -1;
+                    while ((n = in.read(buf)) > 0) {
+                        out.write(buf, 0, n);
+                        leido += n;
+                        if (largo > 0) {
+                            int pct = (int) (leido * 100 / largo);
+                            if (pct != ultimoPct) { ultimoPct = pct; notifyListeners("descarga", new JSObject().put("porcentaje", pct)); }
+                        }
+                    }
+                }
+                con.disconnect();
+
+                Uri uri = FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".fileprovider", apk);
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setDataAndType(uri, "application/vnd.android.package-archive");
+                i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(i);
+                call.resolve();
+            } catch (Exception e) {
+                call.reject("No se pudo descargar la actualización: " + e.getMessage());
+            }
+        }).start();
+    }
+}

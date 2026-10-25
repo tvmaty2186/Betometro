@@ -1,0 +1,1036 @@
+<title>Betómetro</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: una sola pantalla de instrumento; el fondo entero indica el tipo de vuelta, el botón MARCAR ocupa el tercio inferior. */
+:root {
+  --ink: #f4f6f2;
+  --ink-dim: rgba(244,246,242,.72);
+  --idle: #1b1f22;
+  --panel: #14171a;
+  --panel-2: #20252a;
+  --line: rgba(244,246,242,.16);
+  --medida: #b3132b;
+  --practica: #0f6e3a;
+  --warn: #ffd23f;
+  --font-num: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --font-ui: "Barlow", "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  background: var(--idle); color: var(--ink); font-family: var(--font-ui); font-size: 16px;
+  overflow: hidden; -webkit-tap-highlight-color: transparent; user-select: none;
+  transition: background-color .25s;
+}
+body.medida { background: var(--medida); }
+body.practica { background: var(--practica); }
+.app {
+  height: 100%; display: grid; grid-template-rows: auto auto 1fr auto auto auto; gap: 8px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 10px 14px; max-width: 720px; margin: 0 auto; box-sizing: border-box;
+}
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.brand { font-family: var(--font-num); font-weight: 700; letter-spacing: .14em; font-size: 15px; text-transform: uppercase; color: var(--ink-dim); }
+.bar-btns { display: flex; gap: 8px; }
+.chip-btn {
+  font: 600 14px var(--font-ui); color: var(--ink); background: rgba(0,0,0,.28); border: 1px solid var(--line);
+  border-radius: 999px; padding: 8px 14px; min-height: 40px; cursor: pointer;
+}
+.chip-btn:focus-visible, .marcar:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--warn); outline-offset: 2px; }
+.chip-btn.armed { background: var(--warn); color: #111; border-color: var(--warn); }
+.tipo { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+.tipo-nombre { font-family: var(--font-num); font-weight: 700; font-size: clamp(40px, 12vw, 72px); line-height: 1; letter-spacing: .04em; }
+.tipo-vuelta { font-family: var(--font-num); font-weight: 600; font-size: clamp(22px, 6vw, 34px); color: var(--ink-dim); white-space: nowrap; }
+.centro { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 0; gap: 4px; }
+.lbl { font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-dim); }
+.cuenta { font-family: var(--font-num); font-weight: 700; font-size: clamp(88px, 30vw, 200px); line-height: .9; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.cuenta.over { color: var(--warn); }
+.datos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; margin-top: 10px; }
+.dato { background: rgba(0,0,0,.22); border-radius: 10px; padding: 8px 10px; min-width: 0; }
+.dato b { display: block; font-family: var(--font-num); font-weight: 600; font-size: clamp(22px, 6.5vw, 32px); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ultima { text-align: center; font-family: var(--font-num); font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; min-height: 28px; }
+.ultima .mas { color: var(--warn); }
+.marcar {
+  height: clamp(150px, 30vh, 260px); width: 100%; border-radius: 22px; border: 3px solid rgba(255,255,255,.9);
+  background: rgba(0,0,0,.35); color: var(--ink); font: 700 clamp(44px, 12vw, 72px) var(--font-num); letter-spacing: .12em;
+  cursor: pointer; touch-action: manipulation; transition: transform .06s, background-color .06s;
+}
+.marcar.hit { transform: scale(.97); background: rgba(255,255,255,.3); }
+.marcar small { display: block; font: 500 15px var(--font-ui); letter-spacing: .04em; color: var(--ink-dim); margin-top: 4px; }
+.aviso { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 64px); transform: translateX(-50%); background: var(--warn); color: #111; font-weight: 600; padding: 8px 16px; border-radius: 999px; font-size: 15px; z-index: 30; max-width: 90vw; text-align: center; }
+
+/* Velocidad y simulador */
+.app.conVel .cuenta { font-size: clamp(72px, 23vw, 170px); }
+.delta { font-family: var(--font-num); font-weight: 700; font-size: clamp(28px, 8.5vw, 46px); font-variant-numeric: tabular-nums; padding: 2px 18px; border-radius: 999px; background: rgba(0,0,0,.3); white-space: nowrap; }
+.delta.atr { color: var(--warn); }
+.datos + .datos { margin-top: 0; }
+.sim { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,.3); border: 1px dashed var(--ink-dim); border-radius: 12px; padding: 6px 8px; }
+.sim b { font-family: var(--font-num); font-size: 22px; min-width: 104px; text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sim input[type=range] { flex: 1; min-width: 0; accent-color: var(--warn); height: 32px; }
+.sim .chip-btn { min-width: 46px; font-size: 22px; padding: 2px 10px; }
+
+/* Historial */
+.hist-carrera { border: 1px solid var(--line); border-radius: 12px; background: var(--panel-2); padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.hist-cab { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; align-items: baseline; }
+.hist-cab b { font-family: var(--font-num); font-size: 22px; font-weight: 600; }
+.hist-res { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 14px; color: var(--ink-dim); }
+.hist-res strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+.tabla-wrap { overflow-x: auto; }
+.tabla { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 15px; }
+.tabla th { text-align: right; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-dim); font-weight: 600; padding: 4px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.tabla td { text-align: right; padding: 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.tabla th:first-child, .tabla td:first-child, .tabla th:nth-child(2), .tabla td:nth-child(2) { text-align: left; }
+.tag { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.tag.m { background: var(--medida); } .tag.p { background: var(--practica); }
+.dif-mas { color: var(--warn); }
+.hist-acc { display: flex; flex-wrap: wrap; gap: 8px; }
+.hist-acc .btn { padding: 8px 12px; min-height: 40px; font-size: 14px; }
+.vacio { color: var(--ink-dim); line-height: 1.5; }
+
+/* Panel de configuración */
+.config, .historial { position: fixed; inset: 0; background: var(--panel); z-index: 20; overflow-y: auto; }
+.config-in, .historial .config-in { max-width: 640px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px 40px; display: flex; flex-direction: column; gap: 18px; box-sizing: border-box; }
+.config h2, .historial h2 { font-family: var(--font-num); font-weight: 700; font-size: 30px; margin: 0; letter-spacing: .04em; text-wrap: balance; }
+.config h3 { font-family: var(--font-num); font-weight: 600; font-size: 20px; margin: 0 0 8px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-dim); }
+fieldset { border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin: 0; display: flex; flex-direction: column; gap: 12px; background: var(--panel-2); }
+fieldset:disabled { opacity: .55; }
+.row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+.row > label { flex: 1 1 180px; min-width: 0; }
+.hint { font-size: 13px; color: var(--ink-dim); line-height: 1.4; }
+input[type=number], select {
+  font: 600 18px var(--font-ui); color: var(--ink); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 10px; min-height: 44px; box-sizing: border-box;
+}
+input[type=number] { width: 92px; font-variant-numeric: tabular-nums; }
+.tiempo { display: flex; align-items: center; gap: 6px; font-family: var(--font-num); font-size: 22px; }
+.tiempo input { width: 70px; }
+select { min-width: 220px; max-width: 100%; }
+input[type=checkbox] { width: 24px; height: 24px; accent-color: var(--warn); }
+input[type=color] { width: 56px; height: 40px; border: 1px solid var(--line); border-radius: 8px; background: none; padding: 2px; }
+.btn { font: 600 16px var(--font-ui); color: #111; background: var(--warn); border: 0; border-radius: 10px; padding: 12px 16px; min-height: 46px; cursor: pointer; }
+.btn.sec { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.cfg-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+@media (prefers-reduced-motion: reduce) { body, .marcar { transition: none; } }
+</style>
+
+<div class="app" id="app">
+  <div class="bar">
+    <span class="brand">Betómetro</span>
+    <div class="bar-btns">
+      <button class="chip-btn" id="btnTerminar" type="button" hidden>Terminar</button>
+      <button class="chip-btn" id="btnHist" type="button">Historial</button>
+      <button class="chip-btn" id="btnConfig" type="button">Ajustes</button>
+    </div>
+  </div>
+  <div class="tipo">
+    <span class="tipo-nombre" id="tipoNombre">LISTO</span>
+    <span class="tipo-vuelta" id="tipoVuelta">4:00.0 ideal</span>
+  </div>
+  <div class="centro">
+    <span class="lbl" id="cuentaLbl">Falta</span>
+    <span class="cuenta" id="cuenta">4:00.0</span>
+    <span class="delta" id="delta" hidden></span>
+    <div class="datos" id="datosVel" hidden>
+      <div class="dato"><span class="lbl">Necesaria</span><b id="vNec">–</b></div>
+      <div class="dato"><span class="lbl">Actual</span><b id="vAct">–</b></div>
+      <div class="dato"><span class="lbl">Faltan</span><b id="mFalta">–</b></div>
+    </div>
+    <div class="datos">
+      <div class="dato"><span class="lbl">Transcurrido</span><b id="dTrans">0:00.0</b></div>
+      <div class="dato"><span class="lbl">Ideal</span><b id="dIdeal">4:00.0</b></div>
+      <div class="dato"><span class="lbl">Próxima</span><b id="dProx">Medida</b></div>
+    </div>
+  </div>
+  <div class="ultima" id="ultima"></div>
+  <div class="sim" id="sim" hidden title="Simulador de velocidad">
+    <button class="chip-btn" id="simMenos" type="button" aria-label="Bajar velocidad simulada">−</button>
+    <input type="range" id="simVel" min="0" max="160" step="1" aria-label="Velocidad simulada">
+    <button class="chip-btn" id="simMas" type="button" aria-label="Subir velocidad simulada">+</button>
+    <b id="simVal">48 km/h</b>
+  </div>
+  <button class="marcar" id="btnMarcar" type="button">LARGAR<small>Tocá en la largada</small></button>
+</div>
+
+<div class="aviso" id="aviso" hidden></div>
+
+<div class="historial" id="historial" hidden>
+  <div class="config-in">
+    <div class="cfg-bar">
+      <h2>Historial</h2>
+      <button class="btn" id="btnHistCerrar" type="button">Volver</button>
+    </div>
+    <div id="histLista"></div>
+  </div>
+</div>
+
+<div class="config" id="config" hidden>
+  <div class="config-in">
+    <div class="cfg-bar">
+      <h2>Configuración</h2>
+      <button class="btn" id="btnCerrar" type="button">Listo</button>
+    </div>
+
+    <fieldset id="fsCarrera">
+      <h3>Carrera</h3>
+      <div class="row">
+        <label for="tMin">Tiempo ideal por vuelta</label>
+        <div class="tiempo">
+          <input type="number" id="tMin" min="0" max="99" inputmode="numeric" aria-label="Minutos">:
+          <input type="number" id="tSeg" min="0" max="59" inputmode="numeric" aria-label="Segundos">.
+          <input type="number" id="tDec" min="0" max="9" inputmode="numeric" aria-label="Décimas" style="width:56px">
+        </div>
+      </div>
+      <div class="row">
+        <label for="distancia">Distancia de la vuelta (metros)<br><span class="hint" id="velBase"></span></label>
+        <input type="number" id="distancia" min="0" step="1" inputmode="numeric">
+      </div>
+      <div class="row">
+        <label for="patron">Vueltas medidas</label>
+        <select id="patron">
+          <option value="todas">Todas medidas</option>
+          <option value="alt1">Alternadas: 1.ª medida, 2.ª práctica…</option>
+          <option value="alt2">Alternadas: 1.ª práctica, 2.ª medida…</option>
+        </select>
+      </div>
+      <p class="hint" id="carreraHint" hidden>Con la carrera en curso no se puede cambiar el tiempo, la distancia ni el patrón. Tocá Terminar primero.</p>
+    </fieldset>
+
+    <fieldset>
+      <h3>Cuenta regresiva</h3>
+      <div class="row">
+        <label for="cuentaN">Contar en voz los últimos (segundos)</label>
+        <input type="number" id="cuentaN" min="0" max="60" inputmode="numeric">
+      </div>
+      <div class="row">
+        <label for="modoCuenta">Cómo contar</label>
+        <select id="modoCuenta">
+          <option value="voz">Voz (números)</option>
+          <option value="pitidos">Pitidos</option>
+        </select>
+      </div>
+      <div class="row">
+        <label for="pitidoCero">Pitido largo al llegar a cero</label>
+        <input type="checkbox" id="pitidoCero">
+      </div>
+      <div class="row">
+        <label for="anticipo">Anticipar la voz (milisegundos)<br><span class="hint">Compensa lo que tarda el teléfono en empezar a hablar.</span></label>
+        <input type="number" id="anticipo" min="0" max="1500" step="10" inputmode="numeric">
+      </div>
+      <div class="row">
+        <button class="btn sec" id="btnMedir" type="button">Medir demora de la voz</button>
+        <button class="btn sec" id="btnProbar" type="button">Probar cuenta de 5 s</button>
+      </div>
+      <p class="hint" id="medirRes">La medición dice 5 números y calcula el promedio. Después probá la cuenta de 5 s mirando el reloj: el cero tiene que sonar justo en 0.0.</p>
+    </fieldset>
+
+    <fieldset>
+      <h3>Velocidad</h3>
+      <div class="row">
+        <label for="velActiva">Mostrar velocidad y adelantado/atrasado</label>
+        <input type="checkbox" id="velActiva">
+      </div>
+      <div class="row">
+        <label for="fuenteVel">Origen de la velocidad</label>
+        <select id="fuenteVel">
+          <option value="sim">Simulador (banco de trabajo)</option>
+          <option value="gps" disabled>GPS del teléfono (próximo paso)</option>
+        </select>
+      </div>
+      <div class="row">
+        <label for="simModo">Simulador: velocidad</label>
+        <select id="simModo">
+          <option value="fija">Fija (la que elijas)</option>
+          <option value="variable">Variable (sube y baja sola)</option>
+        </select>
+      </div>
+      <div class="row">
+        <label for="simRuido">Simulador: agregar errores de GPS</label>
+        <input type="checkbox" id="simRuido">
+      </div>
+      <div class="row">
+        <label for="umbral">Descartar lecturas con error mayor a (metros)</label>
+        <input type="number" id="umbral" min="1" max="200" inputmode="numeric">
+      </div>
+      <div class="row">
+        <label for="calibrar">Calibración automática al marcar cada vuelta</label>
+        <input type="checkbox" id="calibrar">
+      </div>
+      <div class="row">
+        <label for="vozVel">Decir por voz adelantado/atrasado y velocidad</label>
+        <input type="checkbox" id="vozVel">
+      </div>
+      <div class="row">
+        <label for="vozVelCada">Cada cuántos segundos</label>
+        <input type="number" id="vozVelCada" min="5" max="120" inputmode="numeric">
+      </div>
+      <p class="hint">En los últimos segundos de la cuenta regresiva la velocidad necesaria se congela, porque el cálculo se vuelve inestable.</p>
+    </fieldset>
+
+    <fieldset>
+      <h3>Avisos por voz</h3>
+      <div class="row">
+        <label for="avisoInicio">Al empezar cada vuelta («vuelta 3, medida»)</label>
+        <input type="checkbox" id="avisoInicio">
+      </div>
+      <div class="row">
+        <label for="avisoProx">Antes de la cuenta («próxima, práctica»)</label>
+        <input type="checkbox" id="avisoProx">
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <h3>Botón y pantalla</h3>
+      <div class="row">
+        <label for="antirrebote">Ignorar una segunda marca durante (segundos)</label>
+        <input type="number" id="antirrebote" min="0" max="60" step="0.5" inputmode="decimal">
+      </div>
+      <div class="row">
+        <label for="colMedida">Color de vuelta medida</label>
+        <input type="color" id="colMedida">
+      </div>
+      <div class="row">
+        <label for="colPractica">Color de vuelta de práctica</label>
+        <input type="color" id="colPractica">
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <h3>Pulsador</h3>
+      <p class="hint" id="pulsadorInfo"></p>
+      <div class="row">
+        <button class="btn sec" id="btnAprender" type="button">Aprender botón</button>
+        <button class="btn sec" id="btnTeclasDef" type="button">Usar teclas por defecto</button>
+      </div>
+      <p class="hint">Sirve un control selfie Bluetooth, un teclado USB o Bluetooth, o un pulsador propio. Tocá «Aprender botón» y apretá el botón que vas a usar. El botón de la pantalla siempre queda como respaldo.</p>
+    </fieldset>
+
+    <fieldset id="fsApp">
+      <h3>Aplicación</h3>
+      <p class="hint" id="appVersion">Versión web de prueba</p>
+      <div class="row">
+        <button class="btn sec" id="btnActualizar" type="button">Buscar actualización</button>
+      </div>
+      <p class="hint" id="actRes"></p>
+    </fieldset>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ================= PLATAFORMA ================= */
+const CAP = window.Capacitor;
+const NATIVO = !!(CAP && CAP.isNativePlatform && CAP.isNativePlatform());
+const plugin = n => (NATIVO && CAP.registerPlugin) ? CAP.registerPlugin(n) : null;
+const Beto = plugin('Beto'), BG = plugin('BackgroundGeolocation'), KeepAwake = plugin('KeepAwake'),
+      FS = plugin('Filesystem'), Share = plugin('Share'), AppInfo = plugin('App');
+const REPO = 'tvmaty2186/betometro';
+
+/* ================= MOTOR (sin pantalla, sin audio: se reutiliza tal cual en la app nativa) ================= */
+const Motor = (() => {
+  function esMedida(patron, n) {
+    if (patron === 'alt1') return n % 2 === 1;
+    if (patron === 'alt2') return n % 2 === 0;
+    return true;
+  }
+  function crear(carrera, oyente) {
+    // carrera: { tiempoIdealMs, distanciaM, patron, antirreboteMs, vueltas: [] }
+    // + distancia: umbralPrecisionM, calibrar, congelarMs, factorGps
+    let lapNum = 0, lapStart = 0, enCurso = false;
+    let dCruda = 0, ult = null, velMaxMs = 0, vNecCongelada = null;   // ult = última muestra válida {t, v}
+    const factores = [];
+    let factor = carrera.factorGps || 1;
+    const emit = (tipo, datos) => { try { oyente && oyente(tipo, datos); } catch (e) { console.error(e); } };
+    const distCruda = ahora => dCruda + (enCurso && ult ? ult.v * Math.min(2, Math.max(0, (ahora - ult.t) / 1000)) : 0);
+    function nuevaVuelta(ahora) {
+      lapStart = ahora; dCruda = 0; velMaxMs = ult ? ult.v : 0; vNecCongelada = null;
+      if (ult) ult = { t: ahora, v: ult.v };
+    }
+    return {
+      get enCurso() { return enCurso; },
+      get factor() { return factor; },
+      // Muestra de velocidad (GPS real o simulador): { t: ms monotónico, velMs: m/s, precisionM }
+      muestra(m) {
+        if (m.precisionM > carrera.umbralPrecisionM) { emit('descartada', m); return false; }
+        if (enCurso && ult) {
+          const dt = (m.t - ult.t) / 1000;
+          if (dt > 0 && dt < 10) dCruda += (ult.v + m.velMs) / 2 * dt;
+        }
+        ult = { t: m.t, v: m.velMs };
+        if (enCurso) velMaxMs = Math.max(velMaxMs, m.velMs);
+        return true;
+      },
+      marcar(ahora, fuente) {
+        if (!enCurso) {
+          enCurso = true; lapNum = 1; nuevaVuelta(ahora);
+          emit('vuelta', { n: 1, medida: esMedida(carrera.patron, 1), inicio: ahora });
+          return 'largada';
+        }
+        if (ahora - lapStart < carrera.antirreboteMs) { emit('ignorada', {}); return 'ignorada'; }
+        const real = ahora - lapStart, cruda = distCruda(ahora);
+        const v = { n: lapNum, medida: esMedida(carrera.patron, lapNum), idealMs: carrera.tiempoIdealMs,
+                    realMs: Math.round(real), difMs: Math.round(real - carrera.tiempoIdealMs), fuente: fuente || 'pantalla',
+                    fin: Date.now() };
+        if (cruda > 0) {
+          v.distM = Math.round(cruda * factor);
+          v.velPromKmh = +(cruda * factor / (real / 1000) * 3.6).toFixed(1);
+          v.velMaxKmh = +(velMaxMs * 3.6).toFixed(1);
+          const D = carrera.distanciaM;
+          if (carrera.calibrar && D > 0) {
+            const f = D / cruda;
+            if (f > 0.85 && f < 1.15) {        // fuera de ese rango no es error del GPS: se marcó mal o se cortó camino
+              factores.push(f); factor = factores.reduce((a, b) => a + b, 0) / factores.length;
+              carrera.factorGps = factor; v.factorVuelta = +f.toFixed(4);
+            }
+          }
+        }
+        carrera.vueltas.push(v);
+        emit('cerrada', v);
+        lapNum += 1; nuevaVuelta(ahora);
+        emit('vuelta', { n: lapNum, medida: esMedida(carrera.patron, lapNum), inicio: ahora });
+        return 'marca';
+      },
+      terminar() { enCurso = false; emit('terminada', {}); },
+      estado(ahora) {
+        const T = carrera.tiempoIdealMs, D = carrera.distanciaM;
+        const sinGps = !ult || ahora - ult.t > 3000;
+        const vActKmh = ult && !sinGps ? ult.v * 3.6 : null;
+        const vBaseKmh = D > 0 ? D / (T / 1000) * 3.6 : null;
+        if (!enCurso) return { enCurso, n: 0, medida: esMedida(carrera.patron, 1), transMs: 0, restanteMs: T,
+                               proxMedida: esMedida(carrera.patron, 1), sinGps, vActKmh, vBaseKmh,
+                               vNecKmh: vBaseKmh, restanteM: D, deltaS: null };
+        const trans = ahora - lapStart, restanteMs = T - trans;
+        const d = distCruda(ahora) * factor, restanteM = D - d;
+        let vNecKmh = null, deltaS = null;
+        if (D > 0 && !sinGps) {
+          deltaS = (d - D * trans / T) / (D / (T / 1000));   // positivo = adelantado
+          if (restanteM <= 0) vNecKmh = 0;
+          else if (restanteMs <= carrera.congelarMs) {
+            if (vNecCongelada === null) vNecCongelada = restanteMs > 0 ? restanteM / (restanteMs / 1000) * 3.6 : null;
+            vNecKmh = vNecCongelada;
+          } else vNecKmh = restanteM / (restanteMs / 1000) * 3.6;
+        }
+        return { enCurso, n: lapNum, medida: esMedida(carrera.patron, lapNum), transMs: trans, restanteMs,
+                 proxMedida: esMedida(carrera.patron, lapNum + 1), sinGps, vActKmh, vBaseKmh, vNecKmh,
+                 congelada: vNecCongelada !== null, restanteM, deltaS };
+      }
+    };
+  }
+  return { crear, esMedida };
+})();
+
+/* ================= ALMACENAMIENTO (adaptador: localStorage hoy, SQLite en nativa) ================= */
+const Store = (() => {
+  const KEY = 'betometro.v1';
+  const base = () => ({ schemaVersion: 1, config: null, carreras: [] });
+  function leer() { try { const s = JSON.parse(localStorage.getItem(KEY)); return s && s.schemaVersion === 1 ? s : base(); } catch (e) { return base(); } }
+  let db = leer();
+  let respaldoT = null;
+  function respaldo() {   // en la app nativa, copia completa en un archivo propio (por si el sistema borra el almacenamiento web)
+    if (!FS) return;
+    clearTimeout(respaldoT);
+    respaldoT = setTimeout(() => { FS.writeFile({ path: 'betometro.json', data: JSON.stringify(db), directory: 'DATA', encoding: 'utf8' }).catch(() => {}); }, 500);
+  }
+  function guardar() { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) {} respaldo(); }
+  async function recuperar() {   // si el almacenamiento web quedó vacío, se recupera del archivo
+    if (!FS || db.carreras.length || db.config) return false;
+    try {
+      const r = await FS.readFile({ path: 'betometro.json', directory: 'DATA', encoding: 'utf8' });
+      const s = JSON.parse(r.data);
+      if (s && s.schemaVersion === 1) { db = s; try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) {} return true; }
+    } catch (e) {}
+    return false;
+  }
+  return {
+    get config() { return db.config; },
+    get carreras() { return db.carreras; },
+    setConfig(c) { db.config = c; guardar(); },
+    nuevaCarrera(c) { db.carreras.push(c); guardar(); return c; },
+    borrarCarrera(id) { db.carreras = db.carreras.filter(c => c.id !== id); guardar(); },
+    todo() { return db; },
+    guardar, recuperar
+  };
+})();
+
+/* ================= CONFIGURACIÓN ================= */
+const DEF = { tiempoIdealMs: 240000, distanciaM: 3200, patron: 'alt1', cuentaN: 21, modoCuenta: 'voz', pitidoCero: true,
+              anticipoMs: 250, avisoInicio: true, avisoProx: true, antirreboteMs: 3000, colMedida: '#b3132b', colPractica: '#0f6e3a',
+              velActiva: true, fuenteVel: 'sim', simModo: 'fija', simRuido: false, simVelKmh: 48, umbralPrecisionM: 20,
+              calibrar: true, vozVel: false, vozVelCadaS: 15, teclas: null, teclaWeb: null, teclaNombre: '', pulsadorNombre: '' };
+if (NATIVO) DEF.anticipoMs = 40;   // en nativa los números ya están grabados: solo queda el silencio inicial del audio
+const cfg = Object.assign({}, DEF, Store.config || {});
+
+/* ================= AUDIO ================= */
+const Audio = (() => {
+  let ctx = null, voz = null;
+  const synth = window.speechSynthesis;
+  function elegirVoz() {
+    if (!synth) return;
+    const vs = synth.getVoices().filter(v => /^es/i.test(v.lang));
+    voz = vs.find(v => /es[-_]AR/i.test(v.lang)) || vs.find(v => /es[-_](US|419|MX)/i.test(v.lang)) || vs[0] || null;
+  }
+  if (synth) { elegirVoz(); synth.onvoiceschanged = elegirVoz; }
+  let cebada = false;
+  function desbloquear() {
+    try { if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === 'suspended') ctx.resume(); } catch (e) {}
+    // Android habilita la voz solo dentro de un toque completo: se dice algo mudo una vez
+    if (synth && !cebada) { try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; synth.speak(u); cebada = true; } catch (e) {} }
+  }
+  function diagnostico() {
+    if (!synth) return 'Voz: este navegador no tiene voz (si lo abriste dentro de la app de Claude, abrilo en Chrome). Usá Pitidos.';
+    const vs = synth.getVoices(), es = vs.filter(v => /^es/i.test(v.lang));
+    return 'Voz: disponible. Voces instaladas: ' + vs.length + ', en español: ' + es.length + (voz ? ' (usando ' + voz.name + ')' : '') + '. Sonido: ' + (ctx ? ctx.state : 'sin activar') + '.';
+  }
+  function pitido(freq, durMs) {
+    if (!ctx) return;
+    const o = ctx.createOscillator(), g = ctx.createGain(), t = ctx.currentTime;
+    o.frequency.value = freq; o.type = 'square';
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.35, t + 0.005);
+    g.gain.setValueAtTime(0.35, t + durMs / 1000 - 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + durMs / 1000);
+    o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + durMs / 1000 + 0.02);
+  }
+  function hablar(texto, alEmpezar) {
+    if (!synth) return null;
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(texto);
+    u.lang = voz ? voz.lang : 'es-AR'; if (voz) u.voice = voz; u.rate = 1.2; u.volume = 1;
+    if (alEmpezar) u.onstart = alEmpezar;
+    synth.speak(u);
+    return u;
+  }
+  if (NATIVO && Beto) {
+    let est = { motor: false, listos: 0, total: 0, idioma: '' };
+    const numeros = Array.from({ length: 60 }, (_, i) => String(i + 1));
+    Beto.addListener('voz', e => { est = e; });
+    Beto.prepararVoz({ textos: numeros, velocidad: 1.15 }).then(e => { est = e; }).catch(() => {});
+    return {
+      desbloquear,
+      pitido,
+      hablar(texto) { Beto.hablar({ texto }).catch(() => {}); return null; },
+      numero(k) { Beto.reproducir({ texto: String(k) }).catch(() => {}); },
+      diagnostico() {
+        if (!est.motor) return 'Voz: preparando el motor de voz de Android… Si no avanza, revisá en Ajustes de Android que esté instalada la voz de Google en español.';
+        return 'Voz: ' + (est.idioma || 'idioma por defecto') + '. Números grabados: ' + est.listos + ' de ' + est.total + '.';
+      },
+      hayVoz: true
+    };
+  }
+  return { desbloquear, pitido, hablar, numero(k) { hablar(String(k)); }, diagnostico, hayVoz: !!synth };
+})();
+
+/* ================= ESTADO DE LA APP ================= */
+let carrera = null, motor = null;
+const $ = id => document.getElementById(id);
+const ahora = () => performance.now();
+
+function nuevaCarrera() {
+  carrera = { id: 'c' + Date.now(), nombre: 'Carrera ' + new Date().toLocaleString('es-AR'), fecha: new Date().toISOString(),
+              tiempoIdealMs: cfg.tiempoIdealMs, distanciaM: cfg.distanciaM, patron: cfg.patron, antirreboteMs: cfg.antirreboteMs,
+              umbralPrecisionM: cfg.umbralPrecisionM, calibrar: cfg.calibrar, congelarMs: Math.max(cfg.cuentaN, 3) * 1000,
+              factorGps: 1, config: Object.assign({}, cfg), vueltas: [] };
+  motor = Motor.crear(carrera, alEvento);
+}
+
+/* ================= FUENTE DE VELOCIDAD: SIMULADOR (el GPS real entrará por el mismo camino) ================= */
+let ultimaMuestra = null;
+function recibirMuestra(m) { ultimaMuestra = m; if (motor) motor.muestra(m); }
+const Simulador = (() => {
+  let timer = null, t0 = 0;
+  function tick() {
+    const t = ahora(), s = (t - t0) / 1000;
+    let v = cfg.simVelKmh, prec = 5;
+    if (cfg.simModo === 'variable') v = cfg.simVelKmh * (1 + 0.12 * Math.sin(s / 9) + 0.06 * Math.sin(s / 2.7));
+    if (cfg.simRuido) { v += (Math.random() - 0.5) * 3; prec = Math.random() < 0.08 ? 45 : 4 + Math.random() * 8; }
+    recibirMuestra({ t, velMs: Math.max(0, v) / 3.6, precisionM: prec });
+  }
+  return {
+    iniciar() { if (timer) return; t0 = ahora(); tick(); timer = setInterval(tick, 1000); },   // 1 lectura por segundo, como un GPS
+    detener() { if (timer) clearInterval(timer); timer = null; }
+  };
+})();
+const GpsReal = (() => {
+  let id = null, prev = null;
+  const rad = x => x * Math.PI / 180;
+  function metros(a, b) {
+    const dLat = rad(b.latitude - a.latitude), dLon = rad(b.longitude - a.longitude);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.latitude)) * Math.cos(rad(b.latitude)) * Math.sin(dLon / 2) ** 2;
+    return 2 * 6371000 * Math.asin(Math.sqrt(h));
+  }
+  async function iniciar() {
+    if (id || !BG) return;
+    id = 'pendiente';
+    try {
+      id = await BG.addWatcher({ backgroundTitle: 'Betómetro', backgroundMessage: 'Midiendo la vuelta con GPS',
+                                 requestPermissions: true, stale: false, distanceFilter: 0 }, (loc, err) => {
+        if (err) { if (err.code === 'NOT_AUTHORIZED') avisar('Betómetro necesita permiso de ubicación: activalo en los ajustes de Android'); return; }
+        if (!loc) return;
+        const t = ahora();
+        // velocidad Doppler del GPS; si no viene, se calcula entre los dos últimos puntos
+        let v = (typeof loc.speed === 'number' && loc.speed >= 0) ? loc.speed : null;
+        if (v === null && prev && loc.time > prev.time) v = metros(prev, loc) / ((loc.time - prev.time) / 1000);
+        prev = loc;
+        if (v !== null) recibirMuestra({ t, velMs: v, precisionM: loc.accuracy || 0 });
+      });
+    } catch (e) { id = null; avisar('No se pudo iniciar el GPS'); }
+  }
+  async function detener() {
+    if (!id || !BG) return;
+    const x = id; id = null; prev = null;
+    try { await BG.removeWatcher({ id: x }); } catch (e) {}
+  }
+  return { iniciar, detener };
+})();
+function actualizarFuente() {
+  const sim = cfg.velActiva && cfg.fuenteVel === 'sim', gps = cfg.velActiva && cfg.fuenteVel === 'gps' && NATIVO;
+  if (sim) Simulador.iniciar(); else Simulador.detener();
+  if (gps) GpsReal.iniciar(); else GpsReal.detener();
+  $('sim').hidden = !sim;
+  $('simVel').value = cfg.simVelKmh; $('simVal').textContent = cfg.simVelKmh + ' km/h';
+}
+function cambiarSim(v) { cfg.simVelKmh = Math.max(0, Math.min(160, Math.round(v))); $('simVel').value = cfg.simVelKmh; $('simVal').textContent = cfg.simVelKmh + ' km/h'; Store.setConfig(cfg); }
+$('simVel').addEventListener('input', () => cambiarSim(+$('simVel').value));
+$('simMenos').addEventListener('click', () => cambiarSim(cfg.simVelKmh - 2));
+$('simMas').addEventListener('click', () => cambiarSim(cfg.simVelKmh + 2));
+
+/* ================= PROGRAMADOR DE VOZ (lee el estado del motor) ================= */
+let ultimoK = null, dijoProx = false, pitoCero = false, ultVozVel = 0;
+function resetVueltaAudio() { ultimoK = null; dijoProx = false; pitoCero = false; ultVozVel = ahora(); }
+function textoDelta(ds) {
+  const a = Math.abs(ds);
+  if (a < 0.5) return 'en tiempo';
+  return (ds > 0 ? 'adelantado ' : 'atrasado ') + (a < 10 ? a.toFixed(1).replace('.', ',') : Math.round(a));
+}
+
+function alEvento(tipo, d) {
+  if (tipo === 'vuelta') {
+    resetVueltaAudio();
+    if (cfg.avisoInicio) Audio.hablar('Vuelta ' + d.n + ', ' + (d.medida ? 'medida' : 'práctica'));
+  } else if (tipo === 'cerrada') {
+    Store.guardar();
+    mostrarUltima(d);
+  } else if (tipo === 'ignorada') {
+    avisar('Marca ignorada (antirrebote)');
+  }
+}
+
+function programador() {
+  if (!motor || !motor.enCurso) return;
+  const e = motor.estado(ahora());
+  const T = carrera.tiempoIdealMs, N = cfg.cuentaN;
+  const ant = cfg.modoCuenta === 'voz' ? cfg.anticipoMs : 0;
+  // Aviso de la próxima vuelta, antes de la cuenta regresiva
+  if (cfg.avisoProx && !dijoProx && T > (N + 7) * 1000 && e.restanteMs <= (N + 3) * 1000) {
+    dijoProx = true;
+    Audio.hablar('Próxima, ' + (e.proxMedida ? 'medida' : 'práctica'));
+  }
+  // Cuenta regresiva: k = segundos que faltan, adelantado por la demora de la voz
+  if (N > 0) {
+    const k = Math.ceil((e.restanteMs - ant) / 1000);
+    if (k >= 1 && k <= N && k !== ultimoK && (ultimoK === null || k < ultimoK)) {
+      ultimoK = k;
+      if (cfg.modoCuenta === 'voz') Audio.numero(k); else Audio.pitido(880, 90);
+    }
+  }
+  if (cfg.pitidoCero && !pitoCero && e.restanteMs <= 0) { pitoCero = true; Audio.pitido(1320, 450); }
+  // Velocidad por voz: nunca cerca de la cuenta regresiva ni del aviso de próxima vuelta
+  const t = ahora();
+  if (cfg.velActiva && cfg.vozVel && e.deltaS !== null && e.restanteMs > (N + 6) * 1000 && e.transMs > 6000 &&
+      t - ultVozVel >= cfg.vozVelCadaS * 1000) {
+    ultVozVel = t;
+    Audio.hablar(textoDelta(e.deltaS) + (e.vNecKmh !== null ? ', ' + Math.round(e.vNecKmh) : ''));
+  }
+}
+setInterval(programador, 15);
+
+/* ================= PANTALLA ================= */
+function fmt(ms, redondeoArriba) {
+  ms = Math.max(0, ms);
+  const d = redondeoArriba ? Math.ceil(ms / 100) : Math.floor(ms / 100);
+  const m = Math.floor(d / 600), s = Math.floor((d % 600) / 10), dd = d % 10;
+  return m + ':' + String(s).padStart(2, '0') + '.' + dd;
+}
+function fmtDif(ms) {
+  const s = (Math.abs(ms) / 1000).toFixed(1).replace('.', ',');
+  return (ms > 0 ? '+' : ms < 0 ? '−' : '±') + s + ' s';
+}
+function aplicarColores() {
+  document.documentElement.style.setProperty('--medida', cfg.colMedida);
+  document.documentElement.style.setProperty('--practica', cfg.colPractica);
+}
+function mostrarUltima(v) {
+  const el = $('ultima');
+  el.innerHTML = '';
+  const a = document.createElement('span');
+  a.textContent = 'Vuelta ' + v.n + (v.medida ? ' (medida)' : ' (práctica)') + ': ' + fmt(v.realMs) + ' · ';
+  const b = document.createElement('span');
+  b.textContent = fmtDif(v.difMs) + (v.difMs > 0 ? ' tarde' : v.difMs < 0 ? ' antes' : '');
+  if (v.difMs !== 0) b.className = 'mas';
+  el.append(a, b);
+  if (v.distM) el.append(document.createTextNode(' · ' + v.distM.toLocaleString('es-AR') + ' m'));
+}
+const kmh = v => v === null || v === undefined ? '–' : Math.round(v) + ' km/h';
+function dibujarVel(e) {
+  const on = cfg.velActiva;
+  $('app').classList.toggle('conVel', on);
+  $('datosVel').hidden = !on;
+  const dEl = $('delta');
+  if (!on) { dEl.hidden = true; return; }
+  $('vAct').textContent = e.sinGps ? 'SIN GPS' : kmh(e.vActKmh);
+  $('vNec').textContent = kmh(e.vNecKmh) + (e.congelada ? ' ■' : '');
+  $('mFalta').textContent = e.restanteM === null || e.restanteM === undefined ? '–' : Math.max(0, Math.round(e.restanteM)).toLocaleString('es-AR') + ' m';
+  if (!e.enCurso || e.deltaS === null) { dEl.hidden = true; return; }
+  dEl.hidden = false;
+  const a = Math.abs(e.deltaS);
+  dEl.textContent = a < 0.05 ? 'EN TIEMPO' : (e.deltaS > 0 ? 'ADELANTADO ' : 'ATRASADO ') + a.toFixed(1).replace('.', ',') + ' s';
+  dEl.classList.toggle('atr', e.deltaS < -0.05);
+}
+let avisoT = null;
+function avisar(txt) {
+  const el = $('aviso'); el.textContent = txt; el.hidden = false;
+  clearTimeout(avisoT); avisoT = setTimeout(() => { el.hidden = true; }, 2200);
+}
+
+function dibujar() {
+  const e = motor ? motor.estado(ahora()) : null;
+  const T = cfg.tiempoIdealMs;
+  if (!e || !e.enCurso) {
+    document.body.className = '';
+    $('tipoNombre').textContent = 'LISTO';
+    $('tipoVuelta').textContent = fmt(T) + ' ideal';
+    $('cuentaLbl').textContent = 'Falta';
+    $('cuenta').textContent = fmt(T); $('cuenta').classList.remove('over');
+    $('dTrans').textContent = '0:00.0';
+    $('dIdeal').textContent = fmt(T);
+    $('dProx').textContent = Motor.esMedida(cfg.patron, 1) ? 'Medida' : 'Práctica';
+    $('btnMarcar').firstChild.nodeValue = 'LARGAR';
+    $('btnMarcar').lastChild.textContent = 'Tocá en la largada';
+    $('btnTerminar').hidden = true;
+    $('btnHist').hidden = false;
+  } else {
+    document.body.className = e.medida ? 'medida' : 'practica';
+    $('tipoNombre').textContent = e.medida ? 'MEDIDA' : 'PRÁCTICA';
+    $('tipoVuelta').textContent = 'Vuelta ' + e.n;
+    const over = e.restanteMs < 0;
+    $('cuentaLbl').textContent = over ? 'Pasado' : 'Falta';
+    $('cuenta').textContent = over ? '+' + fmt(-e.restanteMs) : fmt(e.restanteMs, true);
+    $('cuenta').classList.toggle('over', over);
+    $('dTrans').textContent = fmt(e.transMs);
+    $('dIdeal').textContent = fmt(carrera.tiempoIdealMs);
+    $('dProx').textContent = e.proxMedida ? 'Medida' : 'Práctica';
+    $('btnMarcar').firstChild.nodeValue = 'MARCAR';
+    $('btnMarcar').lastChild.textContent = 'Fin de vuelta ' + e.n;
+    $('btnTerminar').hidden = false;
+    $('btnHist').hidden = true;
+  }
+  if (e) dibujarVel(e);
+  else {
+    const D = cfg.distanciaM, sinGps = !ultimaMuestra || ahora() - ultimaMuestra.t > 3000;
+    const vb = D > 0 ? D / (T / 1000) * 3.6 : null;
+    dibujarVel({ enCurso: false, sinGps, vActKmh: sinGps ? null : ultimaMuestra.velMs * 3.6, vNecKmh: vb, restanteM: D, deltaS: null });
+  }
+  requestAnimationFrame(dibujar);
+}
+
+/* ================= MARCAR ================= */
+let wakeLock = null;
+async function pedirPantallaEncendida() {
+  if (KeepAwake) { try { await KeepAwake.keepAwake(); } catch (e) {} return; }
+  try { if ('wakeLock' in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); } } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && motor && motor.enCurso) pedirPantallaEncendida(); });
+
+function marcar(tMarca, fuente) {
+  const t = tMarca === undefined ? ahora() : tMarca; // la hora se toma antes que cualquier otra cosa
+  const enCurso = !!(motor && motor.enCurso);
+  if (!enCurso && (!$('config').hidden || !$('historial').hidden)) return;   // con un panel abierto no se larga sin querer
+  Audio.desbloquear();
+  if (!motor || !motor.enCurso) { nuevaCarrera(); Store.nuevaCarrera(carrera); $('ultima').textContent = ''; pedirPantallaEncendida(); }
+  const largada = !motor.enCurso;
+  motor.marcar(t, fuente || 'pantalla');
+  if (largada && ultimaMuestra) motor.muestra(Object.assign({}, ultimaMuestra, { t }));   // la distancia arranca en la largada
+  const b = $('btnMarcar'); b.classList.add('hit'); setTimeout(() => b.classList.remove('hit'), 120);
+  if (navigator.vibrate) { try { navigator.vibrate(40); } catch (e) {} }
+}
+$('btnMarcar').addEventListener('pointerdown', ev => { ev.preventDefault(); marcar(); });
+['pointerup', 'touchend', 'click', 'keyup'].forEach(t => document.addEventListener(t, () => Audio.desbloquear(), { passive: true }));
+$('btnMarcar').addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') ev.preventDefault(); });
+let aprendiendo = false;
+document.addEventListener('keydown', ev => {
+  if (NATIVO) return;   // en la app instalada las teclas llegan por el código nativo
+  if (aprendiendo) { ev.preventDefault(); terminarAprender({ web: ev.key, nombre: ev.key === ' ' ? 'Espacio' : ev.key, dispositivo: '' }); return; }
+  if (ev.repeat) return;
+  const ok = cfg.teclaWeb ? ev.key === cfg.teclaWeb : (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'F9' || ev.code === 'NumpadEnter');
+  if (ok && !(motor && motor.enCurso) && (!$('config').hidden || !$('historial').hidden)) return;   // Enter en los ajustes no larga
+  if (ok) { ev.preventDefault(); marcar(undefined, 'teclado'); }
+});
+const TECLAS_DEF = [66, 160, 62, 139];   // Enter, Enter numérico, espacio, F9
+function aplicarTeclasNativas() { if (Beto) Beto.configurarTeclas({ teclas: cfg.teclas || TECLAS_DEF, aprender: false }).catch(() => {}); }
+function infoPulsador() {
+  $('pulsadorInfo').textContent = cfg.teclaNombre
+    ? 'Botón asignado: ' + cfg.teclaNombre + (cfg.pulsadorNombre ? ' (' + cfg.pulsadorNombre + ')' : '') + '.'
+    : 'Teclas por defecto: Enter, espacio y F9.' + (NATIVO ? '' : ' Los botones de volumen solo funcionan en la app instalada.');
+}
+function terminarAprender(d) {
+  aprendiendo = false;
+  if (d.codigo !== undefined) { cfg.teclas = [d.codigo]; cfg.teclaWeb = null; } else { cfg.teclaWeb = d.web; cfg.teclas = null; }
+  cfg.teclaNombre = d.nombre; cfg.pulsadorNombre = d.dispositivo || '';
+  Store.setConfig(cfg); aplicarTeclasNativas(); infoPulsador();
+  avisar('Botón asignado: ' + d.nombre);
+}
+$('btnAprender').addEventListener('click', () => {
+  aprendiendo = true;
+  $('pulsadorInfo').textContent = 'Apretá ahora el botón del pulsador…';
+  if (Beto) Beto.configurarTeclas({ aprender: true }).catch(() => {});
+});
+$('btnTeclasDef').addEventListener('click', () => {
+  aprendiendo = false; cfg.teclas = null; cfg.teclaWeb = null; cfg.teclaNombre = ''; cfg.pulsadorNombre = '';
+  Store.setConfig(cfg); aplicarTeclasNativas(); infoPulsador();
+});
+if (Beto) {
+  Beto.addListener('marca', d => marcar(ahora() - Math.max(0, d.edadMs || 0), 'pulsador'));
+  Beto.addListener('aprendida', d => terminarAprender({ codigo: d.codigo, nombre: d.nombre, dispositivo: d.dispositivo }));
+  Beto.addListener('dispositivo', d => {
+    if (!cfg.pulsadorNombre || d.nombre !== cfg.pulsadorNombre) return;
+    if (d.evento === 'desconectado') { Audio.hablar('Pulsador desconectado'); avisar('Pulsador desconectado: usá el botón de la pantalla'); }
+    else avisar('Pulsador conectado');
+  });
+}
+
+let terminarArmado = null;
+$('btnTerminar').addEventListener('click', () => {
+  const b = $('btnTerminar');
+  if (!terminarArmado) {
+    b.classList.add('armed'); b.textContent = 'Tocá otra vez';
+    terminarArmado = setTimeout(() => { terminarArmado = null; b.classList.remove('armed'); b.textContent = 'Terminar'; }, 3000);
+    return;
+  }
+  clearTimeout(terminarArmado); terminarArmado = null; b.classList.remove('armed'); b.textContent = 'Terminar';
+  motor.terminar(); Store.guardar();
+  if (wakeLock) { try { wakeLock.release(); } catch (e) {} }
+  if (KeepAwake) KeepAwake.allowSleep().catch(() => {});
+  avisar('Carrera terminada: ' + carrera.vueltas.length + ' vueltas guardadas');
+});
+
+/* ================= PANEL DE CONFIGURACIÓN ================= */
+function cargarForm() {
+  const T = cfg.tiempoIdealMs;
+  $('tMin').value = Math.floor(T / 60000); $('tSeg').value = Math.floor((T % 60000) / 1000); $('tDec').value = Math.floor((T % 1000) / 100);
+  $('distancia').value = cfg.distanciaM; $('patron').value = cfg.patron;
+  $('cuentaN').value = cfg.cuentaN; $('modoCuenta').value = cfg.modoCuenta; $('pitidoCero').checked = cfg.pitidoCero;
+  $('anticipo').value = cfg.anticipoMs; $('avisoInicio').checked = cfg.avisoInicio; $('avisoProx').checked = cfg.avisoProx;
+  $('antirrebote').value = cfg.antirreboteMs / 1000; $('colMedida').value = cfg.colMedida; $('colPractica').value = cfg.colPractica;
+  $('velActiva').checked = cfg.velActiva; $('fuenteVel').value = cfg.fuenteVel; $('simModo').value = cfg.simModo;
+  $('simRuido').checked = cfg.simRuido; $('umbral').value = cfg.umbralPrecisionM; $('calibrar').checked = cfg.calibrar;
+  $('vozVel').checked = cfg.vozVel; $('vozVelCada').value = cfg.vozVelCadaS;
+  const enCurso = !!(motor && motor.enCurso);
+  $('fsCarrera').disabled = enCurso; $('carreraHint').hidden = !enCurso;
+  velBase(); infoPulsador();
+}
+const num = (id, def, min, max) => { const v = parseFloat($(id).value); return isFinite(v) ? Math.min(max, Math.max(min, v)) : def; };
+function leerForm() {
+  if (!(motor && motor.enCurso)) {
+    const T = (num('tMin', 0, 0, 99) * 60 + num('tSeg', 0, 0, 59)) * 1000 + num('tDec', 0, 0, 9) * 100;
+    if (T >= 5000) cfg.tiempoIdealMs = Math.round(T);
+    cfg.distanciaM = Math.round(num('distancia', cfg.distanciaM, 0, 1e6));
+    cfg.patron = $('patron').value;
+  }
+  cfg.cuentaN = Math.round(num('cuentaN', cfg.cuentaN, 0, 60));
+  cfg.modoCuenta = $('modoCuenta').value; cfg.pitidoCero = $('pitidoCero').checked;
+  cfg.anticipoMs = Math.round(num('anticipo', cfg.anticipoMs, 0, 1500));
+  cfg.avisoInicio = $('avisoInicio').checked; cfg.avisoProx = $('avisoProx').checked;
+  cfg.antirreboteMs = Math.round(num('antirrebote', cfg.antirreboteMs / 1000, 0, 60) * 1000);
+  if (carrera) carrera.antirreboteMs = (motor && motor.enCurso) ? cfg.antirreboteMs : carrera.antirreboteMs;
+  cfg.colMedida = $('colMedida').value; cfg.colPractica = $('colPractica').value;
+  cfg.velActiva = $('velActiva').checked; cfg.fuenteVel = $('fuenteVel').value; cfg.simModo = $('simModo').value;
+  cfg.simRuido = $('simRuido').checked; cfg.umbralPrecisionM = Math.round(num('umbral', cfg.umbralPrecisionM, 1, 200));
+  cfg.calibrar = $('calibrar').checked; cfg.vozVel = $('vozVel').checked;
+  cfg.vozVelCadaS = Math.round(num('vozVelCada', cfg.vozVelCadaS, 5, 120));
+  if (carrera && motor && motor.enCurso) { carrera.umbralPrecisionM = cfg.umbralPrecisionM; carrera.calibrar = cfg.calibrar; }
+  aplicarColores(); Store.setConfig(cfg); velBase(); actualizarFuente();
+}
+function velBase() {
+  const T = cfg.tiempoIdealMs / 1000, D = cfg.distanciaM;
+  $('velBase').textContent = D > 0 && T > 0 ? 'Velocidad promedio necesaria: ' + (D / T * 3.6).toFixed(1).replace('.', ',') + ' km/h' : '';
+}
+$('config').addEventListener('input', leerForm);
+$('config').addEventListener('change', leerForm);
+$('btnConfig').addEventListener('click', () => { cargarForm(); $('config').hidden = false; $('medirRes').textContent = Audio.diagnostico(); });
+$('btnCerrar').addEventListener('click', () => { leerForm(); $('config').hidden = true; });
+
+// Medir demora: dice 5 números, mide desde la orden hasta que el teléfono empieza a hablar
+$('btnMedir').addEventListener('click', () => {
+  Audio.desbloquear();
+  if (!Audio.hayVoz) { $('medirRes').textContent = 'Este navegador no tiene voz. Usá el modo Pitidos.'; return; }
+  const res = []; let i = 0;
+  $('medirRes').textContent = 'Midiendo…';
+  const uno = () => {
+    if (i >= 5) {
+      res.sort((a, b) => a - b);
+      const med = res.slice(1, 4).reduce((a, b) => a + b, 0) / 3; // descarta el más rápido y el más lento
+      cfg.anticipoMs = Math.round(med / 10) * 10; $('anticipo').value = cfg.anticipoMs; Store.setConfig(cfg);
+      $('medirRes').textContent = 'Demora medida: ' + res.map(r => Math.round(r)).join(', ') + ' ms. Anticipo ajustado a ' + cfg.anticipoMs + ' ms.';
+      return;
+    }
+    const t0 = ahora(); let ok = false;
+    const u = Audio.hablar(String(5 - i), () => { ok = true; res.push(ahora() - t0); });
+    i += 1;
+    setTimeout(() => { if (!ok) res.push(1000); uno(); }, 1100);
+  };
+  uno();
+});
+
+// Prueba de 5 s: cuenta con la misma lógica que en carrera
+$('btnProbar').addEventListener('click', () => {
+  Audio.desbloquear();
+  const t0 = ahora(), T = 5000; let ult = null, cero = false;
+  const el = $('medirRes');
+  const tick = () => {
+    const rest = T - (ahora() - t0);
+    const ant = cfg.modoCuenta === 'voz' ? cfg.anticipoMs : 0;
+    const k = Math.ceil((rest - ant) / 1000);
+    if (k >= 1 && k <= 5 && k !== ult) { ult = k; if (cfg.modoCuenta === 'voz') Audio.numero(k); else Audio.pitido(880, 90); }
+    if (!cero && rest <= 0) { cero = true; Audio.pitido(1320, 450); }
+    el.textContent = 'Prueba: ' + (rest > 0 ? fmt(rest, true) : '0:00.0');
+    if (rest > -600) setTimeout(tick, 10);
+  };
+  tick();
+});
+
+/* ================= HISTORIAL ================= */
+const seg = ms => (ms / 1000).toFixed(1).replace('.', ',');
+function resumen(c) {
+  const med = c.vueltas.filter(v => v.medida);
+  const abs = med.map(v => Math.abs(v.difMs));
+  return { medidas: med.length, total: c.vueltas.length, sumaMs: abs.reduce((a, b) => a + b, 0),
+           promMs: abs.length ? abs.reduce((a, b) => a + b, 0) / abs.length : 0, mejorMs: abs.length ? Math.min(...abs) : 0 };
+}
+function el(tag, txt, cls) { const e = document.createElement(tag); if (txt !== undefined) e.textContent = txt; if (cls) e.className = cls; return e; }
+function dibujarHistorial() {
+  const cont = $('histLista'); cont.innerHTML = '';
+  const cs = Store.carreras.filter(c => c.vueltas.length).slice().reverse();
+  if (!cs.length) { cont.append(el('p', 'Todavía no hay vueltas guardadas. Largá una carrera y marcá al menos una vuelta.', 'vacio')); return; }
+  const lista = el('div'); lista.style.cssText = 'display:flex;flex-direction:column;gap:14px';
+  const todo = el('button', 'Exportar todo (respaldo JSON)', 'btn sec');
+  todo.type = 'button'; todo.onclick = () => exportar('betometro-respaldo.json', JSON.stringify(Store.todo(), null, 1));
+  lista.append(todo);
+  for (const c of cs) {
+    const r = resumen(c), box = el('div', undefined, 'hist-carrera');
+    const cab = el('div', undefined, 'hist-cab');
+    cab.append(el('b', new Date(c.fecha).toLocaleString('es-AR', { dateStyle: 'medium', timeStyle: 'short' })),
+               el('span', 'Ideal ' + fmt(c.tiempoIdealMs) + (c.distanciaM ? ' · ' + c.distanciaM.toLocaleString('es-AR') + ' m' : ''), 'hint'));
+    const res = el('div', undefined, 'hist-res');
+    const dato = (lbl, val) => { const s = el('span', lbl + ' '); s.append(el('strong', val)); return s; };
+    res.append(dato('Vueltas', String(r.total)), dato('Medidas', String(r.medidas)));
+    if (r.medidas) res.append(dato('Error total', seg(r.sumaMs) + ' s'), dato('Promedio', seg(r.promMs) + ' s'), dato('Mejor', seg(r.mejorMs) + ' s'));
+    const wrap = el('div', undefined, 'tabla-wrap'), t = el('table', undefined, 'tabla');
+    const hr = el('tr'); ['Vuelta', 'Tipo', 'Tiempo', 'Diferencia', 'Metros', 'km/h', 'Marca'].forEach(h => hr.append(el('th', h)));
+    const thead = el('thead'); thead.append(hr); t.append(thead);
+    const tb = el('tbody');
+    for (const v of c.vueltas) {
+      const tr = el('tr'), tipo = el('td');
+      tipo.append(el('span', undefined, 'tag ' + (v.medida ? 'm' : 'p')), document.createTextNode(v.medida ? 'Medida' : 'Práctica'));
+      tr.append(el('td', String(v.n)), tipo, el('td', fmt(v.realMs)),
+                el('td', fmtDif(v.difMs), v.difMs !== 0 ? 'dif-mas' : ''),
+                el('td', v.distM ? v.distM.toLocaleString('es-AR') : '–'),
+                el('td', v.velPromKmh ? String(v.velPromKmh).replace('.', ',') : '–'),
+                el('td', v.fuente === 'pulsador' ? 'Pulsador' : v.fuente === 'teclado' ? 'Teclado' : 'Pantalla'));
+      tb.append(tr);
+    }
+    t.append(tb); wrap.append(t);
+    const acc = el('div', undefined, 'hist-acc');
+    const bCsv = el('button', 'Exportar planilla (CSV)', 'btn sec'); bCsv.type = 'button';
+    bCsv.onclick = () => exportar('betometro-' + c.fecha.slice(0, 16).replace(/[:T]/g, '-') + '.csv', csv(c));
+    const bJson = el('button', 'Exportar JSON', 'btn sec'); bJson.type = 'button';
+    bJson.onclick = () => exportar('betometro-' + c.fecha.slice(0, 16).replace(/[:T]/g, '-') + '.json', JSON.stringify(c, null, 1));
+    const bDel = el('button', 'Borrar', 'btn sec'); bDel.type = 'button';
+    let armado = null;
+    bDel.onclick = () => {
+      if (!armado) { bDel.textContent = 'Tocá otra vez para borrar'; armado = setTimeout(() => { armado = null; bDel.textContent = 'Borrar'; }, 3000); return; }
+      clearTimeout(armado); Store.borrarCarrera(c.id); dibujarHistorial();
+    };
+    acc.append(bCsv, bJson, bDel);
+    box.append(cab, res, wrap, acc);
+    lista.append(box);
+  }
+  cont.append(lista);
+}
+function csv(c) {
+  const n = x => x === undefined || x === null ? '' : String(x).replace('.', ',');
+  const filas = [['Vuelta', 'Tipo', 'Ideal (s)', 'Tiempo (s)', 'Diferencia (s)', 'Metros', 'Vel. promedio (km/h)', 'Vel. máxima (km/h)', 'Marca'].join(';')];
+  for (const v of c.vueltas) filas.push([v.n, v.medida ? 'Medida' : 'Práctica', n(v.idealMs / 1000), n(v.realMs / 1000), n(v.difMs / 1000),
+                                         n(v.distM), n(v.velPromKmh), n(v.velMaxKmh), v.fuente].join(';'));
+  return '\ufeff' + filas.join('\r\n');
+}
+async function exportar(nombre, texto) {
+  if (NATIVO && FS && Share) {
+    try {
+      const r = await FS.writeFile({ path: nombre, data: texto, directory: 'CACHE', encoding: 'utf8' });
+      await Share.share({ title: nombre, files: [r.uri] });
+    } catch (e) { if (!/cancel/i.test(String(e && e.message))) avisar('No se pudo exportar'); }
+    return;
+  }
+  try { await navigator.clipboard.writeText(texto); avisar('Copiado al portapapeles'); } catch (e) { avisar('No se pudo copiar'); }
+}
+$('btnHist').addEventListener('click', () => { dibujarHistorial(); $('historial').hidden = false; });
+$('btnHistCerrar').addEventListener('click', () => { $('historial').hidden = true; });
+
+/* ================= ACTUALIZADOR (descarga la última versión publicada en GitHub) ================= */
+const cmpVer = (a, b) => { const x = a.split('.').map(Number), y = b.split('.').map(Number); for (let i = 0; i < 3; i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d; } return 0; };
+let versionActual = null, ultimaRel = null;
+async function buscarActualizacion(silencioso) {
+  if (!NATIVO) return;
+  try {
+    if (!versionActual) { const i = await AppInfo.getInfo(); versionActual = i.version; $('appVersion').textContent = 'Versión instalada: ' + versionActual; }
+    const r = await fetch('https://api.github.com/repos/' + REPO + '/releases/latest', { headers: { Accept: 'application/vnd.github+json' }, cache: 'no-store' });
+    if (!r.ok) throw new Error('GitHub respondió ' + r.status);
+    const rel = await r.json(), ver = String(rel.tag_name || '').replace(/^v/, '');
+    const apk = (rel.assets || []).find(a => /\.apk$/i.test(a.name));
+    if (!apk || !ver) throw new Error('la versión publicada no tiene instalador');
+    if (cmpVer(ver, versionActual) > 0) {
+      ultimaRel = { ver, url: apk.browser_download_url };
+      $('actRes').textContent = 'Hay una versión nueva: ' + ver + '.';
+      $('btnActualizar').textContent = 'Descargar e instalar ' + ver;
+      if (silencioso) avisar('Hay una actualización de Betómetro: entrá a Ajustes');
+    } else { ultimaRel = null; if (!silencioso) $('actRes').textContent = 'Tenés la última versión.'; }
+  } catch (e) { if (!silencioso) $('actRes').textContent = 'No se pudo buscar: ' + e.message + '. Revisá la conexión a internet.'; }
+}
+async function instalarActualizacion() {
+  if (motor && motor.enCurso) { $('actRes').textContent = 'Terminá la carrera antes de actualizar.'; return; }
+  try {
+    const p = await Beto.puedeInstalar();
+    if (!p.permitido) {
+      $('actRes').textContent = 'Android necesita permiso para instalar la actualización. Activá «Permitir de esta fuente», volvé y tocá el botón otra vez.';
+      await Beto.pedirPermisoInstalar(); return;
+    }
+    $('actRes').textContent = 'Descargando… 0 %';
+    await Beto.descargarEInstalar({ url: ultimaRel.url });
+    $('actRes').textContent = 'Descarga completa: confirmá la instalación.';
+  } catch (e) { $('actRes').textContent = (e && e.message) || 'No se pudo descargar.'; }
+}
+if (Beto) Beto.addListener('descarga', d => { $('actRes').textContent = 'Descargando… ' + d.porcentaje + ' %'; });
+$('btnActualizar').addEventListener('click', () => {
+  if (!NATIVO) { $('actRes').textContent = 'La actualización funciona en la app instalada.'; return; }
+  if (ultimaRel) instalarActualizacion(); else { $('actRes').textContent = 'Buscando…'; buscarActualizacion(false); }
+});
+
+/* ================= ARRANQUE ================= */
+aplicarColores();
+infoPulsador();
+if (NATIVO) {
+  const og = $('fuenteVel').querySelector('option[value="gps"]'); og.disabled = false; og.textContent = 'GPS del teléfono';
+  $('btnMedir').hidden = true;
+  aplicarTeclasNativas();
+  Store.recuperar().then(ok => {
+    if (!ok) return;
+    Object.assign(cfg, DEF, Store.config || {});
+    aplicarColores(); infoPulsador(); aplicarTeclasNativas(); actualizarFuente();
+  });
+  setTimeout(() => buscarActualizacion(true), 4000);
+}
+actualizarFuente();
+requestAnimationFrame(dibujar);
+})();
+</script>

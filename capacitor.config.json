@@ -1,0 +1,6 @@
+{
+  "appId": "ar.com.betometro.app",
+  "appName": "Betómetro",
+  "webDir": "www",
+  "android": { "allowMixedContent": false }
+}

@@ -1,0 +1,85 @@
+name: Compilar APK
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npx cap sync android
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Número de versión
+        id: ver
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "name=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=0.0.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Llave de firma
+        env:
+          KS: ${{ secrets.BETO_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KS" ]; then
+            echo "$KS" | base64 -d > "$RUNNER_TEMP/beto.keystore"
+            echo "BETO_KEYSTORE=$RUNNER_TEMP/beto.keystore" >> "$GITHUB_ENV"
+            echo "FIRMADO=1" >> "$GITHUB_ENV"
+          else
+            echo "No hay llave de firma cargada: se compila una versión de prueba solo para verificar."
+          fi
+
+      - name: Compilar
+        working-directory: android
+        env:
+          BETO_KEYSTORE_PASS: ${{ secrets.BETO_PASS }}
+          BETO_KEY_PASS: ${{ secrets.BETO_PASS }}
+          BETO_KEY_ALIAS: betometro
+        run: |
+          chmod +x gradlew
+          if [ "$FIRMADO" = "1" ]; then TAREA=assembleRelease; else TAREA=assembleDebug; fi
+          ./gradlew "$TAREA" -PvCode=${{ github.run_number }} -PvName=${{ steps.ver.outputs.name }} --no-daemon --stacktrace
+          mkdir -p ../salida
+          find app/build/outputs/apk -name '*.apk' -exec cp {} ../salida/betometro.apk \;
+          ls -la ../salida
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: betometro-apk
+          path: salida/betometro.apk
+
+      - name: Publicar versión
+        if: startsWith(github.ref, 'refs/tags/v') && env.FIRMADO == '1'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: salida/betometro.apk
+          name: Betómetro ${{ steps.ver.outputs.name }}
+
+      - name: Falta la llave de firma
+        if: startsWith(github.ref, 'refs/tags/v') && env.FIRMADO != '1'
+        run: |
+          echo "::error::Para publicar una versión hay que cargar los secretos BETO_KEYSTORE_B64 y BETO_PASS en el repositorio."
+          exit 1
