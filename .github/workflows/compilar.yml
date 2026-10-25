@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   apk:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # ya trae el SDK de Android
     steps:
       - uses: actions/checkout@v4
 
@@ -28,8 +28,6 @@ jobs:
           distribution: temurin
           java-version: 21
           cache: gradle
-
-      - uses: android-actions/setup-android@v3
 
       - name: Número de versión
         id: ver
