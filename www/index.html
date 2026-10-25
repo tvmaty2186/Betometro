@@ -498,6 +498,20 @@ html, body { margin: 0; }
 .hero-c .sub { display: flex; justify-content: space-around; margin-top: 8px; }
 .hero-c .sub span { display: block; font-size: 11px; color: var(--sub); letter-spacing: .1em; text-transform: uppercase; font-weight: 700; }
 .hero-c .sub b { font-size: 20px; }
+.fecha-ficha { text-align: center; margin: 0 0 2px; }
+.hero-c { gap: 6px; padding: 16px 14px 14px; }
+.hero-c .chip-c { align-self: center; font: 700 11px var(--font-ui); letter-spacing: .16em; text-transform: uppercase; color: var(--sub); padding: 5px 12px; border-radius: 99px; box-shadow: inset 0 0 0 1px var(--card-borde); }
+.hero-c .chip-c.hoy { color: #fff; background: var(--medida); box-shadow: none; }
+.tira-c { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--card-borde); }
+.tira-c > div { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; }
+.tira-c > div + div { border-left: 1px solid var(--card-borde); }
+.tira-c b { font-family: var(--font-num); font-weight: var(--peso-num); font-size: 24px; line-height: 1.1; color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tira-c b small { font-size: 12px; color: var(--sub); }
+.tira-c span { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--sub); }
+.pm-c { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--card-borde); }
+.pm-c .dots { margin: 0; } .pm-c b { font: 600 14px var(--font-ui); color: var(--ink); }
+.acciones .ancho, .acciones .finalizada-c { grid-column: 1 / -1; }
+.acciones .btn.largar.ancho { min-height: 64px; font-size: 24px; }
 .datos-c { grid-template-columns: repeat(2, 1fr); }
 .dato-c { background: var(--card-bg); border: 0; box-shadow: 0 0 0 1px var(--card-borde); border-radius: 14px; }
 .dato-c span { color: var(--sub); }
@@ -653,8 +667,9 @@ html, body { margin: 0; }
       <label class="f" for="e-fecha"><span><i>▦</i>Fecha</span><input type="date" id="e-fecha"></label>
       <div class="f"><span><i>↻</i>Vueltas</span>
         <div class="stepper"><button type="button" data-paso="-1" data-campo="e-vueltas" aria-label="Una vuelta menos">−</button><input type="number" id="e-vueltas" min="1" max="300" inputmode="numeric"><button type="button" data-paso="1" data-campo="e-vueltas" aria-label="Una vuelta más">+</button></div></div>
-      <div class="f f-2"><span><i>⏱</i>Tiempo ideal por vuelta</span><div class="reloj-c"><div class="t-campo"><input type="text" pattern="[0-9]*" autocomplete="off" id="e-min" min="0" max="99" inputmode="numeric" aria-label="Minutos" placeholder="0">:<input type="text" pattern="[0-9]*" autocomplete="off" id="e-seg" min="0" max="59" inputmode="numeric" aria-label="Segundos" placeholder="00">.<input type="text" pattern="[0-9]*" autocomplete="off" id="e-dec" min="0" max="9" inputmode="numeric" aria-label="Décimas" placeholder="0"></div><div class="reloj-u"><span>MIN</span><span>SEG</span><span>DÉC</span></div></div></div>
       <label class="f f-2" for="e-distancia"><span><i>↔</i>Distancia por vuelta (metros)</span><input type="number" id="e-distancia" min="0" step="1" inputmode="numeric"></label>
+      <div class="f f-2"><span><i>⏱</i>Tiempo ideal por vuelta</span><div class="reloj-c"><div class="t-campo"><input type="text" pattern="[0-9]*" autocomplete="off" id="e-min" min="0" max="99" inputmode="numeric" aria-label="Minutos" placeholder="0">:<input type="text" pattern="[0-9]*" autocomplete="off" id="e-seg" min="0" max="59" inputmode="numeric" aria-label="Segundos" placeholder="00">.<input type="text" pattern="[0-9]*" autocomplete="off" id="e-dec" min="0" max="9" inputmode="numeric" aria-label="Décimas" placeholder="0"></div><div class="reloj-u"><span>MIN</span><span>SEG</span><span>DÉC</span></div></div></div>
+      <p class="hint f-2" id="e-velBase"></p>
       <div class="f f-2"><span><i>◉</i>Vueltas medidas</span><select id="e-patron" class="oculto" aria-label="Vueltas medidas">
           <option value="todas">Todas medidas</option>
           <option value="alt1">Alternadas: la 1.ª medida</option>
@@ -666,7 +681,6 @@ html, body { margin: 0; }
           <button type="button" data-v="alt2"><span class="dots"><i class="p"></i><i class="m"></i><i class="p"></i><i class="m"></i></span>1.ª práctica</button>
         </div></div>
       <p class="hint f-2" id="e-configHint" hidden>Esta carrera ya tiene vueltas corridas: el tiempo, la distancia y las vueltas medidas no se pueden cambiar.</p>
-      <label class="f f-2" for="e-lugar"><span><i>⌖</i>Lugar o circuito</span><input type="text" id="e-lugar" maxlength="80"></label>
       <label class="f f-2" for="e-notas"><span><i>✎</i>Notas</span><textarea id="e-notas" maxlength="500"></textarea></label>
     </div>
     <p class="error" id="editorError" role="alert"></p>
@@ -690,8 +704,8 @@ html, body { margin: 0; }
   <div class="config-in">
     <div class="cab"><button class="btn sec" id="practicaVolver" type="button">Volver</button><h2>Práctica libre</h2></div>
     <div class="form" id="fsCarrera">
-      <div class="f f-2"><span><i>⏱</i>Tiempo ideal por vuelta</span><div class="reloj-c"><div class="t-campo"><input type="text" pattern="[0-9]*" autocomplete="off" id="tMin" min="0" max="99" inputmode="numeric" aria-label="Minutos" placeholder="0">:<input type="text" pattern="[0-9]*" autocomplete="off" id="tSeg" min="0" max="59" inputmode="numeric" aria-label="Segundos" placeholder="00">.<input type="text" pattern="[0-9]*" autocomplete="off" id="tDec" min="0" max="9" inputmode="numeric" aria-label="Décimas" placeholder="0"></div><div class="reloj-u"><span>MIN</span><span>SEG</span><span>DÉC</span></div></div></div>
       <label class="f f-2" for="distancia"><span><i>↔</i>Distancia por vuelta (metros)</span><input type="number" id="distancia" min="0" step="1" inputmode="numeric"></label>
+      <div class="f f-2"><span><i>⏱</i>Tiempo ideal por vuelta</span><div class="reloj-c"><div class="t-campo"><input type="text" pattern="[0-9]*" autocomplete="off" id="tMin" min="0" max="99" inputmode="numeric" aria-label="Minutos" placeholder="0">:<input type="text" pattern="[0-9]*" autocomplete="off" id="tSeg" min="0" max="59" inputmode="numeric" aria-label="Segundos" placeholder="00">.<input type="text" pattern="[0-9]*" autocomplete="off" id="tDec" min="0" max="9" inputmode="numeric" aria-label="Décimas" placeholder="0"></div><div class="reloj-u"><span>MIN</span><span>SEG</span><span>DÉC</span></div></div></div>
       <div class="f f-2"><span><i>◉</i>Vueltas medidas</span><select id="patron" class="oculto" aria-label="Vueltas medidas">
           <option value="todas">Todas medidas</option>
           <option value="alt1">Alternadas: la 1.ª medida</option>
@@ -2094,7 +2108,7 @@ function dibujarCarreras() {
 }
 
 /* ---------- Editor de carrera ---------- */
-const CAMPOS = ['nombre', 'fecha', 'lugar', 'notas'];
+const CAMPOS = ['nombre', 'fecha', 'notas'];
 function abrirEditor(c) {
   editando = c;
   const d = c || { nombre: '', fecha: hoyISO(), tiempoIdealMs: cfg.tiempoIdealMs, distanciaM: cfg.distanciaM, patron: cfg.patron };
@@ -2107,7 +2121,7 @@ function abrirEditor(c) {
   for (const id of ['e-min', 'e-seg', 'e-dec', 'e-distancia', 'e-patron']) $(id).disabled = corrida;
   $('e-configHint').hidden = !corrida;
   $('e-vueltas').value = d.vueltasTotal || '';
-  mostrar('editor');
+  velEditor(); mostrar('editor');
 }
 function guardarEditor() {
   const v = id => $(id).value.trim();
@@ -2175,11 +2189,11 @@ function accionesCarrera(c) {
   const acc = el('div', undefined, 'acciones'), e = estadoLargada(c);
   if (e.fin) acc.append(el('div', 'CARRERA FINALIZADA', 'finalizada-c'));
   else {
-    const b = boton(e.ok ? 'LARGAR' : e.motivo, 'btn largar' + (e.ok ? '' : ' inhabilitado'), () => { if (e.ok) irACrono(c); });
+    const b = boton(e.ok ? 'LARGAR' : e.motivo, 'btn largar ancho' + (e.ok ? '' : ' inhabilitado'), () => { if (e.ok) irACrono(c); });
     b.disabled = !e.ok; acc.append(b);
   }
   if (!c.practica) acc.append(boton('Editar', 'btn sec', () => abrirEditor(c)));
-  const bb = boton('Borrar', 'btn sec borrar-btn', () => {
+  const bb = boton('Borrar', 'btn sec borrar-btn' + (c.practica ? ' ancho' : ''), () => {
     if (!borrarFicha) { bb.textContent = 'Tocá otra vez para borrar'; borrarFicha = setTimeout(() => { borrarFicha = null; bb.textContent = 'Borrar'; }, 3000); return; }
     clearTimeout(borrarFicha); borrarFicha = null; Store.borrarCarrera(c.id); seleccion = null; mostrar('carreras');
   });
@@ -2192,7 +2206,7 @@ function dibujarDetalle() {
   $('detalleTitulo').textContent = c.nombre;
   if (esCarnet()) { detalleCarnet(c, cont); return; }
   const r = resumen(c);
-  cont.append(el('p', fechaLarga(c.fecha) + (c.lugar ? ' · ' + c.lugar : ''), 'hint'));
+  cont.append(el('p', fechaLarga(c.fecha), 'hint fecha-ficha'));
   const hero = el('div', undefined, 'hero-c');
   if (r.medidas) {
     hero.append(el('span', 'Error total · vueltas medidas', 'et'), el('b', seg(r.sumaMs) + ' s', 'grande n-' + nivelErr(r.promMs / 1000)));
@@ -2201,17 +2215,18 @@ function dibujarDetalle() {
     hero.append(sub);
   } else {
     const dd = diasHasta(c.fecha);
-    hero.append(el('span', dd === 0 ? 'Se corre hoy' : dd > 0 ? 'Faltan ' + dd + ' días' : 'Sin correr', 'et'), el('b', fmt(c.tiempoIdealMs), 'grande'), el('span', 'tiempo ideal por vuelta', 'et'));
+    hero.append(el('span', dd === 0 ? 'Se corre hoy' : dd > 0 ? 'Faltan ' + dd + ' días' : 'Sin correr', 'chip-c' + (dd === 0 ? ' hoy' : '')), el('b', fmt(c.tiempoIdealMs), 'grande'), el('span', 'tiempo ideal por vuelta', 'et'));
   }
-  cont.append(hero);
-  const datos = el('div', undefined, 'datos-c');
-  const dato = (k, val, nodo) => { const d = el('div', undefined, 'dato-c'); d.append(el('span', k)); if (nodo) d.append(nodo); else d.append(el('b', val)); datos.append(d); };
-  dato('Vueltas', c.vueltasTotal ? String(c.vueltasTotal) : 'sin límite');
-  if (r.medidas) dato('Tiempo ideal', fmt(c.tiempoIdealMs));
-  if (c.distanciaM) { dato('Distancia', c.distanciaM.toLocaleString('es-AR') + ' m'); dato('Promedio', (c.distanciaM / (c.tiempoIdealMs / 1000) * 3.6).toFixed(1).replace('.', ',') + ' km/h'); }
-  const pm = el('div', undefined, 'pm'); pm.append(dotsPatron(c.patron), el('b', c.patron === 'todas' ? 'Todas' : c.patron === 'alt1' ? '1.ª medida' : '1.ª práctica'));
-  dato('Medidas', '', pm);
-  cont.append(datos, accionesCarrera(c));
+  // tira de 3 datos iguales, centrados
+  const tira = el('div', undefined, 'tira-c');
+  const dato = (k, val, u) => { const d = el('div'); const b = el('b', val); if (u) b.append(el('small', ' ' + u)); d.append(b, el('span', k)); tira.append(d); };
+  if (r.medidas) dato('Ideal', fmt(c.tiempoIdealMs)); else dato('Vueltas', c.vueltasTotal ? String(c.vueltasTotal) : '∞');
+  dato('Distancia', c.distanciaM ? c.distanciaM.toLocaleString('es-AR') : '–', c.distanciaM ? 'm' : '');
+  dato('Vel. promedio', c.distanciaM ? (c.distanciaM / (c.tiempoIdealMs / 1000) * 3.6).toFixed(1).replace('.', ',') : '–', c.distanciaM ? 'km/h' : '');
+  hero.append(tira);
+  const pm = el('div', undefined, 'pm-c'); pm.append(dotsPatron(c.patron), el('b', c.patron === 'todas' ? 'Todas las vueltas medidas' : c.patron === 'alt1' ? 'Alternadas · la 1.ª medida' : 'Alternadas · la 1.ª de práctica'));
+  hero.append(pm);
+  cont.append(hero, accionesCarrera(c));
   if (c.notas) cont.append(el('p', c.notas, 'hint'));
   if (c.vueltas.length) { cont.append(el('h3', 'Vuelta por vuelta', 'seccion-t'), graficoVueltas(c), botonesExportar(c)); }
 }
@@ -2373,6 +2388,11 @@ $('practicaLargar').addEventListener('click', () => {
   setTimeout(() => { leerForm(); practicaLibre(); }, 60);
 });
 $('p-practica').addEventListener('input', leerForm);
+function velEditor() {
+  const T = ((+$('e-min').value || 0) * 60 + (+$('e-seg').value || 0)) + (+$('e-dec').value || 0) / 10, D = +$('e-distancia').value || 0;
+  $('e-velBase').textContent = D > 0 && T > 0 ? 'Velocidad promedio: ' + (D / T * 3.6).toFixed(1).replace('.', ',') + ' km/h' : '';
+}
+$('p-editor').addEventListener('input', velEditor);
 $('p-practica').addEventListener('change', ev => {
   leerForm();
   if (ev.target.id === 'tSeg' && entero('tSeg', 5999) > 59) {   // al salir del campo se acomoda: 0:90.0 → 1:30.0
