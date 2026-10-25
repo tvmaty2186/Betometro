@@ -317,6 +317,8 @@ input[type=color] { width: 56px; height: 40px; border: 1px solid var(--line); bo
   </div>
 </div>
 
+<!-- Puente con el código nativo (lo copia la compilación desde @capacitor/core) -->
+<script src="capacitor.js"></script>
 <script>
 (() => {
 'use strict';
@@ -324,7 +326,9 @@ input[type=color] { width: 56px; height: 40px; border: 1px solid var(--line); bo
 /* ================= PLATAFORMA ================= */
 const CAP = window.Capacitor;
 const NATIVO = !!(CAP && CAP.isNativePlatform && CAP.isNativePlatform());
-const plugin = n => (NATIVO && CAP.registerPlugin) ? CAP.registerPlugin(n) : null;
+const registrar = (CAP && CAP.registerPlugin) || (window.capacitorExports && window.capacitorExports.registerPlugin);
+const plugin = n => (NATIVO && registrar) ? registrar(n) : null;
+if (NATIVO && !registrar) console.error('Betómetro: falta capacitor.js, no hay acceso a lo nativo');
 const Beto = plugin('Beto'), BG = plugin('BackgroundGeolocation'), KeepAwake = plugin('KeepAwake'),
       FS = plugin('Filesystem'), Share = plugin('Share'), AppInfo = plugin('App');
 const REPO = 'tvmaty2186/betometro';

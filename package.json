@@ -1,10 +1,10 @@
 {
   "name": "betometro",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Betómetro: cronómetro de regularidad para el navegante",
   "scripts": {
-    "sync": "cap sync android"
+    "sync": "cp node_modules/@capacitor/core/dist/capacitor.js www/ && cap sync android"
   },
   "dependencies": {
     "@capacitor-community/background-geolocation": "1.3.1",
