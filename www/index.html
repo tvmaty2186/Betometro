@@ -259,51 +259,127 @@ input[type=color] { width: 56px; height: 40px; border: 1px solid var(--line); bo
 .btn.sec { background: transparent; color: var(--ink); border: 1px solid var(--line); }
 .cfg-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 @media (prefers-reduced-motion: reduce) { body, .marcar { transition: none; } }
+
+/* ===== 1.3: instrumentos realistas (aro metálico + brillo del tema + cara con profundidad + reflejo) ===== */
+:root { --aro1: #d9dde0; --aro2: #30353a; --glow: rgba(255,255,255,.18); --cara1: #2a2e33; --cara2: #0b0c0e; --dig: var(--acento);
+        --fondo-crono: var(--idle); }
+:root[data-tema="rally"] { --aro1: #e9dcc0; --aro2: #6d5f48; --glow: rgba(255,170,40,.5); --cara1: #262019; --cara2: #0b0906; --dig: #ffb000;
+        --fondo-crono: radial-gradient(ellipse at 30% 15%, #2a2219 0%, #120e0a 60%, #070504 100%); }
+:root[data-tema="sport"] { --aro1: #5a5f66; --aro2: #15171a; --glow: rgba(255,40,20,.55); --cara1: #2a2e33; --cara2: #0c0d0f; --dig: #ffffff;
+        --fondo-crono: repeating-linear-gradient(45deg, #1b1d20 0 4px, #141618 4px 8px), #16181b; }
+:root[data-tema="cabina"] { --aro1: #8a949c; --aro2: #2a3238; --glow: rgba(79,195,247,.32); --cara1: #10171c; --cara2: #020304; --dig: #3cf06e;
+        --fondo-crono: linear-gradient(#0e1215, #050708); }
+:root.sol { --aro1: #000; --aro2: #000; --glow: transparent; --cara1: #ffffff; --cara2: #f3f1ea; --dig: #000; --fondo-crono: #fbfaf5; }
+
+.app { padding: 0; max-width: none; position: relative; background: var(--fondo-crono); }
+body.ind-fondo.medida .app, body.ind-fondo.practica .app { background: transparent; }
+.tablero { position: absolute; left: max(6px, env(safe-area-inset-left, 0px)); right: max(6px, env(safe-area-inset-right, 0px));
+           top: max(6px, env(safe-area-inset-top, 0px)); bottom: max(6px, env(safe-area-inset-bottom, 0px)); display: block; }
+.w { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+     border-radius: 22px; padding: 8px 12px; box-sizing: border-box; overflow: visible; container-type: size;
+     background: radial-gradient(ellipse at 50% 0%, var(--cara1), var(--cara2) 75%); border: 0;
+     box-shadow: 0 0 0 2px var(--aro2), 0 0 0 5px var(--aro1), 0 0 0 7px var(--aro2), 0 0 20px 5px var(--glow),
+                 inset 0 3px 8px rgba(255,255,255,.12), inset 0 -18px 30px rgba(0,0,0,.55); }
+.w.redondo { border-radius: 50%; padding: 16%; }
+.w::after { content: ""; position: absolute; left: 8%; right: 8%; top: 3%; height: 36%; border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+            background: linear-gradient(rgba(255,255,255,.12), rgba(255,255,255,0)); pointer-events: none; }
+:root.sol .w { box-shadow: 0 0 0 4px #000; } :root.sol .w::after { display: none; }
+.w > .lbl { position: static; font-size: clamp(10px, 11cqh, 15px); color: var(--lbl); }
+.w-num { color: var(--dig); font-size: min(58cqh, calc(var(--k) * 1cqw / var(--n, 4))); margin: 0; }
+.w-cuenta .w-num { color: var(--dig); font-size: min(64cqh, calc(var(--k) * 1.05cqw / var(--n, 6))); }
+.w-extra { font-size: clamp(11px, 11cqh, 17px); color: var(--ink); opacity: .85; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.w.redondo .w-svg { position: absolute; inset: 0; }
+.w-tipo { flex-direction: row; justify-content: space-between; padding: 0 16px; }
+.w-tipo .w-num { color: var(--ink); font-size: min(60cqh, calc(var(--k) * .55cqw / var(--n, 8))); background: none !important; padding: 0; }
+.w-tipo .chip-vuelta { font-family: var(--font-num); font-weight: var(--peso-num); font-size: min(52cqh, 11cqw); padding: .05em .45em; border-radius: 8px; color: #fff; background: var(--line); letter-spacing: .06em; }
+.w-tipo.es-medida .chip-vuelta { background: var(--medida); } .w-tipo.es-practica .chip-vuelta { background: var(--practica); }
+.w-delta.e-numero .w-num { background: none; padding: 0; color: var(--dig); font-size: min(70cqh, calc(var(--k) * .95cqw / var(--n, 12))); }
+.w-delta.e-numero .w-num.atr { color: var(--warn); }
+#btnMarcar.w { height: auto; font: var(--peso-num) 1px var(--font-num); color: var(--ink); letter-spacing: .14em; cursor: pointer; }
+#btnMarcar.w .m-txt { font-size: min(52cqh, 18cqw); line-height: 1; }
+#btnMarcar.w small { font: 600 clamp(11px, 10cqh, 16px) var(--font-ui); color: var(--ink); opacity: .75; letter-spacing: .04em; margin-top: 4px; }
+#btnMarcar.hit { transform: scale(.97); filter: brightness(1.4); }
+#sim.w { flex-direction: row; gap: 8px; padding: 6px 10px; border-style: none; }
+.crono-chips { position: absolute; top: max(10px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); display: flex; gap: 6px; z-index: 8; }
+.crono-chips .chip-btn { min-height: 30px; padding: 4px 12px; font-size: 13px; background: rgba(0,0,0,.45); color: var(--ink); }
+:root.sol .crono-chips .chip-btn { background: #fff; border-color: #000; }
+.crono-nombre { position: absolute; top: max(14px, env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px)); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-dim); z-index: 8; }
+
+/* ===== editor ===== */
+.tablero.editando { background-image: none; overflow: visible; }
+.tablero.editando .w { outline: none; }
+.tablero.editando { touch-action: none; }
+.tablero.editando .w * { pointer-events: none; }
+.tablero.editando .w { cursor: grab; }
+.w.moviendo { opacity: .6; z-index: 20; }
+.tablero.editando .w.elegido { outline: 3px dashed #ffd23f; outline-offset: 7px; }
+.asa { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; background: #ffd23f; border: 3px solid #111; z-index: 25; touch-action: none; }
+.guia { position: absolute; z-index: 24; pointer-events: none; }
+.guia.v { top: 0; bottom: 0; width: 0; border-left: 2px dashed #ff3df0; } .guia.h { left: 0; right: 0; height: 0; border-top: 2px dashed #ff3df0; }
+.ed-menu { position: absolute; z-index: 26; display: flex; gap: 6px; background: rgba(18,18,18,.94); border: 1px solid #444; border-radius: 14px; padding: 6px; }
+.ed-menu button { color: #fff; font: 600 14px var(--font-ui); padding: 9px 11px; border-radius: 9px; background: #2a2a2a; border: 0; min-height: 40px; }
+.ed-fab { position: absolute; top: max(10px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); width: 52px; height: 52px; border-radius: 50%;
+          background: #ffd23f; color: #111; border: 0; font: 700 24px var(--font-ui); z-index: 27; box-shadow: 0 6px 18px rgba(0,0,0,.6); }
+.ed-panel { position: absolute; top: calc(max(10px, env(safe-area-inset-top, 0px)) + 60px); right: max(12px, env(safe-area-inset-right, 0px)); z-index: 27;
+            display: flex; flex-direction: column; gap: 8px; background: rgba(18,18,18,.96); border: 1px solid #444; border-radius: 14px; padding: 10px; width: min(300px, 80vw); }
+.ed-panel select, .ed-panel button { width: 100%; }
+.ed-toast { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); background: rgba(18,18,18,.92); color: #fff; font: 600 13px var(--font-ui);
+            padding: 8px 14px; border-radius: 999px; z-index: 27; width: max-content; max-width: 90vw; text-align: center; pointer-events: none; }
+
+/* ===== inicio estilo panel ===== */
+#p-inicio { background: var(--fondo-crono); overflow: hidden; }
+.inicio { position: absolute; inset: 0; }
+.inicio-logo { position: absolute; left: max(22px, env(safe-area-inset-left, 0px)); top: calc(env(safe-area-inset-top, 0px) + 6vh); right: 16px; }
+.inicio-logo b { display: block; font-family: var(--font-num); font-weight: var(--peso-num); font-size: clamp(44px, 15vw, 72px); letter-spacing: .06em; line-height: 1; color: var(--ink); text-shadow: 0 0 18px var(--glow); }
+.inicio-logo small { display: block; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-dim); margin-top: 6px; }
+.inicio-logo .ver { display: block; font-size: 12px; color: var(--ink-dim); margin-top: 4px; }
+#inicioAct { position: absolute; left: 22px; right: 22px; top: calc(env(safe-area-inset-top, 0px) + 6vh + 110px); z-index: 3; }
+.inicio .w { pointer-events: none; }
+.ico { position: absolute; width: 104px; margin: -46px 0 0 -52px; text-align: center; background: none; border: 0; color: var(--ink); font: 700 15px var(--font-ui); line-height: 1.15; cursor: pointer; padding: 0; z-index: 2; }
+.ico .disco { width: 72px; height: 72px; margin: 0 auto 7px; border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 30%, var(--cara1), var(--cara2)); box-shadow: 0 0 0 2px var(--aro2), 0 0 0 4px var(--aro1), 0 0 16px 3px var(--glow), inset 0 -8px 14px rgba(0,0,0,.5); }
+:root.sol .ico .disco { box-shadow: 0 0 0 3px #000; }
+.ico svg { width: 38px; height: 38px; }
+.ico:active .disco { filter: brightness(1.5); }
 </style>
 
 <div class="app" id="app">
-  <div class="bar">
-    <span class="brand" id="cronoNombre">Betómetro</span>
-    <div class="bar-btns">
-      <button class="chip-btn" id="btnTerminar" type="button" hidden>Terminar</button>
-      <button class="chip-btn" id="btnSalir" type="button">Salir</button>
-      <button class="chip-btn" id="btnConfig" type="button">Ajustes</button>
-    </div>
-  </div>
-  <div class="tipo">
-    <span class="tipo-nombre" id="tipoNombre">LISTO</span>
-    <span class="tipo-vuelta" id="tipoVuelta">4:00.0 ideal</span>
-  </div>
-  <div class="edit-bar" id="editBar" hidden>
-    <select id="wAgregar" aria-label="Agregar widget"><option value="">+ Agregar widget…</option></select>
-    <button class="chip-btn" id="wRestablecer" type="button">Restablecer</button>
-    <button class="btn" id="wListo" type="button">Listo</button>
-    <p class="hint" style="flex-basis:100%;margin:0">Mantené apretado un widget para arrastrarlo. Tocalo para elegirlo y usá la esquina amarilla para cambiarle el tamaño.</p>
+  <span class="crono-nombre" id="cronoNombre">Betómetro</span>
+  <div class="crono-chips">
+    <button class="chip-btn" id="btnTerminar" type="button" hidden>Terminar</button>
+    <button class="chip-btn" id="btnSalir" type="button">Salir</button>
   </div>
   <div class="tablero" id="tablero"></div>
-  <div class="sim" id="sim" hidden title="Simulador de velocidad">
+  <div class="w" id="sim" hidden title="Simulador de velocidad">
     <button class="chip-btn" id="simMenos" type="button" aria-label="Bajar velocidad simulada">−</button>
     <input type="range" id="simVel" min="0" max="160" step="1" aria-label="Velocidad simulada">
     <button class="chip-btn" id="simMas" type="button" aria-label="Subir velocidad simulada">+</button>
     <b id="simVal">48 km/h</b>
   </div>
-  <button class="marcar" id="btnMarcar" type="button">LARGAR<small>Tocá en la largada</small></button>
+  <button class="w marcar" id="btnMarcar" type="button"><span class="m-txt">LARGAR</span><small>Tocá en la largada</small></button>
+  <button class="ed-fab" id="edFab" type="button" aria-label="Opciones del editor" hidden>✎</button>
+  <div class="ed-panel" id="edPanel" hidden>
+    <select id="wAgregar" aria-label="Agregar widget"><option value="">+ Agregar widget…</option></select>
+    <button class="btn sec" id="wRestablecer" type="button">Restablecer</button>
+    <button class="btn" id="wListo" type="button">Listo</button>
+  </div>
+  <div class="ed-menu" id="edMenu" hidden></div>
+  <div class="ed-toast" id="edToast" hidden>Mantené apretado un widget para moverlo · tocalo para cambiar el tamaño</div>
 </div>
 
 <div class="aviso" id="aviso" hidden></div>
 
 <!-- ===== Inicio ===== -->
 <div class="pantalla" id="p-inicio">
-  <div class="config-in">
-    <div class="marca">BETÓMETRO<small>Regularidad para el navegante</small></div>
+  <div class="inicio" id="inicio">
+    <div class="inicio-logo"><b>BETÓMETRO</b><small>Regularidad para el navegante</small><span class="ver" id="inicioVersion"></span></div>
     <button class="aviso-act" id="inicioAct" type="button" hidden>Hay una actualización de Betómetro. Tocá para instalarla.</button>
-    <div class="menu">
-      <button class="btn" id="mCarreras" type="button">Carreras<small>Crear y ver resultados</small></button>
-      <button class="btn" id="mPractica" type="button">Práctica libre<small>Elegí el tiempo y largá</small></button>
-      <button class="btn" id="mChequeo" type="button">Chequeo previo<small>Pulsador, GPS, voz, batería</small></button>
-      <button class="btn" id="mAjustes" type="button">Ajustes<small>Voz, velocidad, pulsador</small></button>
-      <button class="btn" id="mPantalla" type="button">Configuración de pantalla<small>Armar los widgets de carrera</small></button>
-    </div>
+    <div class="w redondo w-velocimetro" id="inicioGauge"></div>
+    <button class="ico" id="mCarreras" type="button"><span class="disco"><svg viewBox="0 0 40 40"><path d="M8 36V5" stroke="var(--ink)" stroke-width="3"/><path d="M9 6h24v16H9z" fill="var(--ink)"/><path d="M9 6h6v4H9zm12 0h6v4h-6zM15 10h6v4h-6zm12 0h6v4h-6zM9 14h6v4H9zm12 0h6v4h-6zM15 18h6v4h-6zm12 0h6v4h-6z" fill="var(--cara2)"/></svg></span>Carreras</button>
+    <button class="ico" id="mPractica" type="button"><span class="disco"><svg viewBox="0 0 40 40"><circle cx="20" cy="22" r="13" fill="none" stroke="var(--ink)" stroke-width="3"/><path d="M20 22V13M16 4h8M20 4v5" stroke="var(--dig)" stroke-width="3" stroke-linecap="round"/></svg></span>Práctica libre</button>
+    <button class="ico" id="mChequeo" type="button"><span class="disco"><svg viewBox="0 0 40 40"><rect x="8" y="5" width="24" height="31" rx="3" fill="none" stroke="var(--ink)" stroke-width="3"/><path d="M13 15l3 3 6-6M13 26l3 3 6-6" stroke="var(--dig)" stroke-width="3" fill="none"/></svg></span>Chequeo previo</button>
+    <button class="ico" id="mPantalla" type="button"><span class="disco"><svg viewBox="0 0 40 40"><rect x="5" y="5" width="13" height="13" rx="2" fill="var(--ink)"/><circle cx="28" cy="12" r="7" fill="none" stroke="var(--ink)" stroke-width="3"/><rect x="5" y="23" width="30" height="12" rx="2" fill="none" stroke="var(--dig)" stroke-width="3"/></svg></span>Pantalla de carrera</button>
+    <button class="ico" id="mAjustes" type="button"><span class="disco"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="6" fill="none" stroke="var(--ink)" stroke-width="3"/><path d="M20 4v6M20 30v6M4 20h6M30 20h6M8.7 8.7l4.2 4.2M27.1 27.1l4.2 4.2M8.7 31.3l4.2-4.2M27.1 12.9l4.2-4.2" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/></svg></span>Ajustes</button>
   </div>
 </div>
 
@@ -976,6 +1052,7 @@ function textoDelta(ds) {
 
 function alEvento(tipo, d) {
   if (tipo === 'vuelta') {
+    velMaxVuelta = 0;
     resetVueltaAudio();
     if (cfg.avisoInicio) Audio.hablar('Vuelta ' + d.n + ', ' + (d.medida ? 'medida' : 'práctica'));
   } else if (tipo === 'cerrada') {
@@ -1050,7 +1127,7 @@ function aplicarColores() {
   document.documentElement.style.setProperty('--practica', cfg.colPractica);
 }
 let ultimaVuelta = null;
-function mostrarUltima(v) { ultimaVuelta = v; }
+function mostrarUltima(v) { ultimaVuelta = v; if (v.medida && (mejorDif === null || Math.abs(v.difMs) < Math.abs(mejorDif))) mejorDif = v.difMs; }
 const kmh = v => v === null || v === undefined ? '–' : Math.round(v) + ' km/h';
 let avisoT = null;
 function avisar(txt) {
@@ -1058,80 +1135,70 @@ function avisar(txt) {
   clearTimeout(avisoT); avisoT = setTimeout(() => { el.hidden = true; }, 2200);
 }
 
-/* ================= WIDGETS ================= */
+/* ================= WIDGETS (1.3: posición y tamaño libres, forma real) ================= */
 const TIPOS_W = {
-  cuenta: { nombre: 'Cuenta regresiva', estilos: { numeros: 'números', anillo: 'anillo' } },
-  delta: { nombre: 'Adelantado / atrasado', estilos: { numero: 'número', barra: 'barra' }, vel: true },
-  velocimetro: { nombre: 'Velocímetro', estilos: { analogico: 'analógico', digital: 'digital' }, vel: true },
-  necesaria: { nombre: 'Velocidad necesaria', vel: true },
-  faltan: { nombre: 'Metros que faltan', vel: true },
+  tipo: { nombre: 'Vuelta y tipo (medida o práctica)', formas: false },
+  cuenta: { nombre: 'Cuenta regresiva', estilos: { numeros: 'Números', anillo: 'Anillo' }, extra: true },
+  delta: { nombre: 'Adelantado / atrasado', estilos: { numero: 'Número', barra: 'Barra' }, vel: true },
+  velocimetro: { nombre: 'Velocímetro', estilos: { analogico: 'Analógico', digital: 'Digital' }, vel: true, extra: true },
+  necesaria: { nombre: 'Velocidad necesaria', vel: true, extra: true },
+  faltan: { nombre: 'Metros que faltan', vel: true, extra: true },
   transcurrido: { nombre: 'Tiempo transcurrido' },
   ideal: { nombre: 'Tiempo ideal' },
-  tipo: { nombre: 'Vuelta actual (medida o práctica)' },
   proxima: { nombre: 'Próxima vuelta' },
-  ultima: { nombre: 'Última vuelta' }
+  ultima: { nombre: 'Última vuelta', extra: true },
+  simulador: { nombre: 'Simulador de velocidad', formas: false, fijo: true },
+  marcar: { nombre: 'Botón MARCAR', formas: false, fijo: true }
 };
-const COLS = 4, FILAS = 8;   // grilla del tablero
+// Posiciones como fracción del tablero (sirve para cualquier tamaño de pantalla). En los redondos, w es el diámetro (fracción del ancho).
+const REF_W = 378, REF_H = 800;
+const caja = (x, y, w, h) => ({ x: x / REF_W, y: y / REF_H, w: w / REF_W, h: h / REF_H });
 const WIDGETS_DEF = [
-  { t: 'cuenta', e: 'numeros', x: 0, y: 0, w: 3, h: 2 }, { t: 'tipo', x: 3, y: 0, w: 1, h: 2 },
-  { t: 'delta', e: 'numero', x: 0, y: 2, w: 4, h: 1 },
-  { t: 'velocimetro', e: 'analogico', x: 0, y: 3, w: 4, h: 3 },
-  { t: 'necesaria', x: 0, y: 6, w: 2, h: 1 }, { t: 'faltan', x: 2, y: 6, w: 2, h: 1 },
-  { t: 'ultima', x: 0, y: 7, w: 4, h: 1 }
+  Object.assign({ t: 'tipo' }, caja(12, 40, 354, 56)),
+  Object.assign({ t: 'cuenta', e: 'numeros', extra: true }, caja(12, 108, 354, 160)),
+  Object.assign({ t: 'delta', e: 'numero' }, caja(12, 280, 354, 64)),
+  Object.assign({ t: 'velocimetro', e: 'analogico', forma: 'redondo', extra: true }, caja(8, 358, 232, 232)),
+  Object.assign({ t: 'necesaria' }, caja(252, 358, 116, 108)),
+  Object.assign({ t: 'faltan' }, caja(252, 480, 116, 108)),
+  Object.assign({ t: 'simulador' }, caja(12, 604, 354, 52)),
+  Object.assign({ t: 'marcar' }, caja(12, 668, 354, 124))
 ];
-const choca = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
-// Acomoda la lista: el widget fijo se queda donde lo soltaron; los que choquen buscan el primer lugar libre
-function acomodar(lista, fijo) {
-  const puestos = fijo ? [fijo] : [];
-  for (const w of lista) {
-    if (w === fijo) continue;
-    w.w = Math.max(1, Math.min(COLS, w.w || 2)); w.h = Math.max(1, Math.min(FILAS, w.h || 1));
-    const ok = (x, y) => x >= 0 && y >= 0 && x + w.w <= COLS && !puestos.some(p => choca({ x, y, w: w.w, h: w.h }, p));
-    if (!(Number.isInteger(w.x) && Number.isInteger(w.y) && ok(w.x, w.y))) {
-      let hecho = false;
-      for (let y = 0; y < 40 && !hecho; y++) for (let x = 0; x + w.w <= COLS && !hecho; x++) if (ok(x, y)) { w.x = x; w.y = y; hecho = true; }
-    }
-    puestos.push(w);
-  }
-}
 function normalizarWidgets() {
-  if (!Array.isArray(cfg.widgets)) { cfg.widgets = JSON.parse(JSON.stringify(WIDGETS_DEF)); return; }
-  for (const w of cfg.widgets) {
-    if (w.t === 'proxima') w.t = 'tipo';   // antes mostraba la próxima vuelta; ahora la actual
-    if (!Number.isInteger(w.x)) { w.w = (w.w === 1 ? 2 : 4); w.x = undefined; }   // diseño de la 1.2 (2 columnas)
-  }
-  acomodar(cfg.widgets, null);
+  if (cfg.widgetsV !== 3 || !Array.isArray(cfg.widgets)) { cfg.widgets = JSON.parse(JSON.stringify(WIDGETS_DEF)); cfg.widgetsV = 3; }
+  for (const t of ['marcar', 'simulador'])   // estos dos siempre existen
+    if (!cfg.widgets.some(w => w.t === t)) cfg.widgets.push(JSON.parse(JSON.stringify(WIDGETS_DEF.find(w => w.t === t))));
 }
-let wInst = [], modoEdicion = false;
+let wInst = [], modoEdicion = false, selW = -1, velMaxVuelta = 0, mejorDif = null;
 const NS = 'http://www.w3.org/2000/svg';
 function svgEl(tag, at, padre) { const x = document.createElementNS(NS, tag); for (const k in at) x.setAttribute(k, at[k]); if (padre) padre.append(x); return x; }
 function ponerNum(n, txt) { if (n.textContent !== txt) { n.textContent = txt; n.style.setProperty('--n', Math.max(3, txt.length)); } }
 const kmhN = v => v === null || v === undefined ? '–' : String(Math.round(v));
+const ponerTxt = (n, t) => { if (n.textContent !== t) n.textContent = t; };
 
-// Velocímetro analógico: aguja = velocidad real; marca amarilla = velocidad necesaria; franja verde = ±2 km/h alrededor
-function velocimetro(box) {
-  const svg = svgEl('svg', { viewBox: '0 0 240 212', class: 'w-svg', preserveAspectRatio: 'xMidYMid meet' }, box);
-  const A0 = -210, R = 96, cx = 120, cy = 118;
-  let max = 0, zona, req, aguja, dif, uni;
+// Velocímetro analógico: aguja = velocidad real (también en número al centro); marca = velocidad necesaria; franja verde = ±2 km/h
+function velocimetro(box, extraFn) {
+  const svg = svgEl('svg', { viewBox: '0 0 240 240', class: 'w-svg', preserveAspectRatio: 'xMidYMid meet' }, box);
+  const A0 = -210, cx = 120, cy = 120, R = 96;
+  let max = 0, zona, req, aguja, val, ext;
   const ang = v => (A0 + 240 * Math.max(0, Math.min(max, v)) / max);
   const pt = (r, v) => { const a = ang(v) * Math.PI / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
   const arco = (r, v0, v1) => { const [x0, y0] = pt(r, v0), [x1, y1] = pt(r, v1); return `M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 ${(v1 - v0) / max * 240 > 180 ? 1 : 0} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`; };
   function armar(m) {
     max = m; svg.innerHTML = '';
-    svgEl('path', { d: arco(R, 0, max), class: 'g-dial', 'stroke-width': 20, fill: 'none' }, svg);
-    zona = svgEl('path', { d: '', class: 'g-zona', 'stroke-width': 20, fill: 'none' }, svg);
+    zona = svgEl('path', { d: '', class: 'g-zona', 'stroke-width': 12, fill: 'none' }, svg);
     const paso = max <= 80 ? 10 : 20;
-    for (let v = 0; v <= max + 0.1; v += paso / 2) {
-      const mayor = Math.abs(v / paso - Math.round(v / paso)) < 0.01, [a, b] = pt(83, v), [c, d] = pt(mayor ? 71 : 77, v);
-      svgEl('line', { x1: a, y1: b, x2: c, y2: d, class: 'g-tick', 'stroke-width': mayor ? 3 : 1.5 }, svg);
-      if (mayor) { const [x, y] = pt(57, v); const t = svgEl('text', { x, y: y + 5, class: 'g-txt', 'font-size': 14, 'text-anchor': 'middle' }, svg); t.textContent = v; }
+    for (let v = 0; v <= max + 0.1; v += paso / 4) {
+      const mayor = Math.abs(v / paso - Math.round(v / paso)) < 0.01, [a, b] = pt(R + 4, v), [c, d] = pt(mayor ? R - 10 : R - 4, v);
+      svgEl('line', { x1: a, y1: b, x2: c, y2: d, class: 'g-tick', 'stroke-width': mayor ? 3 : 1.3 }, svg);
+      if (mayor) { const [x, y] = pt(R - 26, v); const t = svgEl('text', { x, y: y + 5, class: 'g-txt', 'font-size': 15, 'text-anchor': 'middle' }, svg); t.textContent = v; }
     }
-    req = svgEl('line', { x1: cx + 82, y1: cy, x2: cx + 112, y2: cy, class: 'g-req', 'stroke-width': 7, 'stroke-linecap': 'round' }, svg);
-    aguja = svgEl('line', { x1: cx - 14, y1: cy, x2: cx + 90, y2: cy, class: 'g-aguja', 'stroke-width': 5, 'stroke-linecap': 'round' }, svg);
+    req = svgEl('line', { x1: cx + R - 14, y1: cy, x2: cx + R + 8, y2: cy, class: 'g-req', 'stroke-width': 7, 'stroke-linecap': 'round' }, svg);
+    const t1 = svgEl('text', { x: cx, y: cy + 30, class: 'g-txt', 'font-size': 11, 'text-anchor': 'middle', 'letter-spacing': 2 }, svg); t1.textContent = 'VELOCIDAD';
+    val = svgEl('text', { x: cx, y: cy + 66, class: 'g-dif', 'font-size': 40, 'text-anchor': 'middle' }, svg);
+    const t2 = svgEl('text', { x: cx, y: cy + 82, class: 'g-txt', 'font-size': 10, 'text-anchor': 'middle', 'letter-spacing': 2 }, svg); t2.textContent = 'KM/H';
+    ext = svgEl('text', { x: cx, y: cy - 30, class: 'g-txt', 'font-size': 12, 'text-anchor': 'middle' }, svg);
+    aguja = svgEl('line', { x1: cx - 14, y1: cy, x2: cx + R - 8, y2: cy, class: 'g-aguja', 'stroke-width': 5, 'stroke-linecap': 'round' }, svg);
     svgEl('circle', { cx, cy, r: 9, class: 'g-eje' }, svg);
-    dif = svgEl('text', { x: cx, y: cy + 56, class: 'g-pos', 'font-size': 40, 'text-anchor': 'middle', 'font-weight': 700 }, svg);
-    uni = svgEl('text', { x: cx, y: cy + 72, class: 'g-txt', 'font-size': 11, 'text-anchor': 'middle', 'letter-spacing': 2 }, svg);
-    uni.textContent = 'KM/H';
   }
   return v => {
     const base = v.vBaseKmh || v.vNecKmh || 60;
@@ -1144,48 +1211,63 @@ function velocimetro(box) {
       req.setAttribute('transform', `rotate(${ang(nec)} ${cx} ${cy})`); req.style.opacity = 1;
       zona.setAttribute('d', arco(R, Math.max(0, nec - 2), Math.min(max, nec + 2)));
     } else { req.style.opacity = 0; zona.setAttribute('d', ''); }
-    const t = real === null ? 'SIN GPS' : String(Math.round(real));   // en el centro, la velocidad real en número
-    if (dif.textContent !== t) { dif.textContent = t; dif.setAttribute('font-size', t.length > 4 ? 22 : 40); }
+    const t = real === null ? 'SIN GPS' : String(Math.round(real));
+    if (val.textContent !== t) { val.textContent = t; val.setAttribute('font-size', t.length > 4 ? 22 : 40); }
+    ponerTxt(ext, extraFn ? extraFn(v) : '');
   };
 }
 
 function crearWidget(def) {
+  if (def.t === 'marcar') { const b = $('btnMarcar'); b.className = 'w marcar'; return { el: b, upd: () => {} }; }
+  if (def.t === 'simulador') { const b = $('sim'); b.className = 'w'; return { el: b, upd: () => {} }; }
+  const tipo = TIPOS_W[def.t], conExtra = !!(def.extra && tipo.extra);
   const box = el('div', undefined, 'w w-' + def.t + (def.e ? ' e-' + def.e : ''));
-  const lbl = el('span', '', 'lbl'), num = el('div', '', 'w-num');
+  const lbl = el('span', '', 'lbl'), num = el('div', '', 'w-num'), ext = el('div', '', 'w-extra');
   box.append(lbl);
+  const conExt = (f) => { if (conExtra) box.append(ext); return v => ponerTxt(ext, f(v)); };
   const txtCuenta = v => {
     const over = v.restanteMs < 0;
-    lbl.textContent = over ? 'Pasado' : 'Falta';
+    ponerTxt(lbl, over ? 'Pasado' : 'Falta');
     ponerNum(num, over ? '+' + fmt(-v.restanteMs) : fmt(v.restanteMs, v.enCurso));
     num.classList.toggle('over', over);
   };
   let upd = () => {};
   switch (def.t) {
+    case 'tipo': {
+      box.innerHTML = ''; const chip = el('span', '', 'chip-vuelta'); box.append(num, chip);
+      upd = v => { ponerNum(num, v.enCurso ? 'VUELTA ' + v.n : 'LISTO'); ponerTxt(chip, v.medida ? 'MEDIDA' : 'PRÁCTICA');
+                   box.classList.toggle('es-medida', !!v.medida); box.classList.toggle('es-practica', !v.medida); };
+      break;
+    }
     case 'cuenta': {
+      if (def.e !== 'anillo') box.append(num);   // el número va antes que el dato extra
+      const fx = conExt(v => 'Ideal ' + fmt(v.T));
       if (def.e === 'anillo') {
         const L = 2 * Math.PI * 86, svg = svgEl('svg', { viewBox: '0 0 200 200', class: 'w-svg' }, box);
-        svgEl('circle', { cx: 100, cy: 100, r: 86, class: 'g-dial', 'stroke-width': 16, fill: 'none' }, svg);
-        const arc = svgEl('circle', { cx: 100, cy: 100, r: 86, class: 'g-req', 'stroke-width': 16, fill: 'none', 'stroke-linecap': 'round',
+        svg.style.position = 'absolute'; svg.style.inset = '6%'; svg.style.width = '88%'; svg.style.height = '88%';
+        svgEl('circle', { cx: 100, cy: 100, r: 86, class: 'g-dial', 'stroke-width': 12, fill: 'none' }, svg);
+        const arc = svgEl('circle', { cx: 100, cy: 100, r: 86, class: 'g-req', 'stroke-width': 12, fill: 'none', 'stroke-linecap': 'round',
                                       transform: 'rotate(-90 100 100)', 'stroke-dasharray': L.toFixed(1) }, svg);
         box.append(num);
-        upd = v => { arc.setAttribute('stroke-dashoffset', (L * (1 - Math.max(0, Math.min(1, v.restanteMs / v.T)))).toFixed(1)); txtCuenta(v); };
-      } else { box.append(num); upd = txtCuenta; }
+        upd = v => { arc.setAttribute('stroke-dashoffset', (L * (1 - Math.max(0, Math.min(1, v.restanteMs / v.T)))).toFixed(1)); txtCuenta(v); fx(v); };
+      } else { upd = v => { txtCuenta(v); fx(v); }; }
       break;
     }
     case 'delta': {
-      lbl.textContent = 'Adelantado / atrasado';
-      if (def.e === 'barra') {   // cero en el medio; hacia la derecha adelantado, hacia la izquierda atrasado (±5 s)
-        const svg = svgEl('svg', { viewBox: '0 0 300 90', class: 'w-svg', preserveAspectRatio: 'none' }, box);
-        svgEl('rect', { x: 10, y: 40, width: 280, height: 26, rx: 6, class: 'g-dial', fill: 'none', 'stroke-width': 26 }, svg);
-        const barra = svgEl('rect', { x: 150, y: 30, width: 0, height: 46, rx: 4 }, svg);
-        svgEl('line', { x1: 150, y1: 22, x2: 150, y2: 84, class: 'g-tick', 'stroke-width': 3 }, svg);
-        const sub = el('div', '', 'w-sub'); box.append(sub);
+      if (def.e === 'barra') {   // cero en el medio; derecha adelantado, izquierda atrasado (±5 s)
+        ponerTxt(lbl, 'Adelantado / atrasado');
+        const svg = svgEl('svg', { viewBox: '0 0 300 60', class: 'w-svg', preserveAspectRatio: 'none' }, box);
+        svg.style.height = '40%';
+        svgEl('rect', { x: 10, y: 22, width: 280, height: 16, rx: 6, class: 'g-dial', fill: 'none', 'stroke-width': 16 }, svg);
+        const barra = svgEl('rect', { x: 150, y: 12, width: 0, height: 36, rx: 4 }, svg);
+        svgEl('line', { x1: 150, y1: 4, x2: 150, y2: 56, class: 'g-tick', 'stroke-width': 3 }, svg);
+        const sub = el('div', '', 'w-extra'); box.append(sub);
         upd = v => {
-          if (v.deltaS === null || v.deltaS === undefined) { barra.setAttribute('width', 0); sub.textContent = v.enCurso ? 'sin datos de velocidad' : 'en tiempo al largar'; return; }
+          if (v.deltaS === null || v.deltaS === undefined) { barra.setAttribute('width', 0); ponerTxt(sub, v.enCurso ? 'sin datos de velocidad' : 'en tiempo al largar'); return; }
           const d = Math.max(-5, Math.min(5, v.deltaS)), w = Math.abs(d) * 28;
           barra.setAttribute('x', d >= 0 ? 150 : 150 - w); barra.setAttribute('width', w);
           barra.setAttribute('class', d >= 0 ? 'g-barra-pos' : 'g-barra-neg');
-          sub.textContent = Math.abs(v.deltaS) < 0.05 ? 'En tiempo' : (v.deltaS > 0 ? 'Adelantado ' : 'Atrasado ') + Math.abs(v.deltaS).toFixed(1).replace('.', ',') + ' s';
+          ponerTxt(sub, Math.abs(v.deltaS) < 0.05 ? 'En tiempo' : (v.deltaS > 0 ? 'Adelantado ' : 'Atrasado ') + Math.abs(v.deltaS).toFixed(1).replace('.', ',') + ' s');
         };
       } else {
         box.append(num);
@@ -1199,145 +1281,225 @@ function crearWidget(def) {
       break;
     }
     case 'velocimetro': {
+      const fx = v => conExtra ? 'máx ' + Math.round(velMaxVuelta) : '';
       if (def.e === 'digital') {
-        lbl.textContent = 'Velocidad km/h'; const sub = el('div', '', 'w-sub'); box.append(num, sub);
-        upd = v => { ponerNum(num, v.sinGps ? 'SIN GPS' : kmhN(v.vActKmh)); sub.textContent = 'necesaria ' + kmhN(v.vNecKmh); };
-      } else { upd = velocimetro(box); }
+        ponerTxt(lbl, 'Velocidad km/h'); box.append(num); const f2 = conExt(v => 'máx ' + Math.round(velMaxVuelta));
+        upd = v => { ponerNum(num, v.sinGps ? 'SIN GPS' : kmhN(v.vActKmh)); f2(v); };
+      } else { box.innerHTML = ''; upd = velocimetro(box, fx); }
       break;
     }
-    case 'necesaria': lbl.textContent = 'Necesaria km/h'; box.append(num); upd = v => ponerNum(num, kmhN(v.vNecKmh) + (v.congelada ? '■' : '')); break;
-    case 'faltan': lbl.textContent = 'Faltan'; box.append(num);
-      upd = v => ponerNum(num, v.restanteM === null || v.restanteM === undefined ? '–' : Math.max(0, Math.round(v.restanteM)).toLocaleString('es-AR') + ' m'); break;
-    case 'transcurrido': lbl.textContent = 'Transcurrido'; box.append(num); upd = v => ponerNum(num, fmt(v.transMs)); break;
-    case 'ideal': lbl.textContent = 'Ideal'; box.append(num); upd = v => ponerNum(num, fmt(v.T)); break;
-    case 'tipo': lbl.textContent = 'Vuelta actual'; box.append(num);
-      upd = v => { ponerNum(num, v.medida ? 'MEDIDA' : 'PRÁCTICA'); box.classList.toggle('es-medida', !!v.medida); box.classList.toggle('es-practica', !v.medida); }; break;
-    case 'proxima': lbl.textContent = 'Próxima vuelta'; box.append(num); upd = v => ponerNum(num, v.proxMedida ? 'MEDIDA' : 'PRÁCTICA'); break;
+    case 'necesaria': { ponerTxt(lbl, 'Necesaria'); box.append(num); const fx = conExt(v => 'base ' + kmhN(v.vBaseKmh));
+      upd = v => { ponerNum(num, kmhN(v.vNecKmh) + (v.congelada ? '■' : '')); fx(v); }; break; }
+    case 'faltan': { ponerTxt(lbl, 'Faltan'); box.append(num); const fx = conExt(v => 'de ' + (v.D || 0).toLocaleString('es-AR') + ' m');
+      upd = v => { ponerNum(num, v.restanteM === null || v.restanteM === undefined ? '–' : Math.max(0, Math.round(v.restanteM)).toLocaleString('es-AR') + ' m'); fx(v); }; break; }
+    case 'transcurrido': ponerTxt(lbl, 'Transcurrido'); box.append(num); upd = v => ponerNum(num, fmt(v.transMs)); break;
+    case 'ideal': ponerTxt(lbl, 'Ideal'); box.append(num); upd = v => ponerNum(num, fmt(v.T)); break;
+    case 'proxima': ponerTxt(lbl, 'Próxima vuelta'); box.append(num); upd = v => ponerNum(num, v.proxMedida ? 'MEDIDA' : 'PRÁCTICA'); break;
     case 'ultima': {
-      lbl.textContent = 'Última vuelta'; box.append(num);
-      upd = () => {
-        const u = ultimaVuelta;
-        ponerNum(num, u ? 'V' + u.n + ' ' + fmt(u.realMs) + ' ' + fmtDif(u.difMs) : '–');
-        num.classList.toggle('atr', !!(u && u.difMs !== 0));
-      };
+      ponerTxt(lbl, 'Última vuelta'); box.append(num); const fx = conExt(() => 'mejor ' + (mejorDif === null ? '–' : fmtDif(mejorDif)));
+      upd = v => { const u = ultimaVuelta; ponerNum(num, u ? 'V' + u.n + ' ' + fmtDif(u.difMs) : '–'); num.classList.toggle('atr', !!(u && u.difMs !== 0)); fx(v); };
       break;
     }
   }
   return { el: box, upd };
 }
 
-let selW = -1;
+function geom(def, W, H) {
+  if (def.forma === 'redondo') { const d = def.w * W; return { left: def.x * W, top: def.y * H, width: d, height: d }; }
+  return { left: def.x * W, top: def.y * H, width: def.w * W, height: def.h * H };
+}
 function construirTablero() {
   normalizarWidgets();
-  const cont = $('tablero'); cont.innerHTML = ''; wInst = [];
-  cont.classList.toggle('editando', modoEdicion);
+  const tab = $('tablero'), app = $('app');
+  app.append($('btnMarcar'), $('sim'));   // se guardan antes de vaciar el tablero
+  tab.innerHTML = ''; wInst = [];
+  tab.classList.toggle('editando', modoEdicion);
+  const W = tab.clientWidth, H = tab.clientHeight;
+  const simActivo = cfg.velActiva && cfg.fuenteVel === 'sim';
+  $('sim').hidden = true;
   cfg.widgets.forEach((def, i) => {
     const tipo = TIPOS_W[def.t];
-    if (!tipo || (tipo.vel && !cfg.velActiva && !modoEdicion)) return;
-    const w = crearWidget(def);
-    w.el.style.gridColumn = (def.x + 1) + ' / span ' + def.w;
-    w.el.style.gridRow = (def.y + 1) + ' / span ' + def.h;
-    w.el.dataset.i = i;
-    if (modoEdicion) {
-      w.el.append(el('span', tipo.nombre + (tipo.estilos && def.e ? ' · ' + tipo.estilos[def.e] : '') + (tipo.vel && !cfg.velActiva ? ' (velocidad apagada)' : ''), 'w-nombre'));
-      if (i === selW) {
-        w.el.classList.add('sel');
-        const c = el('div', undefined, 'w-ctl');
-        const b = (txt, titulo, fn) => { const x = boton(txt, 'w-b', ev => { ev.stopPropagation(); fn(); Store.setConfig(cfg); construirTablero(); }); x.title = titulo; x.setAttribute('aria-label', titulo); return x; };
-        if (tipo.estilos) c.append(b('◐', 'Cambiar el estilo', () => { const ks = Object.keys(tipo.estilos); def.e = ks[(ks.indexOf(def.e) + 1) % ks.length]; }));
-        c.append(b('✕', 'Quitar', () => { cfg.widgets.splice(i, 1); selW = -1; }));
-        const asa = el('span', '◢', 'w-asa'); asa.dataset.asa = '1'; asa.setAttribute('aria-label', 'Cambiar el tamaño');
-        w.el.append(c, asa);
-      }
-    }
-    cont.append(w.el); wInst.push(w);
+    if (!tipo || (tipo.vel && !cfg.velActiva && !modoEdicion) || (def.t === 'simulador' && !simActivo)) return;
+    const w = crearWidget(def), g = geom(def, W, H);
+    Object.assign(w.el.style, { left: g.left + 'px', top: g.top + 'px', width: g.width + 'px', height: g.height + 'px' });
+    w.el.classList.toggle('redondo', def.forma === 'redondo');
+    w.el.classList.toggle('elegido', modoEdicion && i === selW);
+    w.el.dataset.i = i; w.el.hidden = false;
+    tab.append(w.el); wInst.push(w);
   });
-  $('editBar').hidden = !modoEdicion;
-  $('btnMarcar').classList.toggle('inerte', modoEdicion);
+  dibujarEdicion();
+}
+addEventListener('resize', () => { construirTablero(); layoutInicio(); });
+
+// ---------- Editor: asas, menú chico del widget elegido y botón flotante ----------
+function dibujarEdicion() {
+  const tab = $('tablero');
+  tab.querySelectorAll('.asa, .guia').forEach(x => x.remove());
+  $('edFab').hidden = !modoEdicion;
+  if (!modoEdicion) { $('edPanel').hidden = true; $('edMenu').hidden = true; $('edToast').hidden = true; return; }
+  const def = cfg.widgets[selW], wEl = def ? tab.querySelector(`.w[data-i="${selW}"]`) : null, menu = $('edMenu');
+  if (!wEl) { menu.hidden = true; return; }
+  const L = wEl.offsetLeft, T = wEl.offsetTop, Wd = wEl.offsetWidth, Hd = wEl.offsetHeight;
+  const asa = (x, y, id) => { const a = el('span', undefined, 'asa'); a.style.left = x + 'px'; a.style.top = y + 'px'; a.dataset.asa = id; tab.append(a); };
+  if (def.forma === 'redondo') { const r = Wd / 2, k = Math.SQRT1_2; asa(L + r + r * k, T + r + r * k, 'r'); }
+  else { asa(L, T, 'nw'); asa(L + Wd, T, 'ne'); asa(L, T + Hd, 'sw'); asa(L + Wd, T + Hd, 'se'); }
+  menu.innerHTML = '';
+  const tipo = TIPOS_W[def.t], W = tab.clientWidth, H = tab.clientHeight;
+  const b = (txt, fn) => menu.append(boton(txt, '', ev => { ev.stopPropagation(); fn(); Store.setConfig(cfg); construirTablero(); }));
+  if (tipo.estilos) b('Estilo', () => { const ks = Object.keys(tipo.estilos); def.e = ks[(ks.indexOf(def.e) + 1) % ks.length]; });
+  if (tipo.formas !== false) b(def.forma === 'redondo' ? 'Cuadrado' : 'Redondo', () => {
+    if (def.forma === 'redondo') { def.forma = undefined; def.h = def.w * W / H; }
+    else { const d = Math.min(def.w * W, def.h * H); def.forma = 'redondo'; def.w = d / W; }
+  });
+  if (tipo.extra) b(def.extra ? 'Sin dato extra' : 'Dato extra', () => { def.extra = !def.extra; });
+  if (!tipo.fijo) b('✕ Quitar', () => { cfg.widgets.splice(selW, 1); selW = -1; });
+  menu.hidden = !menu.children.length;
+  const tr = tab.getBoundingClientRect(), ar = $('app').getBoundingClientRect();
+  let my = tr.top - ar.top + T - 62; if (my < 70) my = tr.top - ar.top + T + Hd + 16;
+  menu.style.top = my + 'px';
+  menu.style.left = Math.max(6, Math.min(ar.width - menu.offsetWidth - 6, tr.left - ar.left + L + Wd / 2 - menu.offsetWidth / 2)) + 'px';
 }
 
-// Arrastre estilo panel de instrumentos: mantener apretado mueve; la esquina amarilla cambia el tamaño
+// Arrastre libre: mantener apretado levanta el widget (semitransparente) y se mueve el dibujo mismo; al soltar queda ahí.
 (() => {
-  const tab = $('tablero');
-  let espera = null, accion = null;   // accion: { modo: 'mover'|'tamano', i, el, x0, y0, rect }
-  const celda = r => ({ w: (r.width + 6) / COLS, h: (r.height + 6) / FILAS });
+  const tab = $('tablero'), ptrs = new Map();
+  let acc = null, espera = null;
+  const W = () => tab.clientWidth, H = () => tab.clientHeight;
+  const local = ev => { const r = tab.getBoundingClientRect(); return { x: ev.clientX - r.left, y: ev.clientY - r.top }; };
+  const g0 = e => ({ L: e.offsetLeft, T: e.offsetTop, w: e.offsetWidth, h: e.offsetHeight });
+  const poner = (e, L, T, w, h) => Object.assign(e.style, { left: L + 'px', top: T + 'px', width: w + 'px', height: h + 'px' });
+  function golpe(x, y) {   // el toque cuenta solo dentro de la forma real (los redondos son círculos)
+    for (let k = wInst.length - 1; k >= 0; k--) {
+      const e = wInst[k].el, L = e.offsetLeft, T = e.offsetTop, w = e.offsetWidth, h = e.offsetHeight;
+      if (e.classList.contains('redondo')) { if (Math.hypot(x - (L + w / 2), y - (T + h / 2)) <= w / 2) return e; }
+      else if (x >= L && x <= L + w && y >= T && y <= T + h) return e;
+    }
+    return null;
+  }
+  function guia(cls, pos) { const g = el('span', undefined, 'guia ' + cls); if (cls === 'v') g.style.left = pos + 'px'; else g.style.top = pos + 'px'; tab.append(g); }
+  function imantar(e, L, T, w, h) {   // se pega a bordes y centros de los demás y del tablero (8 px)
+    tab.querySelectorAll('.guia').forEach(x => x.remove());
+    const xs = [0, W() / 2, W()], ys = [0, H() / 2, H()];
+    for (const o of wInst) { if (o.el === e) continue; const q = o.el; xs.push(q.offsetLeft, q.offsetLeft + q.offsetWidth / 2, q.offsetLeft + q.offsetWidth); ys.push(q.offsetTop, q.offsetTop + q.offsetHeight / 2, q.offsetTop + q.offsetHeight); }
+    let bx = null, by = null;
+    for (const [off, k] of [[0, 'L'], [w / 2, 'C'], [w, 'R']]) for (const x of xs) { const d = x - (L + off); if (Math.abs(d) <= 8 && (!bx || Math.abs(d) < Math.abs(bx.d))) bx = { d, x }; }
+    for (const [off, k] of [[0, 'T'], [h / 2, 'C'], [h, 'B']]) for (const y of ys) { const d = y - (T + off); if (Math.abs(d) <= 8 && (!by || Math.abs(d) < Math.abs(by.d))) by = { d, y }; }
+    if (bx) { L += bx.d; guia('v', bx.x); }
+    if (by) { T += by.d; guia('h', by.y); }
+    return [L, T];
+  }
+  const adornos = ver => { tab.querySelectorAll('.asa').forEach(x => x.hidden = !ver); $('edMenu').hidden = !ver || !$('edMenu').children.length; };
   tab.addEventListener('pointerdown', ev => {
     if (!modoEdicion) return;
-    const wEl = ev.target.closest('.w'); if (!wEl || ev.target.closest('.w-b')) return;
-    const i = +wEl.dataset.i, rect = tab.getBoundingClientRect();
-    const base = { i, el: wEl, x0: ev.clientX, y0: ev.clientY, rect, def: cfg.widgets[i] };
-    tab.setPointerCapture(ev.pointerId);
-    if (ev.target.dataset.asa) { accion = Object.assign(base, { modo: 'tamano' }); return; }
-    espera = setTimeout(() => {
-      espera = null; accion = Object.assign(base, { modo: 'mover' });
-      wEl.classList.add('levantado'); if (navigator.vibrate) { try { navigator.vibrate(30); } catch (e) {} }
-    }, 380);
-    accion = Object.assign(base, { modo: 'toque' });
+    ev.preventDefault(); $('edPanel').hidden = true; $('edToast').hidden = true;
+    try { tab.setPointerCapture(ev.pointerId); } catch (e) {}
+    const p = local(ev); ptrs.set(ev.pointerId, p);
+    const elegido = selW >= 0 ? tab.querySelector(`.w[data-i="${selW}"]`) : null;
+    if (ptrs.size === 2 && elegido) {   // pellizco con dos dedos sobre el elegido
+      clearTimeout(espera); espera = null;
+      const [a, b] = [...ptrs.values()];
+      acc = { modo: 'pellizco', el: elegido, d0: Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)), g: g0(elegido) }; adornos(false); return;
+    }
+    if (ptrs.size > 1) return;
+    if (ev.target.dataset && ev.target.dataset.asa && elegido) { acc = { modo: 'tam', asa: ev.target.dataset.asa, el: elegido, p0: p, g: g0(elegido) }; adornos(false); return; }
+    const e = golpe(p.x, p.y);
+    acc = { modo: 'toque', el: e, p0: p };
+    if (e) espera = setTimeout(() => {
+      espera = null; acc = { modo: 'mover', el: e, p0: p, g: g0(e) };
+      e.classList.add('moviendo'); selW = +e.dataset.i; adornos(false);
+      if (navigator.vibrate) { try { navigator.vibrate(30); } catch (x) {} }
+    }, 350);
   });
   tab.addEventListener('pointermove', ev => {
-    if (!accion) return;
-    const dx = ev.clientX - accion.x0, dy = ev.clientY - accion.y0;
-    if (accion.modo === 'toque') { if (Math.hypot(dx, dy) > 12) { clearTimeout(espera); espera = null; accion = null; } return; }
-    const c = celda(accion.rect), d = accion.def;
-    if (accion.modo === 'mover') accion.el.style.transform = `translate(${dx}px, ${dy}px)`;
-    else {
-      const w = Math.max(1, Math.min(COLS - d.x, Math.round(d.w + dx / c.w))), h = Math.max(1, Math.min(FILAS - d.y, Math.round(d.h + dy / c.h)));
-      accion.el.style.gridColumn = (d.x + 1) + ' / span ' + w; accion.el.style.gridRow = (d.y + 1) + ' / span ' + h;
-      accion.nw = w; accion.nh = h;
+    if (!acc) return;
+    const p = local(ev); if (ptrs.has(ev.pointerId)) ptrs.set(ev.pointerId, p);
+    if (acc.modo === 'toque') { if (Math.hypot(p.x - acc.p0.x, p.y - acc.p0.y) > 12) { clearTimeout(espera); espera = null; acc = null; } return; }
+    const g = acc.g, e = acc.el, redondo = e.classList.contains('redondo');
+    if (acc.modo === 'mover') { const [L, T] = imantar(e, g.L + p.x - acc.p0.x, g.T + p.y - acc.p0.y, g.w, g.h); poner(e, L, T, g.w, g.h); }
+    else if (acc.modo === 'tam') {
+      const dx = p.x - acc.p0.x, dy = p.y - acc.p0.y, MINW = 60, MINH = 44;
+      if (redondo) { const cx = g.L + g.w / 2, cy = g.T + g.h / 2, d = Math.max(70, 2 * Math.hypot(p.x - cx, p.y - cy) / Math.SQRT2 * Math.SQRT2); poner(e, cx - d / 2, cy - d / 2, d, d); }
+      else {
+        let L = g.L, T = g.T, w = g.w, h = g.h;
+        if (acc.asa.includes('e')) w = Math.max(MINW, g.w + dx); else { w = Math.max(MINW, g.w - dx); L = g.L + g.w - w; }
+        if (acc.asa.includes('s')) h = Math.max(MINH, g.h + dy); else { h = Math.max(MINH, g.h - dy); T = g.T + g.h - h; }
+        poner(e, L, T, w, h);
+      }
+    } else if (acc.modo === 'pellizco' && ptrs.size === 2) {
+      const [a, b] = [...ptrs.values()], k = Math.hypot(a.x - b.x, a.y - b.y) / acc.d0;
+      const w = Math.max(60, g.w * k), h = redondo ? w : Math.max(44, g.h * k);
+      poner(e, g.L + (g.w - w) / 2, g.T + (g.h - h) / 2, w, h);
     }
   });
-  const soltar = ev => {
+  const fin = ev => {
+    ptrs.delete(ev.pointerId);
     if (espera) { clearTimeout(espera); espera = null; }
-    if (!accion) return;
-    const a = accion; accion = null;
-    const d = a.def, c = celda(a.rect), dx = ev.clientX - a.x0, dy = ev.clientY - a.y0;
-    if (a.modo === 'toque') { selW = selW === a.i ? -1 : a.i; construirTablero(); return; }
-    if (a.modo === 'mover') {
-      d.x = Math.max(0, Math.min(COLS - d.w, d.x + Math.round(dx / c.w)));
-      d.y = Math.max(0, Math.min(FILAS - d.h, d.y + Math.round(dy / c.h)));
-      selW = a.i;
-    } else if (a.nw) { d.w = a.nw; d.h = a.nh; }
-    acomodar(cfg.widgets, d); Store.setConfig(cfg); construirTablero();
+    if (!acc || (acc.modo === 'pellizco' && ptrs.size > 0)) return;
+    const a = acc; acc = null;
+    tab.querySelectorAll('.guia').forEach(x => x.remove());
+    if (a.modo === 'toque') { selW = a.el ? +a.el.dataset.i : -1; construirTablero(); return; }
+    const e = a.el, i = +e.dataset.i, def = cfg.widgets[i];
+    let w = Math.min(e.offsetWidth, W()), h = Math.min(e.offsetHeight, H());
+    if (def.forma === 'redondo') h = w = Math.min(w, H());
+    const L = Math.max(0, Math.min(W() - w, e.offsetLeft)), T = Math.max(0, Math.min(H() - h, e.offsetTop));
+    def.x = L / W(); def.y = T / H(); def.w = w / W(); if (def.forma !== 'redondo') def.h = h / H();
+    if (a.modo === 'mover') { cfg.widgets.splice(i, 1); cfg.widgets.push(def); selW = cfg.widgets.length - 1; }   // el que se movió queda adelante
+    Store.setConfig(cfg); construirTablero();
   };
-  tab.addEventListener('pointerup', soltar);
-  tab.addEventListener('pointercancel', soltar);
+  tab.addEventListener('pointerup', fin);
+  tab.addEventListener('pointercancel', fin);
 })();
 
-function abrirConfigPantalla() {   // desde el inicio: la pantalla de carrera de muestra, en modo edición
+function abrirConfigPantalla() {   // desde el inicio: la pantalla de carrera real, a tamaño completo, en modo edición
   seleccion = null; motor = null; ultimaVuelta = null;
   pantalla = 'pantalla';
   for (const x of PANTALLAS) $('p-' + x).hidden = true;
-  $('cronoNombre').textContent = 'Configuración de pantalla';
+  $('cronoNombre').textContent = '';
   modoEdicion = true; selW = -1; construirTablero();
+  const t = $('edToast'); t.hidden = false; clearTimeout(t._t); t._t = setTimeout(() => { t.hidden = true; }, 5000);
 }
 function cerrarConfigPantalla() { modoEdicion = false; selW = -1; construirTablero(); mostrar('inicio'); }
 (() => {
   const sel = $('wAgregar');
-  for (const k in TIPOS_W) { const o = el('option', TIPOS_W[k].nombre); o.value = k; sel.append(o); }
+  for (const k in TIPOS_W) { if (TIPOS_W[k].fijo) continue; const o = el('option', TIPOS_W[k].nombre); o.value = k; sel.append(o); }
   sel.addEventListener('change', () => {
     const t = sel.value; sel.value = ''; if (!t) return;
-    const est = TIPOS_W[t].estilos, w = { t, e: est ? Object.keys(est)[0] : undefined, w: t === 'velocimetro' ? 4 : 2, h: t === 'velocimetro' ? 3 : 1 };
-    cfg.widgets.push(w); acomodar(cfg.widgets, null); selW = cfg.widgets.length - 1;
-    if (w.y + w.h > FILAS) avisar('No hay lugar libre: achicá o quitá otro widget');
+    const est = TIPOS_W[t].estilos;
+    cfg.widgets.push(Object.assign({ t, e: est ? Object.keys(est)[0] : undefined, forma: t === 'velocimetro' ? 'redondo' : undefined },
+                                   t === 'velocimetro' ? caja(80, 280, 220, 220) : caja(70, 340, 240, 90)));
+    selW = cfg.widgets.length - 1; $('edPanel').hidden = true;
     Store.setConfig(cfg); construirTablero();
   });
   let armado = null;
   $('wRestablecer').addEventListener('click', () => {
     const b = $('wRestablecer');
-    if (!armado) { b.textContent = 'Tocá otra vez'; armado = setTimeout(() => { armado = null; b.textContent = 'Restablecer'; }, 3000); return; }
+    if (!armado) { b.textContent = 'Tocá otra vez para restablecer'; armado = setTimeout(() => { armado = null; b.textContent = 'Restablecer'; }, 3000); return; }
     clearTimeout(armado); armado = null; b.textContent = 'Restablecer';
-    cfg.widgets = JSON.parse(JSON.stringify(WIDGETS_DEF)); selW = -1; Store.setConfig(cfg); construirTablero();
+    cfg.widgets = JSON.parse(JSON.stringify(WIDGETS_DEF)); selW = -1; $('edPanel').hidden = true; Store.setConfig(cfg); construirTablero();
   });
+  $('edFab').addEventListener('click', () => { $('edPanel').hidden = !$('edPanel').hidden; });
   $('wListo').addEventListener('click', cerrarConfigPantalla);
   $('mPantalla').addEventListener('click', abrirConfigPantalla);
 })();
 
+/* ---------- Inicio: velocímetro de decoración cortado a la derecha y botones en arco ---------- */
+let gaugeInicio = null;
+function layoutInicio() {
+  const W = innerWidth, H = innerHeight, k = Math.min(W / 390, H / 844);
+  const cx = W - 60 * k, cy = H * 0.717, D = 330 * k, R = 262 * k;
+  Object.assign($('inicioGauge').style, { left: (cx - D / 2) + 'px', top: (cy - D / 2) + 'px', width: D + 'px', height: D + 'px' });
+  ['mCarreras', 'mPractica', 'mChequeo', 'mPantalla', 'mAjustes'].forEach((id, n) => {
+    const a = (150 + 30 * n) * Math.PI / 180;
+    Object.assign($(id).style, { left: (cx + R * Math.cos(a)) + 'px', top: (cy + R * Math.sin(a)) + 'px' });
+  });
+}
+
 function vista() {
   const e = motor ? motor.estado(ahora()) : null;
-  if (e && e.enCurso) return Object.assign({ T: carrera.tiempoIdealMs }, e);
+  if (e && e.enCurso) return Object.assign({ T: carrera.tiempoIdealMs, D: carrera.distanciaM }, e);
   const S = seleccion || cfg, T = S.tiempoIdealMs, D = S.distanciaM;
   const sinGps = !ultimaMuestra || ahora() - ultimaMuestra.t > 3000, vb = D > 0 ? D / (T / 1000) * 3.6 : null;
-  return { enCurso: false, n: 0, T, restanteMs: T, transMs: 0, medida: Motor.esMedida(S.patron, 1), proxMedida: Motor.esMedida(S.patron, 1),
+  return { enCurso: false, n: 0, T, D, restanteMs: T, transMs: 0, medida: Motor.esMedida(S.patron, 1), proxMedida: Motor.esMedida(S.patron, 1),
            sinGps, vActKmh: sinGps ? null : ultimaMuestra.velMs * 3.6, vNecKmh: vb, vBaseKmh: vb, restanteM: D, deltaS: null, congelada: false };
 }
 
@@ -1345,14 +1507,18 @@ function dibujar() {
   const v = vista(), b = document.body;
   b.classList.toggle('medida', v.enCurso && v.medida);
   b.classList.toggle('practica', v.enCurso && !v.medida);
-  $('tipoNombre').textContent = v.enCurso ? (v.medida ? 'MEDIDA' : 'PRÁCTICA') : 'LISTO';
-  $('tipoVuelta').textContent = v.enCurso ? 'Vuelta ' + v.n : fmt(v.T) + ' ideal';
-  $('btnMarcar').firstChild.nodeValue = v.enCurso ? 'MARCAR' : 'LARGAR';
-  $('btnMarcar').lastChild.textContent = v.enCurso ? 'Fin de vuelta ' + v.n : 'Tocá en la largada';
-  $('btnTerminar').hidden = !v.enCurso;
+  if (v.enCurso && !v.sinGps && v.vActKmh !== null) velMaxVuelta = Math.max(velMaxVuelta, v.vActKmh);
+  const bm = $('btnMarcar');
+  ponerTxt(bm.querySelector('.m-txt'), v.enCurso ? 'MARCAR' : 'LARGAR');
+  ponerTxt(bm.querySelector('small'), v.enCurso ? 'Fin de vuelta ' + v.n : 'Tocá en la largada');
+  $('btnTerminar').hidden = !v.enCurso || modoEdicion;
   $('btnSalir').hidden = v.enCurso || modoEdicion;
-  $('btnConfig').hidden = modoEdicion;
   for (const w of wInst) w.upd(v);
+  if (pantalla === 'inicio') {
+    if (!gaugeInicio) gaugeInicio = velocimetro($('inicioGauge'));
+    const t = ahora() / 1000;
+    gaugeInicio({ vBaseKmh: 48, vNecKmh: 48, vActKmh: 47 + 2.5 * Math.sin(t * 0.9) + 1.2 * Math.sin(t * 2.3), sinGps: false });
+  }
   requestAnimationFrame(dibujar);
 }
 
@@ -1365,12 +1531,13 @@ async function pedirPantallaEncendida() {
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && motor && motor.enCurso) pedirPantallaEncendida(); });
 
 function marcar(tMarca, fuente) {
+  if (modoEdicion) return;
   const t = tMarca === undefined ? ahora() : tMarca; // la hora se toma antes que cualquier otra cosa
   if (pruebaPulsador && pantalla === 'chequeo') { marcaDePrueba(fuente); return; }
   const enCurso = !!(motor && motor.enCurso);
   if (!enCurso && (pantalla !== 'crono' || !$('config').hidden || !seleccion)) return;   // fuera del cronómetro no se larga sin querer
   Audio.desbloquear();
-  if (!motor || !motor.enCurso) { nuevaCarrera(); if (!Store.buscar(seleccion.id)) Store.guardarCarrera(seleccion); ultimaVuelta = null; if (Beto && cfg.volumenMax) Beto.volumenCarrera({ activo: true, canal: cfg.canalAudio }).catch(() => {}); pedirPantallaEncendida(); }
+  if (!motor || !motor.enCurso) { nuevaCarrera(); if (!Store.buscar(seleccion.id)) Store.guardarCarrera(seleccion); ultimaVuelta = null; mejorDif = null; velMaxVuelta = 0; if (Beto && cfg.volumenMax) Beto.volumenCarrera({ activo: true, canal: cfg.canalAudio }).catch(() => {}); pedirPantallaEncendida(); }
   const largada = !motor.enCurso;
   motor.marcar(t, fuente || 'pantalla');
   if (largada && ultimaMuestra) motor.muestra(Object.assign({}, ultimaMuestra, { t }));   // la distancia arranca en la largada
@@ -1492,7 +1659,6 @@ function velBase() {
 }
 $('config').addEventListener('input', leerForm);
 $('config').addEventListener('change', leerForm);
-$('btnConfig').addEventListener('click', () => { cargarForm(); $('config').hidden = false; $('medirRes').textContent = Audio.diagnostico(); });
 $('btnCerrar').addEventListener('click', () => { leerForm(); $('config').hidden = true; });
 
 // Medir demora: dice 5 números, mide desde la orden hasta que el teléfono empieza a hablar
@@ -1795,7 +1961,7 @@ let versionActual = null, ultimaRel = null;
 async function buscarActualizacion(silencioso) {
   if (!NATIVO) return;
   try {
-    if (!versionActual) { const i = await AppInfo.getInfo(); versionActual = i.version; $('appVersion').textContent = 'Versión instalada: ' + versionActual; }
+    if (!versionActual) { const i = await AppInfo.getInfo(); versionActual = i.version; $('appVersion').textContent = 'Versión instalada: ' + versionActual; $('inicioVersion').textContent = 'Versión ' + versionActual; }
     const r = await fetch('https://api.github.com/repos/' + REPO + '/releases/latest', { headers: { Accept: 'application/vnd.github+json' }, cache: 'no-store' });
     if (!r.ok) throw new Error('GitHub respondió ' + r.status);
     const rel = await r.json(), ver = String(rel.tag_name || '').replace(/^v/, '');
@@ -1829,6 +1995,8 @@ $('btnActualizar').addEventListener('click', () => {
 });
 
 /* ================= ARRANQUE ================= */
+layoutInicio();
+if (!NATIVO) $('inicioVersion').textContent = 'Versión web de prueba';
 aplicarColores();
 infoPulsador();
 if (NATIVO) {
