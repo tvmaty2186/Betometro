@@ -411,6 +411,168 @@ html, body { margin: 0; }
 .w-num { transform: scaleX(var(--ancho, 1)); font-size: min(58cqh, calc(var(--k) * 1cqw / var(--n, 4) / var(--ancho, 1))); }
 .w-cuenta .w-num { font-size: min(82cqh, calc(var(--k) * 1.05cqw / var(--n, 6) / var(--ancho, 1))); }
 .w-delta.e-numero .w-num { font-size: min(70cqh, calc(var(--k) * .95cqw / var(--n, 12) / var(--ancho, 1))); }
+
+/* ===================== 1.4: línea de diseño de menús ===================== */
+@font-face { font-family: "Special Elite"; font-weight: 400; font-display: swap; src: url("fuentes/special-elite-latin-400-normal.woff2") format("woff2"); }
+:root { --acc: #e10600; --acc-ink: #ffffff; --card-bg: linear-gradient(#24272b, #16181b); --card-borde: #3a3e44; --sub: #9aa0a6; --hueco: #0c0d0f;
+        --ok: #19c463; --medio: #ffd400; --mal: #e10600; }
+:root[data-tema="cabina"] { --acc: #2fd162; --acc-ink: #04140a; --card-bg: linear-gradient(#0f171c, #070b0e); --card-borde: #2b3640; --sub: #4fc3f7; --hueco: #020405;
+        --ok: #3cf06e; --medio: #ffd23f; --mal: #ff4d5e; }
+:root[data-tema="rally"] { --acc: #ffb000; --acc-ink: #141008; --card-bg: linear-gradient(#2a241b, #16120d); --card-borde: #4a3f2e; --sub: #b9a98a; --hueco: #0b0906;
+        --ok: #3fa34d; --medio: #ffb000; --mal: #c0162c; }
+:root.sol { --acc: #c4001a; --acc-ink: #ffffff; --card-bg: #ffffff; --card-borde: #000000; --sub: #333333; --hueco: #f1efe6; --ok: #0a8a35; --medio: #b36b00; --mal: #c4001a; }
+
+.pantalla, .config { background: var(--fondo-crono); }
+.pantalla .config-in, .config .config-in { gap: 12px; }
+/* navegación: flecha para volver, título y acción */
+.cab { display: flex; align-items: center; gap: 12px; min-height: 48px; }
+.cab h2 { flex: 1; min-width: 0; font-family: var(--font-ui); font-weight: 700; font-size: 25px; letter-spacing: .02em; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cab .btn.sec { order: -1; flex: none; width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 50%; border: 0; background: rgba(255,255,255,.08); font-size: 0; color: var(--ink); }
+.cab .btn.sec::before { content: "‹"; font-size: 30px; line-height: 1; position: relative; top: -2px; }
+:root.sol .cab .btn.sec { background: #000; color: #fff; }
+.mas-c { flex: none; width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--acc); color: var(--acc-ink); font: 700 30px var(--font-ui); line-height: 1; box-shadow: 0 0 16px color-mix(in srgb, var(--acc) 60%, transparent); cursor: pointer; }
+.seccion-t { font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--sub); margin: 10px 2px 0; font-family: var(--font-ui); }
+.btn.largar { background: var(--acc); color: var(--acc-ink); box-shadow: 0 0 16px color-mix(in srgb, var(--acc) 45%, transparent); font-family: var(--font-ui); font-weight: 700; letter-spacing: .08em; border-radius: 14px; }
+.btn.largar.grande { width: 100%; min-height: 58px; font-size: 19px; }
+.btn.sec { border-color: var(--card-borde); }
+.vacio { text-align: center; padding: 30px 10px; }
+
+/* ---------- A · tablero: tarjetas ---------- */
+.tarjeta-c { display: flex; gap: 12px; align-items: stretch; width: 100%; text-align: left; border: 0; cursor: pointer; border-radius: 16px; padding: 10px;
+  background: var(--card-bg); box-shadow: 0 0 0 1px var(--card-borde), inset 0 1px 0 rgba(255,255,255,.06); color: var(--ink); position: relative; font-family: var(--font-ui); }
+:root.sol .tarjeta-c { box-shadow: 0 0 0 2px #000; }
+.tarjeta-c:active { filter: brightness(1.25); }
+.fecha-c { flex: none; width: 60px; border-radius: 12px; background: var(--hueco); display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px var(--card-borde); padding: 6px 0; }
+.fecha-c b { font-family: var(--font-num); font-weight: var(--peso-num); font-size: 28px; line-height: 1; }
+.fecha-c span { font-size: 11px; font-weight: 700; letter-spacing: .14em; color: var(--sub); }
+.cuerpo-c { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 3px; padding-right: 92px; }
+.cuerpo-c > b { font-size: 17px; font-weight: 700; overflow-wrap: anywhere; }
+.cuerpo-c > span { font-size: 12px; color: var(--sub); }
+.estado-c { position: absolute; top: 10px; right: 10px; font-size: 11px; font-weight: 700; letter-spacing: .08em; padding: 4px 8px; border-radius: 6px; white-space: nowrap; }
+.e-hoy { background: var(--medio); color: #111; } .e-prox { background: rgba(255,255,255,.1); color: var(--ink); }
+.e-ok { background: var(--ok); color: #04140a; } .e-medio { background: var(--medio); color: #111; } .e-mal { background: var(--mal); color: #fff; }
+:root.sol .e-prox { background: #000; color: #fff; }
+.barras-c { display: flex; gap: 3px; align-items: center; height: 26px; margin-top: 2px; }
+.barras-c i { width: 7px; border-radius: 2px; display: block; }
+.b-ok { background: var(--ok); } .b-medio { background: var(--medio); } .b-mal { background: var(--mal); }
+
+/* ---------- A · formularios ---------- */
+.form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: none; border: 0; padding: 0; }
+.form .f { background: var(--card-bg); box-shadow: 0 0 0 1px var(--card-borde); border-radius: 16px; padding: 12px 14px; gap: 6px; }
+:root.sol .form .f { box-shadow: 0 0 0 2px #000; }
+.form .f > span { display: flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: .14em; color: var(--sub); }
+.form .f > span i { font-style: normal; color: var(--acc); font-size: 15px; width: 16px; text-align: center; }
+.form .f input, .form .f textarea, .form .f select { background: transparent; border: 0; padding: 0; height: 36px; font: 700 21px var(--font-ui); color: var(--ink); }
+.form .f textarea { height: 64px; font-size: 16px; font-weight: 500; }
+.form .f input[type=date] { font-size: 18px; color-scheme: dark; } :root.sol .form .f input[type=date] { color-scheme: light; }
+.form .f input:focus, .form .f textarea:focus { outline: none; box-shadow: 0 2px 0 var(--acc); }
+.form p.hint { padding: 0 4px; }
+.oculto { display: none !important; }
+.stepper { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.stepper button { flex: none; width: 44px; height: 44px; border-radius: 12px; border: 0; background: var(--hueco); box-shadow: inset 0 0 0 1px var(--card-borde); color: var(--ink); font: 700 26px var(--font-ui); cursor: pointer; }
+.stepper input { flex: 1; min-width: 0; text-align: center; font-family: var(--font-num) !important; font-size: 32px !important; height: 44px !important; }
+.reloj-c { display: flex; flex-direction: column; align-items: center; }
+.reloj-c .t-campo { justify-content: center; background: none; border: 0; height: auto; padding: 0; font: 700 50px var(--font-num); color: var(--ink); gap: 0; }
+.reloj-c .t-campo input { width: 1.25em; height: 62px; font: var(--peso-num) 56px var(--font-num) !important; text-align: center; padding: 0; color: var(--ink); }
+.reloj-c .t-campo input:last-child { width: .7em; }
+.reloj-c .t-campo input#e-seg, .reloj-c .t-campo input#tSeg { width: 1.25em; }
+.reloj-u { display: grid; grid-template-columns: 1.25em 1.6em .9em; justify-items: center; font-size: 11px; font-weight: 700; letter-spacing: .14em; color: var(--sub); font-family: var(--font-ui); width: 190px; grid-template-columns: 1fr 1fr 1fr; }
+.pats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.pats button { border-radius: 12px; border: 0; background: var(--hueco); box-shadow: inset 0 0 0 1px var(--card-borde); padding: 10px 4px; color: var(--sub); font: 600 12px var(--font-ui); cursor: pointer; }
+.pats button.on { box-shadow: inset 0 0 0 2px var(--acc), 0 0 12px color-mix(in srgb, var(--acc) 45%, transparent); color: var(--ink); }
+.pats button:disabled { opacity: .5; }
+.dots { display: inline-flex; justify-content: center; gap: 4px; margin: 0 auto 6px; vertical-align: middle; }
+.pats .dots { display: flex; }
+.dots i { width: 11px; height: 11px; border-radius: 50%; display: block; }
+.dots i.m { background: var(--medida); } .dots i.p { background: var(--practica); }
+
+/* ---------- A · ficha y resultados ---------- */
+#detalleCont { gap: 10px; }
+.hero-c { text-align: center; background: var(--card-bg); box-shadow: 0 0 0 1px var(--card-borde); border-radius: 18px; padding: 14px 12px; display: flex; flex-direction: column; gap: 4px; }
+:root.sol .hero-c { box-shadow: 0 0 0 2px #000; }
+.hero-c .et { font-size: 11px; letter-spacing: .16em; color: var(--sub); font-weight: 700; text-transform: uppercase; }
+.hero-c .grande { font-family: var(--font-num); font-weight: var(--peso-num); font-size: 62px; line-height: 1; color: var(--ink); }
+.hero-c .grande.n-ok { color: var(--ok); } .hero-c .grande.n-medio { color: var(--medio); } .hero-c .grande.n-mal { color: var(--mal); }
+.hero-c .sub { display: flex; justify-content: space-around; margin-top: 8px; }
+.hero-c .sub span { display: block; font-size: 11px; color: var(--sub); letter-spacing: .1em; text-transform: uppercase; font-weight: 700; }
+.hero-c .sub b { font-size: 20px; }
+.datos-c { grid-template-columns: repeat(2, 1fr); }
+.dato-c { background: var(--card-bg); border: 0; box-shadow: 0 0 0 1px var(--card-borde); border-radius: 14px; }
+.dato-c span { color: var(--sub); }
+.dato-c .pm { display: flex; align-items: center; gap: 8px; } .dato-c .pm .dots { margin: 0; } .dato-c .pm b { font-size: 16px; font-family: var(--font-ui); }
+.grafico-c { background: var(--card-bg); box-shadow: 0 0 0 1px var(--card-borde); border-radius: 18px; padding: 6px 12px; }
+.filav { display: grid; grid-template-columns: 30px 1fr 74px; align-items: center; gap: 8px; padding: 7px 0; border-top: 1px solid var(--card-borde); font-family: var(--font-ui); }
+.filav:first-child, .grafico-sep + .filav { border-top: 0; }
+.filav.practica { opacity: .55; }
+.chipv { width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; font-weight: 700; font-size: 13px; color: #fff; }
+.chipv.m { background: var(--medida); } .chipv.p { background: var(--practica); }
+.eje { position: relative; height: 18px; } .eje::before { content: ""; position: absolute; left: 50%; top: -4px; bottom: -4px; width: 2px; background: var(--sub); opacity: .5; }
+.eje i { position: absolute; top: 3px; height: 12px; border-radius: 3px; display: block; }
+.valv { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.grafico-sep { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--sub); padding: 10px 0 4px; }
+
+/* ---------- A · ajustes y chequeo en tarjetas ---------- */
+.config fieldset, .pantalla fieldset { background: var(--card-bg); border: 0; box-shadow: 0 0 0 1px var(--card-borde); border-radius: 18px; }
+:root.sol .config fieldset, :root.sol .pantalla fieldset { box-shadow: 0 0 0 2px #000; }
+.config fieldset h3, .pantalla fieldset h3 { display: flex; align-items: center; gap: 10px; font-family: var(--font-ui); font-size: 14px; letter-spacing: .14em; color: var(--ink); }
+.config fieldset h3 i, .pantalla fieldset h3 i { font-style: normal; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: var(--acc); color: var(--acc-ink); font-size: 16px; letter-spacing: 0; }
+.config .row { border-top-color: var(--card-borde); }
+.config .row select, .config .row input[type=number] { background: var(--hueco); border-color: var(--card-borde); }
+.chk { background: var(--card-bg); border: 0; box-shadow: 0 0 0 1px var(--card-borde); border-radius: 16px; }
+.chk.ok .chk-ico { background: var(--ok); color: #04140a; } .chk.mal .chk-ico { background: var(--mal); color: #fff; }
+
+/* ---------- B · carnet de ruta (rally clásico) ---------- */
+.carnet { display: block; width: 100%; text-align: left; border: 0; cursor: pointer; position: relative; padding: 0 0 4px; border-radius: 6px; color: #2a2118;
+  font-family: "Special Elite", "Courier New", monospace; background: #efe6cf; background-image: repeating-linear-gradient(#efe6cf 0 27px, #dccfb2 27px 28px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.5); }
+.carnet:active { filter: brightness(.95); }
+.carnet-cab { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 2px solid #2a2118;
+  font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 19px; letter-spacing: .04em; }
+.carnet-cab > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.carnet-num { flex: none; background: #2a2118; color: #efe6cf; padding: 2px 10px; border-radius: 4px; font-size: 15px; }
+.carnet-lin { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 6px; padding: 6px 12px 8px; font-size: 13px; }
+.carnet-lin span, .renglon > span { display: block; font-family: "Chakra Petch", sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .1em; color: #6d5f48; }
+.casillas { display: grid; grid-template-columns: repeat(6, 1fr); border-top: 2px solid #2a2118; }
+.casillas > div { border-right: 1px solid #2a2118; border-bottom: 1px solid #2a2118; padding: 4px 2px; text-align: center; font-size: 11px; min-height: 34px; }
+.casillas > div:nth-child(6n) { border-right: 0; }
+.casillas > div.practica { color: #8a7c62; background: rgba(42,33,24,.06); }
+.casillas b { display: block; font-size: 13px; font-weight: 400; }
+.con-sello { padding-bottom: 46px; }
+.sello { position: absolute; right: 12px; bottom: 8px; transform: rotate(-10deg); border: 3px solid currentColor; font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 18px; padding: 1px 8px; border-radius: 6px; letter-spacing: .08em; opacity: .85; }
+.sello.verde { color: #1a7f45; } .sello.rojo { color: #c0162c; }
+.carnet-grande { cursor: default; }
+.renglon { display: grid; grid-template-columns: 112px minmax(0, 1fr); align-items: end; gap: 6px; padding: 9px 12px 4px; border-bottom: 1px dashed #b9ab8b; }
+.renglon b { font-size: 19px; font-weight: 400; overflow-wrap: anywhere; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.renglon .dots { margin: 0; }
+/* formularios, ajustes y chequeo como carnet */
+:root[data-tema="rally"] .form { grid-template-columns: 1fr; gap: 0; background: #efe6cf; background-image: repeating-linear-gradient(#efe6cf 0 27px, #dccfb2 27px 28px); border-radius: 6px; box-shadow: 0 6px 16px rgba(0,0,0,.5); padding: 4px 0 8px; color: #2a2118; }
+:root[data-tema="rally"] .form .f { background: none; box-shadow: none; border-radius: 0; border-bottom: 1px dashed #b9ab8b; padding: 10px 12px 6px; display: grid; grid-template-columns: 112px minmax(0, 1fr); align-items: center; gap: 6px; }
+:root[data-tema="rally"] .form .f > span { font-family: "Chakra Petch", sans-serif; font-size: 10px; color: #6d5f48; letter-spacing: .1em; }
+:root[data-tema="rally"] .form .f > span i { display: none; }
+:root[data-tema="rally"] .form .f input, :root[data-tema="rally"] .form .f textarea, :root[data-tema="rally"] .stepper input, :root[data-tema="rally"] .reloj-c .t-campo, :root[data-tema="rally"] .reloj-c .t-campo input {
+  font-family: "Special Elite", monospace !important; font-weight: 400 !important; color: #2a2118 !important; color-scheme: light; }
+:root[data-tema="rally"] .reloj-c { align-items: flex-start; } :root[data-tema="rally"] .reloj-c .t-campo, :root[data-tema="rally"] .reloj-c .t-campo input { font-size: 30px !important; height: 40px; }
+:root[data-tema="rally"] .reloj-u { display: none; }
+:root[data-tema="rally"] .stepper input { font-size: 26px !important; text-align: left; }
+:root[data-tema="rally"] .stepper button, :root[data-tema="rally"] .pats button { background: transparent; box-shadow: inset 0 0 0 1.5px #2a2118; color: #2a2118; font-family: "Special Elite", monospace; }
+:root[data-tema="rally"] .pats button.on { background: #2a2118; color: #efe6cf; box-shadow: none; }
+:root[data-tema="rally"] .form p.hint { color: #6d5f48; padding: 6px 12px; }
+:root[data-tema="rally"] .config fieldset, :root[data-tema="rally"] .pantalla fieldset, :root[data-tema="rally"] .chk { background: #efe6cf; color: #2a2118; box-shadow: 0 6px 16px rgba(0,0,0,.5); border-radius: 6px; }
+:root[data-tema="rally"] .config fieldset h3, :root[data-tema="rally"] .pantalla fieldset h3 { color: #2a2118; font-family: "Barlow Condensed", sans-serif; font-size: 18px; letter-spacing: .06em; border-bottom: 2px solid #2a2118; padding-bottom: 6px; }
+:root[data-tema="rally"] .config fieldset h3 i { background: #2a2118; color: #efe6cf; }
+:root[data-tema="rally"] .config .row { border-top: 1px dashed #b9ab8b; }
+:root[data-tema="rally"] .config .row > label, :root[data-tema="rally"] .config .hint, :root[data-tema="rally"] .chk, :root[data-tema="rally"] .chk .hint { color: #2a2118; font-family: "Special Elite", monospace; }
+:root[data-tema="rally"] .config .row select, :root[data-tema="rally"] .config .row input[type=number] { background: transparent; color: #2a2118; border: 1.5px solid #2a2118; color-scheme: light; font-family: "Special Elite", monospace; }
+:root[data-tema="rally"] .config .btn.sec, :root[data-tema="rally"] .pantalla fieldset .btn.sec { color: #2a2118; border-color: #2a2118; }
+:root[data-tema="rally"] .cab h2 { font-family: "Barlow Condensed", sans-serif; font-size: 30px; letter-spacing: .06em; text-transform: uppercase; }
+:root[data-tema="rally"] .seccion-t { color: #ffb000; }
+
+/* ajustes finos 1.4 */
+.form input[type=number]::-webkit-inner-spin-button, .form input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.form input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+.reloj-c .t-campo input { width: 1.2em !important; } .reloj-c .t-campo input:last-child { width: .65em !important; }
+.acciones .btn.grande { grid-column: 1 / -1; }
+.acciones .btn.largar { white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -458,8 +620,7 @@ html, body { margin: 0; }
 <!-- ===== Carreras ===== -->
 <div class="pantalla" id="p-carreras" hidden>
   <div class="config-in">
-    <div class="cab"><h2>Carreras</h2><button class="btn sec" id="carrerasVolver" type="button">Volver</button></div>
-    <button class="btn" id="carrerasNueva" type="button">+ Nueva carrera</button>
+    <div class="cab"><button class="btn sec" id="carrerasVolver" type="button">Volver</button><h2>Carreras</h2><button class="mas-c" id="carrerasNueva" type="button" aria-label="Nueva carrera">+</button></div>
     <div id="carrerasLista"></div>
   </div>
 </div>
@@ -467,28 +628,31 @@ html, body { margin: 0; }
 <!-- ===== Editor de carrera ===== -->
 <div class="pantalla" id="p-editor" hidden>
   <div class="config-in">
-    <div class="cab"><h2 id="editorTitulo">Nueva carrera</h2><button class="btn sec" id="editorCancelar" type="button">Cancelar</button></div>
+    <div class="cab"><button class="btn sec" id="editorCancelar" type="button">Volver</button><h2 id="editorTitulo">Nueva carrera</h2></div>
     <div class="form">
-      <label class="f f-2" for="e-nombre"><span>Nombre de la carrera</span><input type="text" id="e-nombre" maxlength="80" autocomplete="off"></label>
-      <label class="f" for="e-fecha"><span>Fecha</span><input type="date" id="e-fecha"></label>
-      <label class="f" for="e-vueltas"><span>Cantidad de vueltas</span><input type="number" id="e-vueltas" min="1" max="300" inputmode="numeric"></label>
-      <div class="f"><span>Tiempo ideal por vuelta</span>
-        <div class="t-campo"><input type="number" id="e-min" min="0" max="99" inputmode="numeric" aria-label="Minutos" placeholder="m">:<input type="number" id="e-seg" min="0" max="59" inputmode="numeric" aria-label="Segundos" placeholder="ss">.<input type="number" id="e-dec" min="0" max="9" inputmode="numeric" aria-label="Décimas" placeholder="d"></div>
-      </div>
-      <label class="f" for="e-distancia"><span>Distancia por vuelta (m)</span><input type="number" id="e-distancia" min="0" step="1" inputmode="numeric"></label>
-      <label class="f f-2" for="e-patron"><span>Vueltas medidas</span>
-        <select id="e-patron">
+      <label class="f f-2" for="e-nombre"><span><i>⚑</i>Nombre de la carrera</span><input type="text" id="e-nombre" maxlength="80" autocomplete="off"></label>
+      <label class="f" for="e-fecha"><span><i>▦</i>Fecha</span><input type="date" id="e-fecha"></label>
+      <div class="f"><span><i>↻</i>Vueltas</span>
+        <div class="stepper"><button type="button" data-paso="-1" data-campo="e-vueltas" aria-label="Una vuelta menos">−</button><input type="number" id="e-vueltas" min="1" max="300" inputmode="numeric"><button type="button" data-paso="1" data-campo="e-vueltas" aria-label="Una vuelta más">+</button></div></div>
+      <div class="f f-2"><span><i>⏱</i>Tiempo ideal por vuelta</span><div class="reloj-c"><div class="t-campo"><input type="number" id="e-min" min="0" max="99" inputmode="numeric" aria-label="Minutos" placeholder="0">:<input type="number" id="e-seg" min="0" max="59" inputmode="numeric" aria-label="Segundos" placeholder="00">.<input type="number" id="e-dec" min="0" max="9" inputmode="numeric" aria-label="Décimas" placeholder="0"></div><div class="reloj-u"><span>MIN</span><span>SEG</span><span>DÉC</span></div></div></div>
+      <label class="f f-2" for="e-distancia"><span><i>↔</i>Distancia por vuelta (metros)</span><input type="number" id="e-distancia" min="0" step="1" inputmode="numeric"></label>
+      <div class="f f-2"><span><i>◉</i>Vueltas medidas</span><select id="e-patron" class="oculto" aria-label="Vueltas medidas">
           <option value="todas">Todas medidas</option>
           <option value="alt1">Alternadas: la 1.ª medida</option>
           <option value="alt2">Alternadas: la 1.ª de práctica</option>
-        </select></label>
+        </select>
+        <div class="pats" data-sel="e-patron">
+          <button type="button" data-v="todas"><span class="dots"><i class="m"></i><i class="m"></i><i class="m"></i><i class="m"></i></span>Todas</button>
+          <button type="button" data-v="alt1"><span class="dots"><i class="m"></i><i class="p"></i><i class="m"></i><i class="p"></i></span>1.ª medida</button>
+          <button type="button" data-v="alt2"><span class="dots"><i class="p"></i><i class="m"></i><i class="p"></i><i class="m"></i></span>1.ª práctica</button>
+        </div></div>
       <p class="hint f-2" id="e-configHint" hidden>Esta carrera ya tiene vueltas corridas: el tiempo, la distancia y las vueltas medidas no se pueden cambiar.</p>
-      <label class="f f-2" for="e-lugar"><span>Lugar o circuito</span><input type="text" id="e-lugar" maxlength="80"></label>
-      <label class="f f-2" for="e-notas"><span>Notas</span><textarea id="e-notas" maxlength="500"></textarea></label>
+      <label class="f f-2" for="e-lugar"><span><i>⌖</i>Lugar o circuito</span><input type="text" id="e-lugar" maxlength="80"></label>
+      <label class="f f-2" for="e-notas"><span><i>✎</i>Notas</span><textarea id="e-notas" maxlength="500"></textarea></label>
     </div>
     <p class="error" id="editorError" role="alert"></p>
     <div class="acciones">
-      <button class="btn" id="e-guardar" type="button">Guardar carrera</button>
+      <button class="btn largar grande" id="e-guardar" type="button">GUARDAR CARRERA</button>
       <button class="btn sec" id="e-borrar" type="button" hidden>Borrar carrera</button>
     </div>
   </div>
@@ -497,7 +661,7 @@ html, body { margin: 0; }
 <!-- ===== Detalle de carrera ===== -->
 <div class="pantalla" id="p-detalle" hidden>
   <div class="config-in">
-    <div class="cab"><span class="lbl">Carrera</span><button class="btn sec" id="detalleVolver" type="button">Volver</button></div>
+    <div class="cab"><button class="btn sec" id="detalleVolver" type="button">Volver</button><h2 id="detalleTitulo">Carrera</h2></div>
     <div id="detalleCont"></div>
   </div>
 </div>
@@ -505,22 +669,24 @@ html, body { margin: 0; }
 <!-- ===== Práctica libre ===== -->
 <div class="pantalla" id="p-practica" hidden>
   <div class="config-in">
-    <div class="cab"><h2>Práctica libre</h2><button class="btn sec" id="practicaVolver" type="button">Volver</button></div>
+    <div class="cab"><button class="btn sec" id="practicaVolver" type="button">Volver</button><h2>Práctica libre</h2></div>
     <div class="form" id="fsCarrera">
-      <div class="f"><span>Tiempo ideal por vuelta</span>
-        <div class="t-campo"><input type="number" id="tMin" min="0" max="99" inputmode="numeric" aria-label="Minutos" placeholder="m">:<input type="number" id="tSeg" min="0" max="59" inputmode="numeric" aria-label="Segundos" placeholder="ss">.<input type="number" id="tDec" min="0" max="9" inputmode="numeric" aria-label="Décimas" placeholder="d"></div>
-      </div>
-      <label class="f" for="distancia"><span>Distancia por vuelta (m)</span><input type="number" id="distancia" min="0" step="1" inputmode="numeric"></label>
-      <label class="f f-2" for="patron"><span>Vueltas medidas</span>
-        <select id="patron">
+      <div class="f f-2"><span><i>⏱</i>Tiempo ideal por vuelta</span><div class="reloj-c"><div class="t-campo"><input type="number" id="tMin" min="0" max="99" inputmode="numeric" aria-label="Minutos" placeholder="0">:<input type="number" id="tSeg" min="0" max="59" inputmode="numeric" aria-label="Segundos" placeholder="00">.<input type="number" id="tDec" min="0" max="9" inputmode="numeric" aria-label="Décimas" placeholder="0"></div><div class="reloj-u"><span>MIN</span><span>SEG</span><span>DÉC</span></div></div></div>
+      <label class="f f-2" for="distancia"><span><i>↔</i>Distancia por vuelta (metros)</span><input type="number" id="distancia" min="0" step="1" inputmode="numeric"></label>
+      <div class="f f-2"><span><i>◉</i>Vueltas medidas</span><select id="patron" class="oculto" aria-label="Vueltas medidas">
           <option value="todas">Todas medidas</option>
           <option value="alt1">Alternadas: la 1.ª medida</option>
           <option value="alt2">Alternadas: la 1.ª de práctica</option>
-        </select></label>
+        </select>
+        <div class="pats" data-sel="patron">
+          <button type="button" data-v="todas"><span class="dots"><i class="m"></i><i class="m"></i><i class="m"></i><i class="m"></i></span>Todas</button>
+          <button type="button" data-v="alt1"><span class="dots"><i class="m"></i><i class="p"></i><i class="m"></i><i class="p"></i></span>1.ª medida</button>
+          <button type="button" data-v="alt2"><span class="dots"><i class="p"></i><i class="m"></i><i class="p"></i><i class="m"></i></span>1.ª práctica</button>
+        </div></div>
       <p class="hint f-2" id="velBase"></p>
       <p class="hint f-2" id="carreraHint" hidden>Con la carrera en curso no se puede cambiar el tiempo, la distancia ni las vueltas medidas.</p>
     </div>
-    <button class="btn largar" id="practicaLargar" type="button">Ir a largar</button>
+    <button class="btn largar grande" id="practicaLargar" type="button">IR A LARGAR</button>
     <p class="hint">Estos valores quedan guardados para la próxima práctica.</p>
   </div>
 </div>
@@ -528,10 +694,10 @@ html, body { margin: 0; }
 <!-- ===== Chequeo previo ===== -->
 <div class="pantalla" id="p-chequeo" hidden>
   <div class="config-in">
-    <div class="cab"><h2>Chequeo previo</h2><button class="btn sec" id="chequeoVolver" type="button">Volver</button></div>
+    <div class="cab"><button class="btn sec" id="chequeoVolver" type="button">Volver</button><h2>Chequeo previo</h2></div>
     <div id="chequeoLista"></div>
     <fieldset>
-      <h3>Probar el pulsador</h3>
+      <h3><i>◎</i>Probar el pulsador</h3>
       <p class="hint" id="chkPulsador">Tocá el botón y después apretá el pulsador: vas a escuchar un pitido si llega.</p>
       <div class="row"><button class="btn sec" id="chkProbar" type="button">Probar pulsador</button></div>
     </fieldset>
@@ -540,14 +706,11 @@ html, body { margin: 0; }
 
 <div class="config" id="config" hidden>
   <div class="config-in">
-    <div class="cfg-bar">
-      <h2>Configuración</h2>
-      <button class="btn" id="btnCerrar" type="button">Listo</button>
-    </div>
+    <div class="cab"><button class="btn sec" id="btnCerrar" type="button">Volver</button><h2>Ajustes</h2></div>
 
 
     <fieldset>
-      <h3>Tema y pantalla</h3>
+      <h3><i>◐</i>Tema y pantalla</h3>
       <div class="row">
         <label for="tema">Tema</label>
         <select id="tema">
@@ -575,7 +738,7 @@ html, body { margin: 0; }
     </fieldset>
 
     <fieldset>
-      <h3>Sonido</h3>
+      <h3><i>♪</i>Sonido</h3>
       <div class="row">
         <label for="volumenMax">Subir el volumen al máximo durante la carrera</label>
         <input type="checkbox" id="volumenMax">
@@ -590,7 +753,7 @@ html, body { margin: 0; }
     </fieldset>
 
     <fieldset>
-      <h3>Cuenta regresiva</h3>
+      <h3><i>⏱</i>Cuenta regresiva</h3>
       <div class="row">
         <label for="cuentaN">Contar en voz los últimos (segundos)</label>
         <input type="number" id="cuentaN" min="0" max="60" inputmode="numeric">
@@ -618,7 +781,7 @@ html, body { margin: 0; }
     </fieldset>
 
     <fieldset>
-      <h3>Velocidad</h3>
+      <h3><i>➚</i>Velocidad</h3>
       <div class="row">
         <label for="velActiva">Mostrar velocidad y adelantado/atrasado</label>
         <input type="checkbox" id="velActiva">
@@ -661,7 +824,7 @@ html, body { margin: 0; }
     </fieldset>
 
     <fieldset>
-      <h3>Avisos por voz</h3>
+      <h3><i>☊</i>Avisos por voz</h3>
       <div class="row">
         <label for="avisoInicio">Al empezar cada vuelta («vuelta 3, medida»)</label>
         <input type="checkbox" id="avisoInicio">
@@ -673,7 +836,7 @@ html, body { margin: 0; }
     </fieldset>
 
     <fieldset>
-      <h3>Botón y pantalla</h3>
+      <h3><i>▣</i>Botón y pantalla</h3>
       <div class="row">
         <label for="antirrebote">Ignorar una segunda marca durante (segundos)</label>
         <input type="number" id="antirrebote" min="0" max="60" step="0.5" inputmode="decimal">
@@ -689,7 +852,7 @@ html, body { margin: 0; }
     </fieldset>
 
     <fieldset>
-      <h3>Modo carrera</h3>
+      <h3><i>⛔</i>Modo carrera</h3>
       <div class="row">
         <label for="modoCarreraChk">Al largar: No molestar y pantalla completa (sin llamadas, mensajes ni notificaciones)</label>
         <input type="checkbox" id="modoCarreraChk">
@@ -699,7 +862,7 @@ html, body { margin: 0; }
     </fieldset>
 
     <fieldset>
-      <h3>Pulsador</h3>
+      <h3><i>◎</i>Pulsador</h3>
       <p class="hint" id="pulsadorInfo"></p>
       <div class="row">
         <button class="btn sec" id="btnAprender" type="button">Aprender botón</button>
@@ -709,7 +872,7 @@ html, body { margin: 0; }
     </fieldset>
 
     <fieldset id="fsApp">
-      <h3>Aplicación</h3>
+      <h3><i>⟳</i>Aplicación</h3>
       <p class="hint" id="appVersion">Versión web de prueba</p>
       <div class="row">
         <button class="btn sec" id="btnActualizar" type="button">Buscar actualización</button>
@@ -1158,11 +1321,12 @@ function fmtDif(ms) {
 }
 let solAuto = false;
 function aplicarTema() {
-  const r = document.documentElement;
+  const r = document.documentElement, antes = r.dataset.tema;
   r.dataset.tema = cfg.tema || 'rally';
   r.classList.toggle('sol', cfg.modoSol === 'si' || (cfg.modoSol === 'auto' && solAuto));
   document.body.classList.toggle('ind-fondo', cfg.indicador === 'fondo');
   document.body.classList.toggle('ind-marco', cfg.indicador !== 'fondo');
+  if (antes && antes !== r.dataset.tema && typeof pantalla !== 'undefined') { if (pantalla === 'carreras') dibujarCarreras(); if (pantalla === 'detalle') dibujarDetalle(); }
 }
 function actualizarSensorLuz() { if (Beto) Beto.sensorLuz({ activo: cfg.modoSol === 'auto' }).catch(() => {}); }
 if (Beto) {   // modo sol automático: mucha luz sostenida 3 s lo enciende, poca luz sostenida 5 s lo apaga
@@ -1207,15 +1371,15 @@ const TIPOS_W = {
 const REF_W = 378, REF_H = 800;
 const caja = (x, y, w, h) => ({ x: x / REF_W, y: y / REF_H, w: w / REF_W, h: h / REF_H });
 const WIDGETS_DEF = [   // pantalla de fábrica (la que armó Matías)
-  Object.assign({ t: 'velocimetro', e: 'analogico', forma: 'redondo' }, caja(27, 0, 321, 321)),
-  Object.assign({ t: 'tipo' }, caja(14, 233, 98, 86)),
-  Object.assign({ t: 'necesaria' }, caja(280, 229, 98, 90)),
-  Object.assign({ t: 'cuenta', e: 'numeros', ancho: 1.2 }, caja(0, 325, 378, 139)),
-  Object.assign({ t: 'faltan' }, caja(302, 403, 76, 59)),
-  Object.assign({ t: 'marcar' }, caja(0, 481, 378, 284))
+  Object.assign({ t: 'velocimetro', e: 'analogico', forma: 'redondo' }, caja(21, 0, 333, 333)),
+  Object.assign({ t: 'tipo' }, caja(0, 246, 105, 88)),
+  Object.assign({ t: 'necesaria' }, caja(276, 242, 102, 92)),
+  Object.assign({ t: 'cuenta', e: 'numeros', ancho: 1.2 }, caja(0, 338, 378, 141)),
+  Object.assign({ t: 'faltan' }, caja(294, 416, 84, 63)),
+  Object.assign({ t: 'marcar' }, caja(0, 485, 378, 276))
 ];
 function normalizarWidgets() {
-  if (cfg.widgetsV !== 4 || !Array.isArray(cfg.widgets)) { cfg.widgets = JSON.parse(JSON.stringify(WIDGETS_DEF)); cfg.widgetsV = 4; }
+  if (cfg.widgetsV !== 5 || !Array.isArray(cfg.widgets)) { cfg.widgets = JSON.parse(JSON.stringify(WIDGETS_DEF)); cfg.widgetsV = 5; }
   // sin pulsador físico asignado, el botón MARCAR de la pantalla es obligatorio
   if (!cfg.teclaNombre && !cfg.widgets.some(w => w.t === 'marcar')) cfg.widgets.push(JSON.parse(JSON.stringify(WIDGETS_DEF.find(w => w.t === 'marcar'))));
 }
@@ -1370,8 +1534,11 @@ function construirTablero() {
   const W = tab.clientWidth, H = tab.clientHeight;
   const simActivo = cfg.velActiva && cfg.fuenteVel === 'sim';
   $('sim').hidden = true;
-  cfg.widgets.forEach((def, i) => {
-    const tipo = TIPOS_W[def.t];
+  // los más grandes se dibujan primero: los chicos quedan siempre adelante y nunca se pierden debajo
+  const area = d => d.forma === 'redondo' ? (d.w * W) * (d.w * W) : (d.w * W) * (d.h * H);
+  const orden = cfg.widgets.map((d, i) => i).sort((a, b) => area(cfg.widgets[b]) - area(cfg.widgets[a]));
+  orden.forEach(i => {
+    const def = cfg.widgets[i], tipo = TIPOS_W[def.t];
     if (!tipo || (tipo.vel && !cfg.velActiva && !modoEdicion) || (def.t === 'simulador' && !simActivo)) return;
     const w = crearWidget(def), g = geom(def, W, H);
     Object.assign(w.el.style, { left: g.left + 'px', top: g.top + 'px', width: g.width + 'px', height: g.height + 'px' });
@@ -1506,7 +1673,7 @@ function dibujarEdicion() {
     if (def.forma === 'redondo') h = w = Math.min(w, H());
     const L = Math.max(0, Math.min(W() - w, e.offsetLeft)), T = Math.max(0, Math.min(H() - h, e.offsetTop));
     def.x = L / W(); def.y = T / H(); def.w = w / W(); if (def.forma !== 'redondo') def.h = h / H();
-    if (a.modo === 'mover') { cfg.widgets.splice(i, 1); cfg.widgets.push(def); selW = cfg.widgets.length - 1; }   // el que se movió queda adelante
+    if (a.modo === 'mover') selW = i;
     Store.setConfig(cfg); construirTablero();
   };
   tab.addEventListener('pointerup', fin);
@@ -1796,6 +1963,17 @@ $('btnProbar').addEventListener('click', () => {
 /* ================= PANTALLAS ================= */
 const PANTALLAS = ['inicio', 'carreras', 'editor', 'detalle', 'chequeo', 'practica'];
 let pantalla = 'inicio', seleccion = null, editando = null, pestanaCarreras = 'proximas';
+function syncPats() {
+  document.querySelectorAll('.pats').forEach(g => { const sel = $(g.dataset.sel);
+    g.querySelectorAll('[data-v]').forEach(b => { b.classList.toggle('on', b.dataset.v === sel.value); b.disabled = sel.disabled; }); });
+}
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-paso]');
+  if (b) { const i = $(b.dataset.campo); if (i.disabled) return;
+    i.value = Math.max(+i.min || 0, Math.min(+i.max || 999, (+i.value || 0) + +b.dataset.paso)); i.dispatchEvent(new Event('input', { bubbles: true })); return; }
+  const p = ev.target.closest('.pats [data-v]');
+  if (p) { const sel = $(p.closest('.pats').dataset.sel); if (sel.disabled) return; sel.value = p.dataset.v; sel.dispatchEvent(new Event('change', { bubbles: true })); syncPats(); }
+});
 function mostrar(p) {
   pantalla = p;
   for (const x of PANTALLAS) $('p-' + x).hidden = x !== p;
@@ -1803,6 +1981,7 @@ function mostrar(p) {
   if (p === 'carreras') dibujarCarreras();
   if (p === 'detalle') dibujarDetalle();
   if (p === 'chequeo') dibujarChequeo();
+  syncPats();
   window.scrollTo(0, 0);
 }
 function volver() {   // botón atrás de Android y botones "Volver"
@@ -1832,34 +2011,69 @@ function dibujarInicio() { }   // el inicio es solo el menú: las carreras se la
 const nombrePatron = p => p === 'alt1' ? 'alternadas, 1.ª medida' : p === 'alt2' ? 'alternadas, 1.ª práctica' : 'todas medidas';
 
 /* ---------- Carreras ---------- */
+const esCarnet = () => (cfg.tema || 'sport') === 'rally';
+const MESES = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+const nivelErr = s => s <= 0.2 ? 'ok' : s <= 0.5 ? 'medio' : 'mal';   // segundos de error por vuelta
+const difCorta = ms => (ms > 0 ? '+' : ms < 0 ? '−' : '±') + (Math.abs(ms) / 1000).toFixed(1).replace('.', ',');
+function diasHasta(iso) { const [a, m, d] = iso.split('-').map(Number), h = new Date(); h.setHours(0, 0, 0, 0); return Math.round((new Date(a, m - 1, d) - h) / 864e5); }
+function estadoCarrera(c) {
+  const r = resumen(c);
+  if (r.medidas) return { txt: 'ERROR ' + seg(r.sumaMs) + ' s', cls: 'e-' + nivelErr(r.promMs / 1000) };
+  if (c.practica) return { txt: 'PRÁCTICA', cls: 'e-prox' };
+  const d = diasHasta(c.fecha);
+  if (d === 0) return { txt: 'HOY', cls: 'e-hoy' };
+  if (d === 1) return { txt: 'MAÑANA', cls: 'e-hoy' };
+  if (d > 1) return { txt: 'EN ' + d + ' DÍAS', cls: 'e-prox' };
+  return { txt: 'SIN CORRER', cls: 'e-prox' };
+}
+function miniBarras(c) {
+  const d = el('div', undefined, 'barras-c');
+  c.vueltas.filter(v => v.medida).slice(-16).forEach(v => { const a = Math.abs(v.difMs) / 1000, i = el('i', undefined, 'b-' + nivelErr(a)); i.style.height = (6 + Math.min(18, a * 12)) + 'px'; d.append(i); });
+  return d;
+}
+function tarjetaTablero(c) {
+  const [, m, d] = c.fecha.split('-'), t = boton('', 'tarjeta-c', () => { seleccion = c; mostrar('detalle'); });
+  const f = el('div', undefined, 'fecha-c'); f.append(el('b', d), el('span', MESES[+m - 1]));
+  const cu = el('div', undefined, 'cuerpo-c');
+  cu.append(el('b', c.nombre), el('span', [c.lugar, c.vueltasTotal ? c.vueltasTotal + ' vueltas' : null, fmt(c.tiempoIdealMs)].filter(Boolean).join(' · ')));
+  if (c.vueltas.some(v => v.medida)) cu.append(miniBarras(c));
+  const e = estadoCarrera(c);
+  t.append(f, cu, el('span', e.txt, 'estado-c ' + e.cls));
+  return t;
+}
+function tarjetaCarnet(c) {
+  const [, m, d] = c.fecha.split('-'), t = boton('', 'carnet', () => { seleccion = c; mostrar('detalle'); });
+  const cab = el('div', undefined, 'carnet-cab'), e = estadoCarrera(c);
+  cab.append(el('span', c.nombre.toUpperCase()), el('span', e.txt === 'HOY' ? 'HOY' : d + '/' + m, 'carnet-num'));
+  t.append(cab);
+  const med = c.vueltas.filter(v => v.medida);
+  if (med.length) {
+    const cas = el('div', undefined, 'casillas');
+    med.slice(0, 6).forEach(v => { const x = el('div'); x.append(el('span', 'V' + v.n), el('b', difCorta(v.difMs))); cas.append(x); });
+    const r = resumen(c);
+    t.append(cas, el('span', 'ERROR ' + seg(r.sumaMs) + ' s', 'sello ' + (nivelErr(r.promMs / 1000) === 'mal' ? 'rojo' : 'verde')));
+    t.classList.add('con-sello');
+  } else {
+    const lin = el('div', undefined, 'carnet-lin');
+    const it = (k, v) => { const x = el('div'); x.append(el('span', k), document.createTextNode(v)); lin.append(x); };
+    it(c.lugar ? 'LUGAR' : 'FECHA', c.lugar || fechaCorta(c.fecha)); it('VUELTAS', c.vueltasTotal ? String(c.vueltasTotal) : '–'); it('IDEAL', fmt(c.tiempoIdealMs));
+    t.append(lin);
+  }
+  return t;
+}
 function dibujarCarreras() {
   const hoy = hoyISO(), cont = $('carrerasLista'); cont.innerHTML = '';
   const prox = Store.carreras.filter(c => !c.practica && c.fecha >= hoy).sort((a, b) => a.fecha.localeCompare(b.fecha));
   const ant = Store.carreras.filter(c => c.practica || c.fecha < hoy)
     .sort((a, b) => b.fecha.localeCompare(a.fecha) || String(b.creada).localeCompare(String(a.creada)));
-  if (!prox.length && !ant.length) { cont.append(el('p', 'Todavía no hay carreras. Tocá «Nueva carrera» para cargar la primera.', 'vacio')); return; }
-  const t = el('table', undefined, 'tabla tabla-c'), th = el('thead'), hr = el('tr');
-  ['Fecha', 'Carrera', 'Vueltas', 'Error'].forEach(h => hr.append(el('th', h)));
-  th.append(hr); t.append(th);
-  const tb = el('tbody');
+  if (!prox.length && !ant.length) { cont.append(el('p', 'Todavía no hay carreras. Tocá + para cargar la primera.', 'vacio')); return; }
+  const carnet = esCarnet();
   const grupo = (titulo, lista) => {
     if (!lista.length) return;
-    const g = el('tr', undefined, 'grupo-fila'), td = el('td', titulo); td.colSpan = 4; g.append(td); tb.append(g);
-    lista.forEach((c, i) => {
-      const r = resumen(c), tr = el('tr', undefined, 'fila-carrera' + (titulo === 'Próximas' && i === 0 ? ' proxima-fila' : ''));
-      tr.tabIndex = 0; tr.setAttribute('role', 'button');
-      const abrir = () => { seleccion = c; mostrar('detalle'); };
-      tr.onclick = abrir; tr.onkeydown = ev => { if (ev.key === 'Enter') abrir(); };
-      const nom = el('td'); nom.append(el('b', c.nombre)); if (c.lugar) nom.append(el('span', c.lugar, 'sub'));
-      tr.append(el('td', c.fecha === hoy ? 'Hoy' : fechaCorta(c.fecha).replace(/ de /g, ' ')), nom,
-                el('td', (r.total ? new Set(c.vueltas.map(v => (v.largada || 1) + '-' + v.n)).size : 0) + (c.vueltasTotal ? '/' + c.vueltasTotal : '')),
-                el('td', r.medidas ? seg(r.sumaMs) + ' s' : '–'));
-      tb.append(tr);
-    });
+    cont.append(el('div', titulo, 'seccion-t'));
+    for (const c of lista) cont.append(carnet ? tarjetaCarnet(c) : tarjetaTablero(c));
   };
-  grupo('Próximas', prox); grupo('Anteriores', ant);
-  t.append(tb);
-  const wrap = el('div', undefined, 'tabla-wrap'); wrap.append(t); cont.append(wrap);
+  grupo('Próximas', prox); grupo('Corridas', ant);
 }
 
 /* ---------- Editor de carrera ---------- */
@@ -1908,25 +2122,81 @@ function resumen(c) {
   return { medidas: med.length, total: c.vueltas.length, sumaMs: abs.reduce((a, b) => a + b, 0),
            promMs: abs.length ? abs.reduce((a, b) => a + b, 0) / abs.length : 0, mejorMs: abs.length ? Math.min(...abs) : 0 };
 }
+function dotsPatron(p) { const d = el('span', undefined, 'dots'); for (let n = 1; n <= 4; n++) d.append(el('i', undefined, Motor.esMedida(p, n) ? 'm' : 'p')); return d; }
+function graficoVueltas(c) {   // una barra por vuelta: a la derecha llegó tarde, a la izquierda antes
+  const g = el('div', undefined, 'grafico-c'), max = Math.max(1000, ...c.vueltas.map(v => Math.abs(v.difMs)));
+  const varias = new Set(c.vueltas.map(v => v.largada || 1)).size > 1;
+  let larg = 0;
+  for (const v of c.vueltas) {
+    if (varias && (v.largada || 1) !== larg) { larg = v.largada || 1; g.append(el('div', 'Largada ' + larg, 'grafico-sep')); }
+    const fila = el('div', undefined, 'filav' + (v.medida ? '' : ' practica'));
+    const eje = el('div', undefined, 'eje'), barra = el('i', undefined, 'b-' + nivelErr(Math.abs(v.difMs) / 1000));
+    barra.style.width = (Math.abs(v.difMs) / max * 48) + '%';
+    barra.style[v.difMs >= 0 ? 'left' : 'right'] = '50%';
+    eje.append(barra);
+    fila.append(el('span', String(v.n), 'chipv ' + (v.medida ? 'm' : 'p')), eje, el('span', difCorta(v.difMs) + ' s', 'valv'));
+    g.append(fila);
+  }
+  return g;
+}
+function botonesExportar(c) {
+  const archivo = 'betometro-' + c.fecha + '-' + c.nombre.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30), acc = el('div', undefined, 'acciones');
+  acc.append(boton('Exportar planilla', 'btn sec', () => exportar(archivo + '.csv', csv(c))), boton('Exportar JSON', 'btn sec', () => exportar(archivo + '.json', JSON.stringify(c, null, 1))));
+  return acc;
+}
+function accionesCarrera(c) {
+  const acc = el('div', undefined, 'acciones');
+  acc.append(boton('LARGAR', 'btn largar', () => irACrono(c)));
+  if (!c.practica) acc.append(boton('Editar', 'btn sec', () => abrirEditor(c)));
+  return acc;
+}
 function dibujarDetalle() {
   const c = seleccion, cont = $('detalleCont'); cont.innerHTML = '';
   if (!c) { mostrar('carreras'); return; }
-  cont.append(el('h2', c.nombre), el('p', fechaLarga(c.fecha) + (c.lugar ? ' · ' + c.lugar : ''), 'hint'));
+  $('detalleTitulo').textContent = c.nombre;
+  if (esCarnet()) { detalleCarnet(c, cont); return; }
+  const r = resumen(c);
+  cont.append(el('p', fechaLarga(c.fecha) + (c.lugar ? ' · ' + c.lugar : ''), 'hint'));
+  const hero = el('div', undefined, 'hero-c');
+  if (r.medidas) {
+    hero.append(el('span', 'Error total · vueltas medidas', 'et'), el('b', seg(r.sumaMs) + ' s', 'grande n-' + nivelErr(r.promMs / 1000)));
+    const sub = el('div', undefined, 'sub'); const d = (k, v) => { const x = el('div'); x.append(el('span', k), el('b', v)); sub.append(x); };
+    d('Promedio', seg(r.promMs) + ' s'); d('Mejor', seg(r.mejorMs) + ' s'); d('Vueltas', r.total + (c.vueltasTotal ? '/' + c.vueltasTotal : ''));
+    hero.append(sub);
+  } else {
+    const dd = diasHasta(c.fecha);
+    hero.append(el('span', dd === 0 ? 'Se corre hoy' : dd > 0 ? 'Faltan ' + dd + ' días' : 'Sin correr', 'et'), el('b', fmt(c.tiempoIdealMs), 'grande'), el('span', 'tiempo ideal por vuelta', 'et'));
+  }
+  cont.append(hero);
   const datos = el('div', undefined, 'datos-c');
-  const dato = (k, val) => { if (!val) return; const d = el('div', undefined, 'dato-c'); d.append(el('span', k), el('b', val)); datos.append(d); };
+  const dato = (k, val, nodo) => { const d = el('div', undefined, 'dato-c'); d.append(el('span', k)); if (nodo) d.append(nodo); else d.append(el('b', val)); datos.append(d); };
   dato('Vueltas', c.vueltasTotal ? String(c.vueltasTotal) : 'sin límite');
-  dato('Tiempo ideal', fmt(c.tiempoIdealMs));
-  dato('Distancia', c.distanciaM ? c.distanciaM.toLocaleString('es-AR') + ' m' : '');
-  dato('Promedio', c.distanciaM ? (c.distanciaM / (c.tiempoIdealMs / 1000) * 3.6).toFixed(1).replace('.', ',') + ' km/h' : '');
-  dato('Medidas', nombrePatron(c.patron)); datos.lastChild.querySelector('b').classList.add('txt');
-  cont.append(datos);
+  if (r.medidas) dato('Tiempo ideal', fmt(c.tiempoIdealMs));
+  if (c.distanciaM) { dato('Distancia', c.distanciaM.toLocaleString('es-AR') + ' m'); dato('Promedio', (c.distanciaM / (c.tiempoIdealMs / 1000) * 3.6).toFixed(1).replace('.', ',') + ' km/h'); }
+  const pm = el('div', undefined, 'pm'); pm.append(dotsPatron(c.patron), el('b', c.patron === 'todas' ? 'Todas' : c.patron === 'alt1' ? '1.ª medida' : '1.ª práctica'));
+  dato('Medidas', '', pm);
+  cont.append(datos, accionesCarrera(c));
   if (c.notas) cont.append(el('p', c.notas, 'hint'));
-  const acc = el('div', undefined, 'acciones');
-  acc.append(boton(c.vueltas.length ? 'LARGAR OTRA VEZ' : 'LARGAR', 'btn largar', () => irACrono(c)));
-  if (!c.practica) acc.append(boton('Editar', 'btn sec', () => abrirEditor(c)));
-  cont.append(acc);
-  const res = el('div'); cont.append(el('h3', 'Resultados'), res);
-  renderResultados(c, res);
+  if (c.vueltas.length) { cont.append(el('h3', 'Vuelta por vuelta', 'seccion-t'), graficoVueltas(c), botonesExportar(c)); }
+}
+function detalleCarnet(c, cont) {
+  const [, m, d] = c.fecha.split('-'), k = el('div', undefined, 'carnet carnet-grande');
+  const cab = el('div', undefined, 'carnet-cab'); cab.append(el('span', 'CARNET DE RUTA'), el('span', d + '/' + m, 'carnet-num')); k.append(cab);
+  const ren = (et, val, nodo) => { const x = el('div', undefined, 'renglon'); x.append(el('span', et)); const b = el('b', val); if (nodo) b.prepend(nodo); x.append(b); k.append(x); };
+  ren('CARRERA', c.nombre); ren('FECHA', fechaCorta(c.fecha)); if (c.lugar) ren('LUGAR', c.lugar);
+  ren('VUELTAS', c.vueltasTotal ? String(c.vueltasTotal) : '–'); ren('IDEAL / VUELTA', fmt(c.tiempoIdealMs));
+  if (c.distanciaM) ren('DISTANCIA', c.distanciaM.toLocaleString('es-AR') + ' m');
+  ren('MEDIDAS', ' ' + (c.patron === 'todas' ? 'todas' : c.patron === 'alt1' ? 'alternadas, 1.ª medida' : 'alternadas, 1.ª de práctica'), dotsPatron(c.patron));
+  if (c.notas) ren('NOTAS', c.notas);
+  if (c.vueltas.length) {
+    const cas = el('div', undefined, 'casillas');
+    for (const v of c.vueltas) { const x = el('div', undefined, v.medida ? '' : 'practica'); x.append(el('span', 'V' + v.n), el('b', difCorta(v.difMs))); cas.append(x); }
+    k.append(cas);
+    const r = resumen(c);
+    if (r.medidas) { k.classList.add('con-sello'); k.append(el('span', 'ERROR ' + seg(r.sumaMs) + ' s', 'sello ' + (nivelErr(r.promMs / 1000) === 'mal' ? 'rojo' : 'verde'))); }
+  }
+  cont.append(k, accionesCarrera(c));
+  if (c.vueltas.length) cont.append(botonesExportar(c));
 }
 function renderResultados(c, cont) {
   if (!c.vueltas.length) { cont.append(el('p', 'Todavía no se corrió. Los resultados aparecen acá al terminar.', 'vacio')); return; }
