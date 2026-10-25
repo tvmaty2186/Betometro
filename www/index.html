@@ -89,10 +89,50 @@ body.practica { background: var(--practica); }
 .hist-acc .btn { padding: 8px 12px; min-height: 40px; font-size: 14px; }
 .vacio { color: var(--ink-dim); line-height: 1.5; }
 
+/* Pantallas */
+.pantalla { position: fixed; inset: 0; background: var(--panel); z-index: 15; overflow-y: auto; }
+.pantalla .config-in { gap: 16px; }
+.cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.cab h2 { font-family: var(--font-num); font-weight: 700; font-size: 30px; margin: 0; letter-spacing: .04em; }
+.marca { font-family: var(--font-num); font-weight: 700; font-size: clamp(44px, 14vw, 64px); letter-spacing: .1em; line-height: 1; margin: 8px 0 0; }
+.marca small { display: block; font: 500 14px var(--font-ui); letter-spacing: .06em; color: var(--ink-dim); margin-top: 6px; }
+.proxima { border: 2px solid var(--medida); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 8px; background: var(--panel-2); }
+.proxima .lbl { color: var(--ink-dim); }
+.prox-nombre { font-family: var(--font-num); font-size: 30px; font-weight: 700; margin: 0; text-wrap: balance; }
+.proxima p { margin: 0; }
+.btn.largar { background: var(--medida); color: #fff; font: 700 24px var(--font-num); letter-spacing: .1em; min-height: 58px; padding: 10px 28px; }
+.menu { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.menu .btn { min-height: 76px; font-size: 18px; background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); text-align: left; padding: 12px 14px; }
+.menu .btn small { display: block; font-size: 13px; font-weight: 400; color: var(--ink-dim); margin-top: 2px; }
+.aviso-act { background: var(--warn); color: #111; border: 0; border-radius: 10px; padding: 10px 14px; font: 600 15px var(--font-ui); text-align: left; cursor: pointer; }
+.tabs { display: flex; gap: 6px; background: var(--panel-2); border-radius: 12px; padding: 4px; }
+.tabs button { flex: 1; font: 600 16px var(--font-ui); color: var(--ink-dim); background: none; border: 0; border-radius: 9px; min-height: 42px; cursor: pointer; }
+.tabs button.activa { background: var(--panel); color: var(--ink); }
+.item-carrera { display: flex; flex-direction: column; gap: 2px; text-align: left; width: 100%; background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font: 400 15px var(--font-ui); cursor: pointer; }
+.item-carrera b { font-family: var(--font-num); font-size: 22px; font-weight: 600; }
+.item-fecha { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-dim); font-weight: 600; }
+#carrerasLista { display: flex; flex-direction: column; gap: 10px; }
+.ficha { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.ficha dt { color: var(--ink-dim); font-size: 14px; } .ficha dd { margin: 0; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+#detalleCont { display: flex; flex-direction: column; gap: 12px; }
+#detalleCont h2 { font-family: var(--font-num); font-size: 32px; margin: 0; text-wrap: balance; }
+#detalleCont h3 { font-family: var(--font-num); font-size: 20px; margin: 8px 0 0; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-dim); }
+#detalleCont > p { margin: 0; }
+.campo { display: flex; flex-direction: column; gap: 6px; }
+.campo input[type=text], .campo input[type=date], .campo textarea { font: 500 17px var(--font-ui); color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px; min-height: 44px; box-sizing: border-box; width: 100%; }
+.campo textarea { min-height: 70px; resize: vertical; }
+.dos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.error { color: var(--warn); font-weight: 600; min-height: 1em; margin: 0; }
+.chk { display: grid; grid-template-columns: 36px 1fr; gap: 2px 10px; align-items: center; background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.chk .hint { grid-column: 2; }
+.chk-ico { grid-row: span 2; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; background: var(--line); }
+.chk.ok .chk-ico { background: var(--practica); } .chk.mal .chk-ico { background: var(--warn); color: #111; }
+#chequeoLista { display: flex; flex-direction: column; gap: 10px; }
+
 /* Panel de configuración */
-.config, .historial { position: fixed; inset: 0; background: var(--panel); z-index: 20; overflow-y: auto; }
-.config-in, .historial .config-in { max-width: 640px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px 40px; display: flex; flex-direction: column; gap: 18px; box-sizing: border-box; }
-.config h2, .historial h2 { font-family: var(--font-num); font-weight: 700; font-size: 30px; margin: 0; letter-spacing: .04em; text-wrap: balance; }
+.config { position: fixed; inset: 0; background: var(--panel); z-index: 20; overflow-y: auto; }
+.config-in { max-width: 640px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px 40px; display: flex; flex-direction: column; gap: 18px; box-sizing: border-box; }
+.config h2 { font-family: var(--font-num); font-weight: 700; font-size: 30px; margin: 0; letter-spacing: .04em; text-wrap: balance; }
 .config h3 { font-family: var(--font-num); font-weight: 600; font-size: 20px; margin: 0 0 8px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-dim); }
 fieldset { border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin: 0; display: flex; flex-direction: column; gap: 12px; background: var(--panel-2); }
 fieldset:disabled { opacity: .55; }
@@ -117,10 +157,10 @@ input[type=color] { width: 56px; height: 40px; border: 1px solid var(--line); bo
 
 <div class="app" id="app">
   <div class="bar">
-    <span class="brand">Betómetro</span>
+    <span class="brand" id="cronoNombre">Betómetro</span>
     <div class="bar-btns">
       <button class="chip-btn" id="btnTerminar" type="button" hidden>Terminar</button>
-      <button class="chip-btn" id="btnHist" type="button">Historial</button>
+      <button class="chip-btn" id="btnSalir" type="button">Salir</button>
       <button class="chip-btn" id="btnConfig" type="button">Ajustes</button>
     </div>
   </div>
@@ -155,13 +195,105 @@ input[type=color] { width: 56px; height: 40px; border: 1px solid var(--line); bo
 
 <div class="aviso" id="aviso" hidden></div>
 
-<div class="historial" id="historial" hidden>
+<!-- ===== Inicio ===== -->
+<div class="pantalla" id="p-inicio">
   <div class="config-in">
-    <div class="cfg-bar">
-      <h2>Historial</h2>
-      <button class="btn" id="btnHistCerrar" type="button">Volver</button>
+    <div class="marca">BETÓMETRO<small>Regularidad para el navegante</small></div>
+    <button class="aviso-act" id="inicioAct" type="button" hidden>Hay una actualización de Betómetro. Tocá para instalarla.</button>
+    <div class="proxima" id="inicioProxima"></div>
+    <div class="menu">
+      <button class="btn" id="mCarreras" type="button">Carreras<small>Crear y ver resultados</small></button>
+      <button class="btn" id="mPractica" type="button">Práctica libre<small>Largar sin cargar nada</small></button>
+      <button class="btn" id="mChequeo" type="button">Chequeo previo<small>Pulsador, GPS, voz, batería</small></button>
+      <button class="btn" id="mAjustes" type="button">Ajustes<small>Voz, velocidad, pulsador</small></button>
     </div>
-    <div id="histLista"></div>
+  </div>
+</div>
+
+<!-- ===== Carreras ===== -->
+<div class="pantalla" id="p-carreras" hidden>
+  <div class="config-in">
+    <div class="cab"><h2>Carreras</h2><button class="btn sec" id="carrerasVolver" type="button">Volver</button></div>
+    <button class="btn" id="carrerasNueva" type="button">+ Nueva carrera</button>
+    <div class="tabs" role="tablist">
+      <button type="button" id="tabProx" role="tab">Próximas</button>
+      <button type="button" id="tabAnt" role="tab">Anteriores</button>
+    </div>
+    <div id="carrerasLista"></div>
+  </div>
+</div>
+
+<!-- ===== Editor de carrera ===== -->
+<div class="pantalla" id="p-editor" hidden>
+  <div class="config-in">
+    <div class="cab"><h2 id="editorTitulo">Nueva carrera</h2><button class="btn sec" id="editorCancelar" type="button">Cancelar</button></div>
+    <fieldset>
+      <h3>Datos</h3>
+      <label class="campo" for="e-nombre">Nombre de la carrera<input type="text" id="e-nombre" maxlength="80" autocomplete="off"></label>
+      <label class="campo" for="e-fecha">Fecha<input type="date" id="e-fecha"></label>
+      <label class="campo" for="e-lugar">Lugar o circuito<input type="text" id="e-lugar" maxlength="80"></label>
+      <label class="campo" for="e-notas">Notas<textarea id="e-notas" maxlength="500"></textarea></label>
+    </fieldset>
+    <fieldset id="e-config">
+      <h3>Prueba</h3>
+      <div class="row">
+        <label for="e-min">Tiempo ideal por vuelta</label>
+        <div class="tiempo">
+          <input type="number" id="e-min" min="0" max="99" inputmode="numeric" aria-label="Minutos">:
+          <input type="number" id="e-seg" min="0" max="59" inputmode="numeric" aria-label="Segundos">.
+          <input type="number" id="e-dec" min="0" max="9" inputmode="numeric" aria-label="Décimas" style="width:56px">
+        </div>
+      </div>
+      <div class="row">
+        <label for="e-distancia">Distancia de la vuelta (metros)</label>
+        <input type="number" id="e-distancia" min="0" step="1" inputmode="numeric">
+      </div>
+      <div class="row">
+        <label for="e-patron">Vueltas medidas</label>
+        <select id="e-patron">
+          <option value="todas">Todas medidas</option>
+          <option value="alt1">Alternadas: 1.ª medida, 2.ª práctica…</option>
+          <option value="alt2">Alternadas: 1.ª práctica, 2.ª medida…</option>
+        </select>
+      </div>
+      <p class="hint" id="e-configHint" hidden>Esta carrera ya tiene vueltas corridas: el tiempo, la distancia y el patrón no se pueden cambiar.</p>
+    </fieldset>
+    <fieldset>
+      <h3>Equipo (opcional)</h3>
+      <div class="dos">
+        <label class="campo" for="e-piloto">Piloto<input type="text" id="e-piloto" maxlength="60"></label>
+        <label class="campo" for="e-navegante">Navegante<input type="text" id="e-navegante" maxlength="60"></label>
+        <label class="campo" for="e-auto">Auto<input type="text" id="e-auto" maxlength="60"></label>
+        <label class="campo" for="e-numero">Número<input type="text" id="e-numero" maxlength="10"></label>
+      </div>
+      <label class="campo" for="e-categoria">Categoría<input type="text" id="e-categoria" maxlength="60"></label>
+    </fieldset>
+    <p class="error" id="editorError" role="alert"></p>
+    <div class="row">
+      <button class="btn" id="e-guardar" type="button">Guardar carrera</button>
+      <button class="btn sec" id="e-borrar" type="button" hidden>Borrar carrera</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Detalle de carrera ===== -->
+<div class="pantalla" id="p-detalle" hidden>
+  <div class="config-in">
+    <div class="cab"><span class="lbl">Carrera</span><button class="btn sec" id="detalleVolver" type="button">Volver</button></div>
+    <div id="detalleCont"></div>
+  </div>
+</div>
+
+<!-- ===== Chequeo previo ===== -->
+<div class="pantalla" id="p-chequeo" hidden>
+  <div class="config-in">
+    <div class="cab"><h2>Chequeo previo</h2><button class="btn sec" id="chequeoVolver" type="button">Volver</button></div>
+    <div id="chequeoLista"></div>
+    <fieldset>
+      <h3>Probar el pulsador</h3>
+      <p class="hint" id="chkPulsador">Tocá el botón y después apretá el pulsador: vas a escuchar un pitido si llega.</p>
+      <div class="row"><button class="btn sec" id="chkProbar" type="button">Probar pulsador</button></div>
+    </fieldset>
   </div>
 </div>
 
@@ -173,7 +305,7 @@ input[type=color] { width: 56px; height: 40px; border: 1px solid var(--line); bo
     </div>
 
     <fieldset id="fsCarrera">
-      <h3>Carrera</h3>
+      <h3>Práctica libre (valores por defecto)</h3>
       <div class="row">
         <label for="tMin">Tiempo ideal por vuelta</label>
         <div class="tiempo">
@@ -311,6 +443,7 @@ input[type=color] { width: 56px; height: 40px; border: 1px solid var(--line); bo
       <p class="hint" id="appVersion">Versión web de prueba</p>
       <div class="row">
         <button class="btn sec" id="btnActualizar" type="button">Buscar actualización</button>
+        <button class="btn sec" id="btnRespaldo" type="button">Exportar respaldo</button>
       </div>
       <p class="hint" id="actRes"></p>
     </fieldset>
@@ -426,36 +559,121 @@ const Motor = (() => {
   return { crear, esMedida };
 })();
 
-/* ================= ALMACENAMIENTO (adaptador: localStorage hoy, SQLite en nativa) ================= */
+/* ================= ALMACENAMIENTO ================= *
+ * En memoria se trabaja con { config, carreras: [ { ...datos, vueltas: [] } ] }.
+ * Se guarda en SQLite en la app nativa; en el navegador (o si SQLite falla), en JSON.
+ * Siempre se deja además un archivo de respaldo completo (betometro.json).        */
 const Store = (() => {
-  const KEY = 'betometro.v1';
-  const base = () => ({ schemaVersion: 1, config: null, carreras: [] });
-  function leer() { try { const s = JSON.parse(localStorage.getItem(KEY)); return s && s.schemaVersion === 1 ? s : base(); } catch (e) { return base(); } }
-  let db = leer();
+  const KEY = 'betometro.v2', KEY_V1 = 'betometro.v1';
+  let db = { schemaVersion: 2, config: null, carreras: [] };
+  let motorDb = 'json';
+  const SQL = plugin('CapacitorSQLite'), BASE = 'betometro';
+
+  const lsLeer = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
+  const lsGuardar = () => { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) {} };
+
+  // Carreras de la versión 1.0 (vueltas sueltas) → carreras de práctica
+  function desdeV1(v1) {
+    return (v1.carreras || []).filter(c => c.vueltas && c.vueltas.length).map(c => ({
+      id: c.id, nombre: 'Práctica ' + new Date(c.fecha).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }),
+      fecha: String(c.fecha).slice(0, 10), lugar: '', notas: '', piloto: '', navegante: '', auto: '', numero: '', categoria: '',
+      tiempoIdealMs: c.tiempoIdealMs, distanciaM: c.distanciaM || 0, patron: c.patron || 'todas', practica: true,
+      creada: c.fecha, vueltas: c.vueltas.map(v => Object.assign({ largada: 1 }, v))
+    }));
+  }
+
   let respaldoT = null;
-  function respaldo() {   // en la app nativa, copia completa en un archivo propio (por si el sistema borra el almacenamiento web)
+  function respaldo() {
     if (!FS) return;
     clearTimeout(respaldoT);
-    respaldoT = setTimeout(() => { FS.writeFile({ path: 'betometro.json', data: JSON.stringify(db), directory: 'DATA', encoding: 'utf8' }).catch(() => {}); }, 500);
+    respaldoT = setTimeout(() => { FS.writeFile({ path: 'betometro.json', data: JSON.stringify(db), directory: 'DATA', encoding: 'utf8' }).catch(() => {}); }, 800);
   }
-  function guardar() { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) {} respaldo(); }
-  async function recuperar() {   // si el almacenamiento web quedó vacío, se recupera del archivo
-    if (!FS || db.carreras.length || db.config) return false;
-    try {
-      const r = await FS.readFile({ path: 'betometro.json', directory: 'DATA', encoding: 'utf8' });
-      const s = JSON.parse(r.data);
-      if (s && s.schemaVersion === 1) { db = s; try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) {} return true; }
-    } catch (e) {}
-    return false;
+  async function leerRespaldo() {
+    if (!FS) return null;
+    try { return JSON.parse((await FS.readFile({ path: 'betometro.json', directory: 'DATA', encoding: 'utf8' })).data); } catch (e) { return null; }
   }
+  async function datosPrevios() {   // lo que haya de antes, en el formato nuevo
+    let d = lsLeer(KEY) || await leerRespaldo();
+    if (d && d.schemaVersion === 2 && (d.carreras.length || !lsLeer(KEY_V1))) return d;
+    const v1 = (d && d.schemaVersion === 1) ? d : lsLeer(KEY_V1);
+    if (v1 && v1.schemaVersion === 1) return { schemaVersion: 2, config: v1.config, carreras: desdeV1(v1) };
+    return null;
+  }
+
+  // ---------- SQLite ----------
+  const q = (statement, values) => SQL.query({ database: BASE, statement, values: values || [], readonly: false }).then(r => r.values || []);
+  const run = (statement, values) => SQL.run({ database: BASE, statement, values: values || [], transaction: true, readonly: false });
+  const COLS = ['id', 'nombre', 'fecha', 'lugar', 'notas', 'piloto', 'navegante', 'auto', 'numero', 'categoria',
+                'tiempoIdealMs', 'distanciaM', 'patron', 'practica', 'creada'];
+  async function abrirSql() {
+    try { await SQL.createConnection({ database: BASE, version: 1, encrypted: false, mode: 'no-encryption', readonly: false }); }
+    catch (e) { if (!/already exists/i.test(String(e && e.message))) throw e; }
+    await SQL.open({ database: BASE, readonly: false });
+    await SQL.execute({ database: BASE, transaction: true, readonly: false, statements: `
+      CREATE TABLE IF NOT EXISTS config (clave TEXT PRIMARY KEY, valor TEXT);
+      CREATE TABLE IF NOT EXISTS carreras (id TEXT PRIMARY KEY, nombre TEXT, fecha TEXT, lugar TEXT, notas TEXT, piloto TEXT,
+        navegante TEXT, auto TEXT, numero TEXT, categoria TEXT, tiempoIdealMs INTEGER, distanciaM INTEGER, patron TEXT,
+        practica INTEGER, creada TEXT);
+      CREATE TABLE IF NOT EXISTS vueltas (carreraId TEXT, largada INTEGER, n INTEGER, datos TEXT, PRIMARY KEY (carreraId, largada, n));` });
+  }
+  const sqlCarrera = c => run('INSERT OR REPLACE INTO carreras (' + COLS.join(',') + ') VALUES (' + COLS.map(() => '?').join(',') + ')',
+                              COLS.map(k => k === 'practica' ? (c.practica ? 1 : 0) : (c[k] === undefined ? null : c[k])));
+  const sqlVuelta = (c, v) => run('INSERT OR REPLACE INTO vueltas (carreraId, largada, n, datos) VALUES (?,?,?,?)', [c.id, v.largada || 1, v.n, JSON.stringify(v)]);
+  async function cargarSql() {
+    await abrirSql();
+    const filas = await q('SELECT * FROM carreras');
+    if (!filas.length) {   // primera vez: se pasan los datos anteriores a la base
+      const prev = await datosPrevios();
+      if (prev) {
+        for (const c of prev.carreras) { await sqlCarrera(c); for (const v of c.vueltas) await sqlVuelta(c, v); }
+        if (prev.config) await run('INSERT OR REPLACE INTO config (clave, valor) VALUES (?,?)', ['config', JSON.stringify(prev.config)]);
+        return prev;
+      }
+    }
+    const vs = await q('SELECT carreraId, datos FROM vueltas ORDER BY carreraId, largada, n');
+    const porCarrera = {};
+    for (const f of vs) (porCarrera[f.carreraId] = porCarrera[f.carreraId] || []).push(JSON.parse(f.datos));
+    const cfgFila = await q("SELECT valor FROM config WHERE clave = 'config'");
+    return { schemaVersion: 2, config: cfgFila.length ? JSON.parse(cfgFila[0].valor) : null,
+             carreras: filas.map(f => Object.assign(f, { practica: !!f.practica, vueltas: porCarrera[f.id] || [] })) };
+  }
+
+  const sqlSeguro = p => { p.catch(e => console.error('SQLite', e)); };
   return {
+    async cargar() {
+      if (SQL) {
+        try { db = await cargarSql(); motorDb = 'sqlite'; respaldo(); return; }
+        catch (e) { console.error('SQLite no disponible, se usa JSON', e); }
+      }
+      db = (await datosPrevios()) || db; motorDb = 'json'; lsGuardar();
+    },
+    get motor() { return motorDb; },
     get config() { return db.config; },
     get carreras() { return db.carreras; },
-    setConfig(c) { db.config = c; guardar(); },
-    nuevaCarrera(c) { db.carreras.push(c); guardar(); return c; },
-    borrarCarrera(id) { db.carreras = db.carreras.filter(c => c.id !== id); guardar(); },
+    buscar(id) { return db.carreras.find(c => c.id === id) || null; },
     todo() { return db; },
-    guardar, recuperar
+    setConfig(c) {
+      db.config = c;
+      if (motorDb === 'sqlite') sqlSeguro(run('INSERT OR REPLACE INTO config (clave, valor) VALUES (?,?)', ['config', JSON.stringify(c)]));
+      else lsGuardar();
+      respaldo();
+    },
+    guardarCarrera(c) {
+      if (!db.carreras.includes(c)) db.carreras.push(c);
+      if (motorDb === 'sqlite') sqlSeguro(sqlCarrera(c)); else lsGuardar();
+      respaldo();
+    },
+    agregarVuelta(c, v) {
+      c.vueltas.push(v);
+      if (motorDb === 'sqlite') sqlSeguro(sqlVuelta(c, v)); else lsGuardar();
+      respaldo();
+    },
+    borrarCarrera(id) {
+      db.carreras = db.carreras.filter(c => c.id !== id);
+      if (motorDb === 'sqlite') { sqlSeguro(run('DELETE FROM vueltas WHERE carreraId = ?', [id])); sqlSeguro(run('DELETE FROM carreras WHERE id = ?', [id])); }
+      else lsGuardar();
+      respaldo();
+    }
   };
 })();
 
@@ -530,11 +748,13 @@ let carrera = null, motor = null;
 const $ = id => document.getElementById(id);
 const ahora = () => performance.now();
 
-function nuevaCarrera() {
-  carrera = { id: 'c' + Date.now(), nombre: 'Carrera ' + new Date().toLocaleString('es-AR'), fecha: new Date().toISOString(),
-              tiempoIdealMs: cfg.tiempoIdealMs, distanciaM: cfg.distanciaM, patron: cfg.patron, antirreboteMs: cfg.antirreboteMs,
+let largadaN = 1;
+function nuevaCarrera() {   // datos de la carrera elegida → lo que necesita el motor para esta largada
+  const c = seleccion;
+  largadaN = c.vueltas.reduce((m, v) => Math.max(m, v.largada || 1), 0) + 1;
+  carrera = { tiempoIdealMs: c.tiempoIdealMs, distanciaM: c.distanciaM, patron: c.patron, antirreboteMs: cfg.antirreboteMs,
               umbralPrecisionM: cfg.umbralPrecisionM, calibrar: cfg.calibrar, congelarMs: Math.max(cfg.cuentaN, 3) * 1000,
-              factorGps: 1, config: Object.assign({}, cfg), vueltas: [] };
+              factorGps: 1, vueltas: [] };
   motor = Motor.crear(carrera, alEvento);
 }
 
@@ -613,7 +833,7 @@ function alEvento(tipo, d) {
     resetVueltaAudio();
     if (cfg.avisoInicio) Audio.hablar('Vuelta ' + d.n + ', ' + (d.medida ? 'medida' : 'práctica'));
   } else if (tipo === 'cerrada') {
-    Store.guardar();
+    Store.agregarVuelta(seleccion, Object.assign({ largada: largadaN }, d));
     mostrarUltima(d);
   } else if (tipo === 'ignorada') {
     avisar('Marca ignorada (antirrebote)');
@@ -699,7 +919,7 @@ function avisar(txt) {
 
 function dibujar() {
   const e = motor ? motor.estado(ahora()) : null;
-  const T = cfg.tiempoIdealMs;
+  const S = seleccion || cfg, T = S.tiempoIdealMs;
   if (!e || !e.enCurso) {
     document.body.className = '';
     $('tipoNombre').textContent = 'LISTO';
@@ -708,11 +928,11 @@ function dibujar() {
     $('cuenta').textContent = fmt(T); $('cuenta').classList.remove('over');
     $('dTrans').textContent = '0:00.0';
     $('dIdeal').textContent = fmt(T);
-    $('dProx').textContent = Motor.esMedida(cfg.patron, 1) ? 'Medida' : 'Práctica';
+    $('dProx').textContent = Motor.esMedida(S.patron, 1) ? 'Medida' : 'Práctica';
     $('btnMarcar').firstChild.nodeValue = 'LARGAR';
     $('btnMarcar').lastChild.textContent = 'Tocá en la largada';
     $('btnTerminar').hidden = true;
-    $('btnHist').hidden = false;
+    $('btnSalir').hidden = false;
   } else {
     document.body.className = e.medida ? 'medida' : 'practica';
     $('tipoNombre').textContent = e.medida ? 'MEDIDA' : 'PRÁCTICA';
@@ -727,11 +947,11 @@ function dibujar() {
     $('btnMarcar').firstChild.nodeValue = 'MARCAR';
     $('btnMarcar').lastChild.textContent = 'Fin de vuelta ' + e.n;
     $('btnTerminar').hidden = false;
-    $('btnHist').hidden = true;
+    $('btnSalir').hidden = true;
   }
   if (e) dibujarVel(e);
   else {
-    const D = cfg.distanciaM, sinGps = !ultimaMuestra || ahora() - ultimaMuestra.t > 3000;
+    const D = S.distanciaM, sinGps = !ultimaMuestra || ahora() - ultimaMuestra.t > 3000;
     const vb = D > 0 ? D / (T / 1000) * 3.6 : null;
     dibujarVel({ enCurso: false, sinGps, vActKmh: sinGps ? null : ultimaMuestra.velMs * 3.6, vNecKmh: vb, restanteM: D, deltaS: null });
   }
@@ -748,10 +968,11 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 
 function marcar(tMarca, fuente) {
   const t = tMarca === undefined ? ahora() : tMarca; // la hora se toma antes que cualquier otra cosa
+  if (pruebaPulsador && pantalla === 'chequeo') { marcaDePrueba(fuente); return; }
   const enCurso = !!(motor && motor.enCurso);
-  if (!enCurso && (!$('config').hidden || !$('historial').hidden)) return;   // con un panel abierto no se larga sin querer
+  if (!enCurso && (pantalla !== 'crono' || !$('config').hidden || !seleccion)) return;   // fuera del cronómetro no se larga sin querer
   Audio.desbloquear();
-  if (!motor || !motor.enCurso) { nuevaCarrera(); Store.nuevaCarrera(carrera); $('ultima').textContent = ''; pedirPantallaEncendida(); }
+  if (!motor || !motor.enCurso) { nuevaCarrera(); if (!Store.buscar(seleccion.id)) Store.guardarCarrera(seleccion); $('ultima').textContent = ''; pedirPantallaEncendida(); }
   const largada = !motor.enCurso;
   motor.marcar(t, fuente || 'pantalla');
   if (largada && ultimaMuestra) motor.muestra(Object.assign({}, ultimaMuestra, { t }));   // la distancia arranca en la largada
@@ -767,7 +988,7 @@ document.addEventListener('keydown', ev => {
   if (aprendiendo) { ev.preventDefault(); terminarAprender({ web: ev.key, nombre: ev.key === ' ' ? 'Espacio' : ev.key, dispositivo: '' }); return; }
   if (ev.repeat) return;
   const ok = cfg.teclaWeb ? ev.key === cfg.teclaWeb : (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'F9' || ev.code === 'NumpadEnter');
-  if (ok && !(motor && motor.enCurso) && (!$('config').hidden || !$('historial').hidden)) return;   // Enter en los ajustes no larga
+  if (ok && !pruebaPulsador && !(motor && motor.enCurso) && (pantalla !== 'crono' || !$('config').hidden)) return;   // Enter fuera del cronómetro no larga
   if (ok) { ev.preventDefault(); marcar(undefined, 'teclado'); }
 });
 const TECLAS_DEF = [66, 160, 62, 139];   // Enter, Enter numérico, espacio, F9
@@ -812,10 +1033,11 @@ $('btnTerminar').addEventListener('click', () => {
     return;
   }
   clearTimeout(terminarArmado); terminarArmado = null; b.classList.remove('armed'); b.textContent = 'Terminar';
-  motor.terminar(); Store.guardar();
+  motor.terminar();
   if (wakeLock) { try { wakeLock.release(); } catch (e) {} }
   if (KeepAwake) KeepAwake.allowSleep().catch(() => {});
   avisar('Carrera terminada: ' + carrera.vueltas.length + ' vueltas guardadas');
+  mostrar('detalle');
 });
 
 /* ================= PANEL DE CONFIGURACIÓN ================= */
@@ -903,71 +1125,241 @@ $('btnProbar').addEventListener('click', () => {
   tick();
 });
 
-/* ================= HISTORIAL ================= */
+/* ================= PANTALLAS ================= */
+const PANTALLAS = ['inicio', 'carreras', 'editor', 'detalle', 'chequeo'];
+let pantalla = 'inicio', seleccion = null, editando = null, pestanaCarreras = 'proximas';
+function mostrar(p) {
+  pantalla = p;
+  for (const x of PANTALLAS) $('p-' + x).hidden = x !== p;
+  if (p === 'inicio') dibujarInicio();
+  if (p === 'carreras') dibujarCarreras();
+  if (p === 'detalle') dibujarDetalle();
+  if (p === 'chequeo') dibujarChequeo();
+  window.scrollTo(0, 0);
+}
+function volver() {   // botón atrás de Android y botones "Volver"
+  if (!$('config').hidden) { leerForm(); $('config').hidden = true; return; }
+  if (pantalla === 'crono') { if (motor && motor.enCurso) { avisar('Para salir, terminá la carrera'); return; } mostrar(seleccion && !seleccion.practica ? 'detalle' : 'inicio'); return; }
+  if (pantalla === 'editor') { mostrar(editando && Store.buscar(editando.id) ? 'detalle' : 'carreras'); return; }
+  if (pantalla === 'detalle') { mostrar(seleccion && seleccion.practica ? 'inicio' : 'carreras'); return; }
+  if (pantalla === 'carreras' || pantalla === 'chequeo') { mostrar('inicio'); return; }
+  if (AppInfo) AppInfo.exitApp();
+}
+const hoyISO = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const fechaLarga = iso => { const [a, m, d] = iso.split('-').map(Number); return new Date(a, m - 1, d).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); };
+const fechaCorta = iso => { const [a, m, d] = iso.split('-').map(Number); return new Date(a, m - 1, d).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }); };
+function el(tag, txt, cls) { const e = document.createElement(tag); if (txt !== undefined && txt !== null) e.textContent = txt; if (cls) e.className = cls; return e; }
+function boton(txt, cls, fn) { const b = el('button', txt, cls); b.type = 'button'; b.onclick = fn; return b; }
+function nuevaId() { return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+/* ---------- Inicio ---------- */
+function proximaCarrera() {
+  const hoy = hoyISO();
+  return Store.carreras.filter(c => !c.practica && c.fecha >= hoy).sort((a, b) => a.fecha.localeCompare(b.fecha))[0] || null;
+}
+function dibujarInicio() {
+  const cont = $('inicioProxima'); cont.innerHTML = '';
+  const c = proximaCarrera();
+  if (!c) {
+    cont.append(el('span', 'Próxima carrera', 'lbl'), el('p', 'No hay carreras cargadas para los próximos días.', 'vacio'),
+                boton('Crear carrera', 'btn', () => abrirEditor(null)));
+    return;
+  }
+  const hoy = c.fecha === hoyISO();
+  cont.append(el('span', hoy ? 'Hoy' : 'Próxima carrera', 'lbl'), el('h3', c.nombre, 'prox-nombre'),
+              el('p', fechaLarga(c.fecha) + (c.lugar ? ' · ' + c.lugar : ''), 'hint'),
+              el('p', 'Vuelta ideal ' + fmt(c.tiempoIdealMs) + (c.distanciaM ? ' · ' + c.distanciaM.toLocaleString('es-AR') + ' m' : '') + ' · ' + nombrePatron(c.patron), 'hint'));
+  const fila = el('div', undefined, 'row');
+  fila.append(boton('LARGAR', 'btn largar', () => irACrono(c)), boton('Ver carrera', 'btn sec', () => { seleccion = c; mostrar('detalle'); }));
+  cont.append(fila);
+}
+const nombrePatron = p => p === 'alt1' ? 'alternadas, 1.ª medida' : p === 'alt2' ? 'alternadas, 1.ª práctica' : 'todas medidas';
+
+/* ---------- Carreras ---------- */
+function dibujarCarreras() {
+  const hoy = hoyISO(), cont = $('carrerasLista'); cont.innerHTML = '';
+  $('tabProx').classList.toggle('activa', pestanaCarreras === 'proximas');
+  $('tabAnt').classList.toggle('activa', pestanaCarreras === 'anteriores');
+  let lista = Store.carreras.filter(c => pestanaCarreras === 'proximas' ? (!c.practica && c.fecha >= hoy) : (c.practica || c.fecha < hoy));
+  lista.sort((a, b) => pestanaCarreras === 'proximas' ? a.fecha.localeCompare(b.fecha) : (b.fecha.localeCompare(a.fecha) || String(b.creada).localeCompare(String(a.creada))));
+  if (!lista.length) {
+    cont.append(el('p', pestanaCarreras === 'proximas' ? 'No hay carreras próximas. Tocá «Nueva carrera» para cargar una.' : 'Todavía no hay carreras anteriores.', 'vacio'));
+    return;
+  }
+  for (const c of lista) {
+    const item = boton('', 'item-carrera', () => { seleccion = c; mostrar('detalle'); });
+    const r = resumen(c);
+    item.append(el('span', fechaCorta(c.fecha), 'item-fecha'), el('b', c.nombre),
+                el('span', [c.lugar, c.practica ? 'práctica libre' : null, r.total ? r.total + ' vueltas' + (r.medidas ? ' · error ' + seg(r.sumaMs) + ' s' : '') : 'sin correr'].filter(Boolean).join(' · '), 'hint'));
+    cont.append(item);
+  }
+}
+
+/* ---------- Editor de carrera ---------- */
+const CAMPOS = ['nombre', 'fecha', 'lugar', 'notas', 'piloto', 'navegante', 'auto', 'numero', 'categoria'];
+function abrirEditor(c) {
+  editando = c;
+  const d = c || { nombre: '', fecha: hoyISO(), tiempoIdealMs: cfg.tiempoIdealMs, distanciaM: cfg.distanciaM, patron: cfg.patron };
+  for (const k of CAMPOS) $('e-' + k).value = d[k] || '';
+  $('e-min').value = Math.floor(d.tiempoIdealMs / 60000); $('e-seg').value = Math.floor((d.tiempoIdealMs % 60000) / 1000); $('e-dec').value = Math.floor((d.tiempoIdealMs % 1000) / 100);
+  $('e-distancia').value = d.distanciaM || ''; $('e-patron').value = d.patron;
+  $('editorTitulo').textContent = c ? 'Editar carrera' : 'Nueva carrera';
+  $('e-borrar').hidden = !c; $('e-borrar').textContent = 'Borrar carrera'; $('editorError').textContent = '';
+  const corrida = !!(c && c.vueltas.length);
+  $('e-config').disabled = corrida; $('e-configHint').hidden = !corrida;
+  mostrar('editor');
+}
+function guardarEditor() {
+  const v = id => $(id).value.trim();
+  if (!v('e-nombre')) { $('editorError').textContent = 'Poné un nombre a la carrera.'; $('e-nombre').focus(); return; }
+  if (!v('e-fecha')) { $('editorError').textContent = 'Elegí la fecha de la carrera.'; return; }
+  const T = ((+v('e-min') || 0) * 60 + (+v('e-seg') || 0)) * 1000 + (+v('e-dec') || 0) * 100;
+  if (T < 5000) { $('editorError').textContent = 'El tiempo ideal tiene que ser de al menos 5 segundos.'; return; }
+  const c = editando || { id: nuevaId(), practica: false, creada: new Date().toISOString(), vueltas: [] };
+  for (const k of CAMPOS) c[k] = v('e-' + k);
+  if (!c.vueltas.length) { c.tiempoIdealMs = Math.round(T); c.distanciaM = Math.max(0, Math.round(+v('e-distancia') || 0)); c.patron = $('e-patron').value; }
+  Store.guardarCarrera(c);
+  seleccion = c; mostrar('detalle');
+}
+let borrarArmado = null;
+function borrarEditor() {
+  const b = $('e-borrar');
+  if (!borrarArmado) { b.textContent = 'Tocá otra vez para borrar'; borrarArmado = setTimeout(() => { borrarArmado = null; b.textContent = 'Borrar carrera'; }, 3000); return; }
+  clearTimeout(borrarArmado); borrarArmado = null;
+  Store.borrarCarrera(editando.id); editando = null; seleccion = null; mostrar('carreras');
+}
+
+/* ---------- Detalle y resultados ---------- */
 const seg = ms => (ms / 1000).toFixed(1).replace('.', ',');
 function resumen(c) {
-  const med = c.vueltas.filter(v => v.medida);
-  const abs = med.map(v => Math.abs(v.difMs));
+  const med = c.vueltas.filter(v => v.medida), abs = med.map(v => Math.abs(v.difMs));
   return { medidas: med.length, total: c.vueltas.length, sumaMs: abs.reduce((a, b) => a + b, 0),
            promMs: abs.length ? abs.reduce((a, b) => a + b, 0) / abs.length : 0, mejorMs: abs.length ? Math.min(...abs) : 0 };
 }
-function el(tag, txt, cls) { const e = document.createElement(tag); if (txt !== undefined) e.textContent = txt; if (cls) e.className = cls; return e; }
-function dibujarHistorial() {
-  const cont = $('histLista'); cont.innerHTML = '';
-  const cs = Store.carreras.filter(c => c.vueltas.length).slice().reverse();
-  if (!cs.length) { cont.append(el('p', 'Todavía no hay vueltas guardadas. Largá una carrera y marcá al menos una vuelta.', 'vacio')); return; }
-  const lista = el('div'); lista.style.cssText = 'display:flex;flex-direction:column;gap:14px';
-  const todo = el('button', 'Exportar todo (respaldo JSON)', 'btn sec');
-  todo.type = 'button'; todo.onclick = () => exportar('betometro-respaldo.json', JSON.stringify(Store.todo(), null, 1));
-  lista.append(todo);
-  for (const c of cs) {
-    const r = resumen(c), box = el('div', undefined, 'hist-carrera');
-    const cab = el('div', undefined, 'hist-cab');
-    cab.append(el('b', new Date(c.fecha).toLocaleString('es-AR', { dateStyle: 'medium', timeStyle: 'short' })),
-               el('span', 'Ideal ' + fmt(c.tiempoIdealMs) + (c.distanciaM ? ' · ' + c.distanciaM.toLocaleString('es-AR') + ' m' : ''), 'hint'));
-    const res = el('div', undefined, 'hist-res');
-    const dato = (lbl, val) => { const s = el('span', lbl + ' '); s.append(el('strong', val)); return s; };
-    res.append(dato('Vueltas', String(r.total)), dato('Medidas', String(r.medidas)));
-    if (r.medidas) res.append(dato('Error total', seg(r.sumaMs) + ' s'), dato('Promedio', seg(r.promMs) + ' s'), dato('Mejor', seg(r.mejorMs) + ' s'));
-    const wrap = el('div', undefined, 'tabla-wrap'), t = el('table', undefined, 'tabla');
-    const hr = el('tr'); ['Vuelta', 'Tipo', 'Tiempo', 'Diferencia', 'Metros', 'km/h', 'Marca'].forEach(h => hr.append(el('th', h)));
-    const thead = el('thead'); thead.append(hr); t.append(thead);
-    const tb = el('tbody');
-    for (const v of c.vueltas) {
-      const tr = el('tr'), tipo = el('td');
-      tipo.append(el('span', undefined, 'tag ' + (v.medida ? 'm' : 'p')), document.createTextNode(v.medida ? 'Medida' : 'Práctica'));
-      tr.append(el('td', String(v.n)), tipo, el('td', fmt(v.realMs)),
-                el('td', fmtDif(v.difMs), v.difMs !== 0 ? 'dif-mas' : ''),
-                el('td', v.distM ? v.distM.toLocaleString('es-AR') : '–'),
-                el('td', v.velPromKmh ? String(v.velPromKmh).replace('.', ',') : '–'),
-                el('td', v.fuente === 'pulsador' ? 'Pulsador' : v.fuente === 'teclado' ? 'Teclado' : 'Pantalla'));
-      tb.append(tr);
-    }
-    t.append(tb); wrap.append(t);
-    const acc = el('div', undefined, 'hist-acc');
-    const bCsv = el('button', 'Exportar planilla (CSV)', 'btn sec'); bCsv.type = 'button';
-    bCsv.onclick = () => exportar('betometro-' + c.fecha.slice(0, 16).replace(/[:T]/g, '-') + '.csv', csv(c));
-    const bJson = el('button', 'Exportar JSON', 'btn sec'); bJson.type = 'button';
-    bJson.onclick = () => exportar('betometro-' + c.fecha.slice(0, 16).replace(/[:T]/g, '-') + '.json', JSON.stringify(c, null, 1));
-    const bDel = el('button', 'Borrar', 'btn sec'); bDel.type = 'button';
-    let armado = null;
-    bDel.onclick = () => {
-      if (!armado) { bDel.textContent = 'Tocá otra vez para borrar'; armado = setTimeout(() => { armado = null; bDel.textContent = 'Borrar'; }, 3000); return; }
-      clearTimeout(armado); Store.borrarCarrera(c.id); dibujarHistorial();
-    };
-    acc.append(bCsv, bJson, bDel);
-    box.append(cab, res, wrap, acc);
-    lista.append(box);
+function dibujarDetalle() {
+  const c = seleccion, cont = $('detalleCont'); cont.innerHTML = '';
+  if (!c) { mostrar('carreras'); return; }
+  cont.append(el('h2', c.nombre), el('p', fechaLarga(c.fecha) + (c.lugar ? ' · ' + c.lugar : ''), 'hint'));
+  const ficha = el('dl', undefined, 'ficha');
+  const fila = (k, val) => { if (val) ficha.append(el('dt', k), el('dd', val)); };
+  fila('Vuelta ideal', fmt(c.tiempoIdealMs)); fila('Distancia', c.distanciaM ? c.distanciaM.toLocaleString('es-AR') + ' m (' + (c.distanciaM / (c.tiempoIdealMs / 1000) * 3.6).toFixed(1).replace('.', ',') + ' km/h)' : '');
+  fila('Vueltas medidas', nombrePatron(c.patron)); fila('Piloto', c.piloto); fila('Navegante', c.navegante); fila('Auto', c.auto);
+  fila('Número', c.numero); fila('Categoría', c.categoria); fila('Notas', c.notas);
+  const acc = el('div', undefined, 'row');
+  acc.append(boton(c.vueltas.length ? 'LARGAR DE NUEVO' : 'LARGAR', 'btn largar', () => irACrono(c)));
+  if (!c.practica) acc.append(boton('Editar', 'btn sec', () => abrirEditor(c)));
+  cont.append(ficha, acc);
+  const res = el('div'); cont.append(el('h3', 'Resultados'), res);
+  renderResultados(c, res);
+}
+function renderResultados(c, cont) {
+  if (!c.vueltas.length) { cont.append(el('p', 'Todavía no se corrió. Los resultados aparecen acá al terminar.', 'vacio')); return; }
+  const r = resumen(c), box = el('div', undefined, 'hist-carrera'), res = el('div', undefined, 'hist-res');
+  const dato = (lbl, val) => { const s = el('span', lbl + ' '); s.append(el('strong', val)); return s; };
+  res.append(dato('Vueltas', String(r.total)), dato('Medidas', String(r.medidas)));
+  if (r.medidas) res.append(dato('Error total', seg(r.sumaMs) + ' s'), dato('Promedio', seg(r.promMs) + ' s'), dato('Mejor', seg(r.mejorMs) + ' s'));
+  const varias = new Set(c.vueltas.map(v => v.largada || 1)).size > 1;
+  const wrap = el('div', undefined, 'tabla-wrap'), t = el('table', undefined, 'tabla');
+  const hr = el('tr'); [varias ? 'Larg.' : null, 'Vuelta', 'Tipo', 'Tiempo', 'Diferencia', 'Metros', 'km/h', 'Marca'].filter(Boolean).forEach(h => hr.append(el('th', h)));
+  const thead = el('thead'); thead.append(hr); t.append(thead);
+  const tb = el('tbody');
+  for (const v of c.vueltas) {
+    const tr = el('tr'), tipo = el('td');
+    tipo.append(el('span', undefined, 'tag ' + (v.medida ? 'm' : 'p')), document.createTextNode(v.medida ? 'Medida' : 'Práctica'));
+    if (varias) tr.append(el('td', String(v.largada || 1)));
+    tr.append(el('td', String(v.n)), tipo, el('td', fmt(v.realMs)), el('td', fmtDif(v.difMs), v.difMs !== 0 ? 'dif-mas' : ''),
+              el('td', v.distM ? v.distM.toLocaleString('es-AR') : '–'), el('td', v.velPromKmh ? String(v.velPromKmh).replace('.', ',') : '–'),
+              el('td', v.fuente === 'pulsador' ? 'Pulsador' : v.fuente === 'teclado' ? 'Teclado' : 'Pantalla'));
+    tb.append(tr);
   }
-  cont.append(lista);
+  t.append(tb); wrap.append(t);
+  const archivo = 'betometro-' + c.fecha + '-' + c.nombre.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30);
+  const acc = el('div', undefined, 'hist-acc');
+  acc.append(boton('Exportar planilla (CSV)', 'btn sec', () => exportar(archivo + '.csv', csv(c))),
+             boton('Exportar JSON', 'btn sec', () => exportar(archivo + '.json', JSON.stringify(c, null, 1))));
+  if (c.practica) {
+    const b = boton('Borrar', 'btn sec', () => {
+      if (!b.dataset.armado) { b.dataset.armado = '1'; b.textContent = 'Tocá otra vez para borrar'; setTimeout(() => { delete b.dataset.armado; b.textContent = 'Borrar'; }, 3000); return; }
+      Store.borrarCarrera(c.id); seleccion = null; mostrar('carreras');
+    });
+    acc.append(b);
+  }
+  box.append(res, wrap, acc); cont.append(box);
 }
 function csv(c) {
   const n = x => x === undefined || x === null ? '' : String(x).replace('.', ',');
-  const filas = [['Vuelta', 'Tipo', 'Ideal (s)', 'Tiempo (s)', 'Diferencia (s)', 'Metros', 'Vel. promedio (km/h)', 'Vel. máxima (km/h)', 'Marca'].join(';')];
-  for (const v of c.vueltas) filas.push([v.n, v.medida ? 'Medida' : 'Práctica', n(v.idealMs / 1000), n(v.realMs / 1000), n(v.difMs / 1000),
+  const filas = [['Largada', 'Vuelta', 'Tipo', 'Ideal (s)', 'Tiempo (s)', 'Diferencia (s)', 'Metros', 'Vel. promedio (km/h)', 'Vel. máxima (km/h)', 'Marca'].join(';')];
+  for (const v of c.vueltas) filas.push([v.largada || 1, v.n, v.medida ? 'Medida' : 'Práctica', n(v.idealMs / 1000), n(v.realMs / 1000), n(v.difMs / 1000),
                                          n(v.distM), n(v.velPromKmh), n(v.velMaxKmh), v.fuente].join(';'));
-  return '\ufeff' + filas.join('\r\n');
+  return '﻿' + 'Carrera;' + c.nombre + '\r\nFecha;' + c.fecha + '\r\n\r\n' + filas.join('\r\n');
 }
+
+/* ---------- Chequeo previo ---------- */
+let chequeoT = null;
+async function dibujarChequeo() {
+  clearInterval(chequeoT);
+  const pinta = async () => {
+    if (pantalla !== 'chequeo') { clearInterval(chequeoT); return; }
+    const filas = [];
+    // Pulsador
+    let pul = { ok: null, txt: 'Solo botón en pantalla y teclas por defecto (Enter, espacio, F9).' };
+    if (cfg.teclaNombre) {
+      pul = { ok: true, txt: 'Botón asignado: ' + cfg.teclaNombre + '.' };
+      if (cfg.pulsadorNombre && Beto) {
+        try { const d = await Beto.listarDispositivos(); const con = (d.dispositivos || []).includes(cfg.pulsadorNombre);
+              pul = { ok: con, txt: cfg.pulsadorNombre + (con ? ': conectado.' : ': NO conectado. Prendelo o revisá el Bluetooth.') }; } catch (e) {}
+      }
+    }
+    filas.push(['Pulsador', pul]);
+    // GPS
+    let gps;
+    if (!cfg.velActiva) gps = { ok: null, txt: 'Velocidad desactivada en Ajustes.' };
+    else if (cfg.fuenteVel === 'sim') gps = { ok: null, txt: 'Usando el simulador, no el GPS real.' };
+    else if (!ultimaMuestra || ahora() - ultimaMuestra.t > 3000) gps = { ok: false, txt: 'Sin señal de GPS todavía. Esperá al aire libre.' };
+    else gps = { ok: ultimaMuestra.precisionM <= cfg.umbralPrecisionM, txt: 'Precisión ' + Math.round(ultimaMuestra.precisionM) + ' m' + (ultimaMuestra.precisionM <= cfg.umbralPrecisionM ? '.' : ': todavía es mucho, esperá.') };
+    filas.push(['GPS', gps]);
+    // Voz
+    const vt = Audio.diagnostico();
+    filas.push(['Voz', { ok: /60 de 60|disponible/.test(vt) ? true : /preparando|no tiene/.test(vt) ? false : null, txt: vt.replace(/^Voz: /, '') }]);
+    // Batería
+    let bat = { ok: null, txt: 'No se pudo leer.' };
+    try { if (navigator.getBattery) { const b = await navigator.getBattery(); const p = Math.round(b.level * 100);
+          bat = { ok: p >= 30 || b.charging, txt: p + ' %' + (b.charging ? ', cargando.' : p < 30 ? ': conviene cargar antes de largar.' : '.') }; } } catch (e) {}
+    filas.push(['Batería', bat]);
+    // Base de datos
+    filas.push(['Datos', { ok: true, txt: Store.motor === 'sqlite' ? 'Base de datos del teléfono, con respaldo.' : 'Guardado local (modo web).' }]);
+    const cont = $('chequeoLista'); cont.innerHTML = '';
+    for (const [nombre, f] of filas) {
+      const it = el('div', undefined, 'chk ' + (f.ok === true ? 'ok' : f.ok === false ? 'mal' : 'neutro'));
+      it.append(el('span', f.ok === true ? '✓' : f.ok === false ? '!' : '–', 'chk-ico'), el('b', nombre), el('span', f.txt, 'hint'));
+      cont.append(it);
+    }
+  };
+  await pinta();
+  chequeoT = setInterval(pinta, 2000);
+}
+let pruebaPulsador = false;
+function marcaDePrueba(fuente) {
+  pruebaPulsador = false;
+  $('chkPulsador').textContent = '¡Recibido! Llegó por ' + (fuente === 'pulsador' ? 'el pulsador' : fuente === 'teclado' ? 'el teclado' : 'la pantalla') + '.';
+  Audio.pitido(1320, 200);
+}
+
+/* ---------- Ir al cronómetro ---------- */
+function irACrono(c) {
+  seleccion = c;
+  pantalla = 'crono';
+  for (const x of PANTALLAS) $('p-' + x).hidden = true;
+  $('ultima').textContent = '';
+  $('cronoNombre').textContent = c.practica ? 'Práctica libre' : c.nombre;
+}
+function practicaLibre() {
+  const c = { id: nuevaId(), nombre: 'Práctica ' + new Date().toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }), fecha: hoyISO(),
+              lugar: '', notas: '', piloto: '', navegante: '', auto: '', numero: '', categoria: '',
+              tiempoIdealMs: cfg.tiempoIdealMs, distanciaM: cfg.distanciaM, patron: cfg.patron, practica: true, creada: new Date().toISOString(), vueltas: [] };
+  irACrono(c);   // se guarda recién cuando se larga
+}
+
 async function exportar(nombre, texto) {
   if (NATIVO && FS && Share) {
     try {
@@ -978,8 +1370,23 @@ async function exportar(nombre, texto) {
   }
   try { await navigator.clipboard.writeText(texto); avisar('Copiado al portapapeles'); } catch (e) { avisar('No se pudo copiar'); }
 }
-$('btnHist').addEventListener('click', () => { dibujarHistorial(); $('historial').hidden = false; });
-$('btnHistCerrar').addEventListener('click', () => { $('historial').hidden = true; });
+$('btnSalir').addEventListener('click', volver);
+$('mCarreras').addEventListener('click', () => mostrar('carreras'));
+$('mPractica').addEventListener('click', practicaLibre);
+$('mChequeo').addEventListener('click', () => mostrar('chequeo'));
+$('mAjustes').addEventListener('click', () => { cargarForm(); $('config').hidden = false; $('medirRes').textContent = Audio.diagnostico(); });
+$('inicioAct').addEventListener('click', () => { $('mAjustes').click(); });
+$('carrerasVolver').addEventListener('click', volver);
+$('carrerasNueva').addEventListener('click', () => abrirEditor(null));
+$('tabProx').addEventListener('click', () => { pestanaCarreras = 'proximas'; dibujarCarreras(); });
+$('tabAnt').addEventListener('click', () => { pestanaCarreras = 'anteriores'; dibujarCarreras(); });
+$('editorCancelar').addEventListener('click', volver);
+$('e-guardar').addEventListener('click', guardarEditor);
+$('e-borrar').addEventListener('click', borrarEditor);
+$('detalleVolver').addEventListener('click', volver);
+$('chequeoVolver').addEventListener('click', volver);
+$('chkProbar').addEventListener('click', () => { Audio.desbloquear(); pruebaPulsador = true; $('chkPulsador').textContent = 'Esperando… apretá el pulsador ahora.'; });
+$('btnRespaldo').addEventListener('click', () => exportar('betometro-respaldo-' + hoyISO() + '.json', JSON.stringify(Store.todo(), null, 1)));
 
 /* ================= ACTUALIZADOR (descarga la última versión publicada en GitHub) ================= */
 const cmpVer = (a, b) => { const x = a.split('.').map(Number), y = b.split('.').map(Number); for (let i = 0; i < 3; i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d; } return 0; };
@@ -997,7 +1404,7 @@ async function buscarActualizacion(silencioso) {
       ultimaRel = { ver, url: apk.browser_download_url };
       $('actRes').textContent = 'Hay una versión nueva: ' + ver + '.';
       $('btnActualizar').textContent = 'Descargar e instalar ' + ver;
-      if (silencioso) avisar('Hay una actualización de Betómetro: entrá a Ajustes');
+      if (silencioso) { avisar('Hay una actualización de Betómetro: entrá a Ajustes'); $('inicioAct').hidden = false; }
     } else { ultimaRel = null; if (!silencioso) $('actRes').textContent = 'Tenés la última versión.'; }
   } catch (e) { if (!silencioso) $('actRes').textContent = 'No se pudo buscar: ' + e.message + '. Revisá la conexión a internet.'; }
 }
@@ -1026,15 +1433,15 @@ infoPulsador();
 if (NATIVO) {
   const og = $('fuenteVel').querySelector('option[value="gps"]'); og.disabled = false; og.textContent = 'GPS del teléfono';
   $('btnMedir').hidden = true;
-  aplicarTeclasNativas();
-  Store.recuperar().then(ok => {
-    if (!ok) return;
-    Object.assign(cfg, DEF, Store.config || {});
-    aplicarColores(); infoPulsador(); aplicarTeclasNativas(); actualizarFuente();
-  });
+  if (AppInfo) AppInfo.addListener('backButton', volver);
   setTimeout(() => buscarActualizacion(true), 4000);
 }
-actualizarFuente();
 requestAnimationFrame(dibujar);
+(async () => {
+  await Store.cargar();
+  Object.assign(cfg, DEF, Store.config || {});
+  aplicarColores(); infoPulsador(); aplicarTeclasNativas(); actualizarFuente();
+  mostrar('inicio');
+})();
 })();
 </script>
