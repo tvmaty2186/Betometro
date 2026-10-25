@@ -50,8 +50,10 @@ jobs:
             # La contraseña se limpia: espacios, saltos de línea o el texto "Contraseña...:" pegado de más
             PASS=$(printf '%s' "$PASS_CRUDA" | tr -d '\r\n' | sed 's/.*: *//' | tr -d ' ')
             echo "::add-mask::$PASS"
-            if ! keytool -list -keystore "$RUNNER_TEMP/beto.keystore" -storepass "$PASS" -alias betometro > /dev/null 2>&1; then
-              echo "::error::La contraseña del secreto BETO_PASS no abre la llave. Revisá que sea la del archivo LEEME-llave-betometro.txt."
+            echo "Llave: $(wc -c < "$RUNNER_TEMP/beto.keystore") bytes (debe ser 2670). Contraseña: ${#PASS} caracteres (debe ser 24)."
+            if ! keytool -list -keystore "$RUNNER_TEMP/beto.keystore" -storepass "$PASS" -alias betometro > "$RUNNER_TEMP/k.log" 2>&1; then
+              grep -iv "JAVA_TOOL" "$RUNNER_TEMP/k.log" | head -3
+              echo "::error::La llave no se pudo abrir. Revisá los secretos BETO_KEYSTORE_B64 y BETO_PASS."
               exit 1
             fi
             echo "BETO_KEYSTORE=$RUNNER_TEMP/beto.keystore" >> "$GITHUB_ENV"
