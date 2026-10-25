@@ -43,10 +43,20 @@ jobs:
       - name: Llave de firma
         env:
           KS: ${{ secrets.BETO_KEYSTORE_B64 }}
+          PASS_CRUDA: ${{ secrets.BETO_PASS }}
         run: |
           if [ -n "$KS" ]; then
-            echo "$KS" | base64 -d > "$RUNNER_TEMP/beto.keystore"
+            printf '%s' "$KS" | tr -d ' \r\n' | base64 -d > "$RUNNER_TEMP/beto.keystore"
+            # La contraseña se limpia: espacios, saltos de línea o el texto "Contraseña...:" pegado de más
+            PASS=$(printf '%s' "$PASS_CRUDA" | tr -d '\r\n' | sed 's/.*: *//' | tr -d ' ')
+            echo "::add-mask::$PASS"
+            if ! keytool -list -keystore "$RUNNER_TEMP/beto.keystore" -storepass "$PASS" -alias betometro > /dev/null 2>&1; then
+              echo "::error::La contraseña del secreto BETO_PASS no abre la llave. Revisá que sea la del archivo LEEME-llave-betometro.txt."
+              exit 1
+            fi
             echo "BETO_KEYSTORE=$RUNNER_TEMP/beto.keystore" >> "$GITHUB_ENV"
+            echo "BETO_KEYSTORE_PASS=$PASS" >> "$GITHUB_ENV"
+            echo "BETO_KEY_PASS=$PASS" >> "$GITHUB_ENV"
             echo "FIRMADO=1" >> "$GITHUB_ENV"
           else
             echo "No hay llave de firma cargada: se compila una versión de prueba solo para verificar."
@@ -55,8 +65,6 @@ jobs:
       - name: Compilar
         working-directory: android
         env:
-          BETO_KEYSTORE_PASS: ${{ secrets.BETO_PASS }}
-          BETO_KEY_PASS: ${{ secrets.BETO_PASS }}
           BETO_KEY_ALIAS: betometro
         run: |
           chmod +x gradlew
