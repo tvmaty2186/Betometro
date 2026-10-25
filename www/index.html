@@ -1,9 +1,18 @@
 <title>Betómetro</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
 <style>
-/* Layout: una sola pantalla de instrumento; el fondo entero indica el tipo de vuelta, el botón MARCAR ocupa el tercio inferior. */
+@font-face { font-family: "Big Shoulders Display"; font-weight: 800; font-display: swap; src: url("fuentes/big-shoulders-display-latin-800-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 500; font-display: swap; src: url("fuentes/barlow-condensed-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 700; font-display: swap; src: url("fuentes/barlow-condensed-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow"; font-weight: 400; font-display: swap; src: url("fuentes/barlow-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow"; font-weight: 600; font-display: swap; src: url("fuentes/barlow-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-weight: 500; font-display: swap; src: url("fuentes/chakra-petch-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-weight: 700; font-display: swap; src: url("fuentes/chakra-petch-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "B612"; font-weight: 400; font-display: swap; src: url("fuentes/b612-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "B612"; font-weight: 700; font-display: swap; src: url("fuentes/b612-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "B612 Mono"; font-weight: 700; font-display: swap; src: url("fuentes/b612-mono-latin-700-normal.woff2") format("woff2"); }
+/* Layout: pantalla de instrumento armada con widgets; el marco (o el fondo) indica el tipo de vuelta y el botón MARCAR va abajo.
+   Los temas solo redefinen estos tokens: rally (por defecto), deportivo, cabina, y el modo sol encima de cualquiera. */
 :root {
   --ink: #f4f6f2;
   --ink-dim: rgba(244,246,242,.72);
@@ -16,18 +25,77 @@
   --warn: #ffd23f;
   --font-num: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
   --font-ui: "Barlow", "Segoe UI", Roboto, sans-serif;
+  --peso-num: 700;
+  --k: 190;   /* cuánto entra por carácter: las tipografías angostas permiten números más grandes */
+  --acento: #f4f6f2;
+  --lbl: rgba(244,246,242,.72);
+  --radio: 12px;
+  --w-bg: rgba(0,0,0,.22);
+  --w-borde: 1px solid transparent;
+  --delta-bg: rgba(0,0,0,.3); --delta-ink: #f4f6f2;
+  --marcar-bg: rgba(0,0,0,.35); --marcar-ink: #f4f6f2; --marcar-borde: rgba(255,255,255,.9);
+  --g-dial: rgba(255,255,255,.12); --g-tick: #f4f6f2; --g-req: #ffd23f; --g-zona: #2fb35a; --g-aguja: #ffffff;
   color-scheme: dark;
 }
+/* Tema 1: rally clásico — tablero antiguo, números ámbar */
+:root[data-tema="rally"] {
+  --idle: #0d0b08; --panel: #12100c; --panel-2: #1d1913; --ink: #f3e7c8; --ink-dim: rgba(243,231,200,.7); --lbl: rgba(243,231,200,.7);
+  --line: rgba(243,231,200,.2); --warn: #ffb000; --acento: #ffb000;
+  --font-num: "Big Shoulders Display", "Barlow Condensed", "Arial Narrow", sans-serif; --peso-num: 800; --k: 235;
+  --font-ui: "Barlow", "Segoe UI", Roboto, sans-serif; --radio: 12px;
+  --w-bg: transparent; --w-borde: 1px solid rgba(243,231,200,.18);
+  --delta-bg: #ffb000; --delta-ink: #0d0b08;
+  --marcar-bg: #1b1712; --marcar-ink: #f3e7c8; --marcar-borde: #f3e7c8;
+  --g-dial: #2a241b; --g-tick: #f3e7c8; --g-req: #ffb000; --g-zona: #3fa34d; --g-aguja: #f3e7c8;
+}
+/* Tema 2: deportivo moderno — carbono, blanco y rojo */
+:root[data-tema="sport"] {
+  --idle: #1a1c1f; --panel: #15171a; --panel-2: #24272b; --ink: #ffffff; --ink-dim: rgba(255,255,255,.68); --lbl: rgba(255,255,255,.68);
+  --line: rgba(255,255,255,.16); --warn: #ffd400; --acento: #ffffff;
+  --font-num: "Chakra Petch", "Arial Narrow", sans-serif; --peso-num: 700; --k: 165;
+  --font-ui: "Chakra Petch", "Segoe UI", Roboto, sans-serif; --radio: 3px;
+  --w-bg: rgba(255,255,255,.06); --w-borde: 1px solid transparent;
+  --delta-bg: #ffffff; --delta-ink: #15171a;
+  --marcar-bg: #e10600; --marcar-ink: #ffffff; --marcar-borde: #e10600;
+  --g-dial: #34383d; --g-tick: #9aa0a6; --g-req: #ffd400; --g-zona: #19c463; --g-aguja: #ffffff;
+}
+/* Tema 3: cabina de avión — colores funcionales y B612 (tipografía de cabina de Airbus) */
+:root[data-tema="cabina"] {
+  --idle: #000000; --panel: #05080a; --panel-2: #0d1418; --ink: #e8eef2; --ink-dim: rgba(232,238,242,.7); --lbl: #4fc3f7;
+  --line: #2b3640; --warn: #ffd23f; --acento: #3cf06e;
+  --font-num: "B612 Mono", "Courier New", monospace; --peso-num: 700; --k: 150;
+  --font-ui: "B612", "Segoe UI", Roboto, sans-serif; --radio: 6px;
+  --w-bg: transparent; --w-borde: 1px solid #2b3640;
+  --delta-bg: transparent; --delta-ink: #ffd23f;
+  --marcar-bg: #0d1418; --marcar-ink: #e8eef2; --marcar-borde: #e8eef2;
+  --g-dial: #0d1418; --g-tick: #4fc3f7; --g-req: #ffd23f; --g-zona: #3cf06e; --g-aguja: #e8eef2;
+}
+/* Modo sol: fondo claro y tinta negra muy gruesa para leer con el reflejo; se combina con cualquier tema */
+:root.sol {
+  --idle: #fbfaf5; --panel: #ffffff; --panel-2: #f1efe6; --ink: #000000; --ink-dim: #1f1f1f; --lbl: #000000;
+  --line: #000000; --warn: #a33a00; --acento: #000000;
+  --w-bg: #ffffff; --w-borde: 3px solid #000000;
+  --delta-bg: #000000; --delta-ink: #ffd400;
+  --marcar-bg: #000000; --marcar-ink: #ffffff; --marcar-borde: #000000;
+  --g-dial: #e2ded2; --g-tick: #000000; --g-req: #d99a00; --g-zona: #0a9a3c; --g-aguja: #000000;
+  color-scheme: light;
+}
+:root.sol .lbl { font-weight: 700; }
 html, body { height: 100%; }
+[hidden] { display: none !important; }
 body {
   background: var(--idle); color: var(--ink); font-family: var(--font-ui); font-size: 16px;
   overflow: hidden; -webkit-tap-highlight-color: transparent; user-select: none;
   transition: background-color .25s;
 }
-body.medida { background: var(--medida); }
-body.practica { background: var(--practica); }
+body.ind-fondo.medida { background: var(--medida); }
+body.ind-fondo.practica { background: var(--practica); }
+body.ind-marco.medida .app { box-shadow: inset 0 0 0 7px var(--medida); }
+body.ind-marco.practica .app { box-shadow: inset 0 0 0 7px var(--practica); }
+:root.sol body.ind-marco.medida .app { box-shadow: inset 0 0 0 11px var(--medida); }
+:root.sol body.ind-marco.practica .app { box-shadow: inset 0 0 0 11px var(--practica); }
 .app {
-  height: 100%; display: grid; grid-template-rows: auto auto 1fr auto auto auto; gap: 8px;
+  height: 100%; display: flex; flex-direction: column; gap: 8px; background: transparent;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
   padding-block: 10px 14px; max-width: 720px; margin: 0 auto; box-sizing: border-box;
 }
@@ -41,10 +109,39 @@ body.practica { background: var(--practica); }
 .chip-btn:focus-visible, .marcar:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--warn); outline-offset: 2px; }
 .chip-btn.armed { background: var(--warn); color: #111; border-color: var(--warn); }
 .tipo { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
-.tipo-nombre { font-family: var(--font-num); font-weight: 700; font-size: clamp(40px, 12vw, 72px); line-height: 1; letter-spacing: .04em; }
-.tipo-vuelta { font-family: var(--font-num); font-weight: 600; font-size: clamp(22px, 6vw, 34px); color: var(--ink-dim); white-space: nowrap; }
+.tipo-nombre { font-family: var(--font-num); font-weight: var(--peso-num); border-radius: var(--radio); padding: 0 10px; font-size: clamp(40px, 12vw, 72px); line-height: 1; letter-spacing: .04em; }
+.tipo-vuelta { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-num); font-weight: 600; font-size: clamp(22px, 6vw, 34px); color: var(--ink-dim); white-space: nowrap; }
 .centro { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 0; gap: 4px; }
-.lbl { font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-dim); }
+.lbl { font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--lbl); }
+body.ind-marco.medida .tipo-nombre { background: var(--medida); color: #fff; }
+body.ind-marco.practica .tipo-nombre { background: var(--practica); color: #fff; }
+
+/* Widgets: grilla de 2 columnas; cada widget ocupa 1 o 2 columnas y 1 a 3 filas, y su texto se adapta al tamaño */
+.tablero { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: minmax(0, 1fr); grid-auto-flow: row dense; gap: 8px; }
+.w { position: relative; container-type: size; min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;
+     background: var(--w-bg); border: var(--w-borde); border-radius: var(--radio); box-sizing: border-box; padding: 18px 8px 4px; }
+.w > .lbl { position: absolute; top: 5px; left: 9px; font-size: clamp(10px, 11cqh, 13px); z-index: 1; }
+.w-num { font-family: var(--font-num); font-weight: var(--peso-num); color: var(--ink); font-variant-numeric: tabular-nums; line-height: .9; white-space: nowrap;
+         font-size: min(80cqh, calc(var(--k) * 1cqw / var(--n, 4))); }
+.w-cuenta .w-num { color: var(--acento); font-size: min(92cqh, calc(var(--k) * 1.05cqw / var(--n, 6))); }
+.w-num.over, .w-num.atr { color: var(--warn); }
+.w-sub { font-size: clamp(11px, 13cqh, 18px); color: var(--ink-dim); font-weight: 600; font-variant-numeric: tabular-nums; }
+.w-svg { width: 100%; height: 100%; display: block; }
+.w-cuenta.e-anillo .w-num { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; font-size: min(26cqh, calc(var(--k) * .45cqw / var(--n, 6))); }
+.w-delta.e-numero .w-num { background: var(--delta-bg); color: var(--delta-ink); border-radius: 999px; padding: .08em .45em; font-size: min(70cqh, calc(var(--k) * .8cqw / var(--n, 12))); }
+.w-delta.e-numero .w-num.atr { color: var(--warn); }
+:root.sol .w-delta.e-numero .w-num.atr, :root[data-tema="rally"] .w-delta.e-numero .w-num.atr, :root[data-tema="sport"] .w-delta.e-numero .w-num.atr { color: var(--delta-ink); }
+.g-dial { stroke: var(--g-dial); } .g-tick { stroke: var(--g-tick); } .g-txt { fill: var(--g-tick); font-family: var(--font-ui); font-weight: 600; }
+.g-req { stroke: var(--g-req); } .g-zona { stroke: var(--g-zona); } .g-aguja { stroke: var(--g-aguja); } .g-eje { fill: var(--g-aguja); }
+.g-dif { fill: var(--g-req); font-family: var(--font-num); font-weight: var(--peso-num); } .g-pos { fill: var(--g-aguja); }
+.g-barra-pos { fill: var(--g-zona); } .g-barra-neg { fill: var(--warn); }
+.w-nombre { position: absolute; left: 6px; right: 6px; top: 6px; font-size: 12px; font-weight: 700; color: var(--ink); background: var(--panel-2); border-radius: 6px; padding: 3px 6px; z-index: 2; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.w-ctl { position: absolute; left: 4px; right: 4px; bottom: 4px; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; z-index: 2; }
+.w-b { min-width: 36px; min-height: 36px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); font: 700 17px var(--font-ui); cursor: pointer; }
+.tablero.editando { grid-auto-rows: minmax(96px, 1fr); overflow-y: auto; }
+.tablero.editando .w { outline: 2px dashed var(--warn); outline-offset: -2px; }
+.edit-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--panel-2); border-radius: var(--radio); padding: 8px; }
+.edit-bar select { flex: 1 1 160px; min-width: 0; }
 .cuenta { font-family: var(--font-num); font-weight: 700; font-size: clamp(88px, 30vw, 200px); line-height: .9; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
 .cuenta.over { color: var(--warn); }
 .datos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; margin-top: 10px; }
@@ -53,12 +150,12 @@ body.practica { background: var(--practica); }
 .ultima { text-align: center; font-family: var(--font-num); font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; min-height: 28px; }
 .ultima .mas { color: var(--warn); }
 .marcar {
-  height: clamp(150px, 30vh, 260px); width: 100%; border-radius: 22px; border: 3px solid rgba(255,255,255,.9);
-  background: rgba(0,0,0,.35); color: var(--ink); font: 700 clamp(44px, 12vw, 72px) var(--font-num); letter-spacing: .12em;
+  height: clamp(120px, 24vh, 230px); flex: none; width: 100%; border-radius: calc(var(--radio) + 8px); border: 3px solid var(--marcar-borde);
+  background: var(--marcar-bg); color: var(--marcar-ink); font: var(--peso-num) clamp(44px, 12vw, 72px) var(--font-num); letter-spacing: .12em;
   cursor: pointer; touch-action: manipulation; transition: transform .06s, background-color .06s;
 }
 .marcar.hit { transform: scale(.97); background: rgba(255,255,255,.3); }
-.marcar small { display: block; font: 500 15px var(--font-ui); letter-spacing: .04em; color: var(--ink-dim); margin-top: 4px; }
+.marcar small { display: block; font: 500 15px var(--font-ui); letter-spacing: .04em; color: var(--marcar-ink); opacity: .75; margin-top: 4px; }
 .aviso { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 64px); transform: translateX(-50%); background: var(--warn); color: #111; font-weight: 600; padding: 8px 16px; border-radius: 999px; font-size: 15px; z-index: 30; max-width: 90vw; text-align: center; }
 
 /* Velocidad y simulador */
@@ -161,6 +258,7 @@ input[type=color] { width: 56px; height: 40px; border: 1px solid var(--line); bo
     <span class="brand" id="cronoNombre">Betómetro</span>
     <div class="bar-btns">
       <button class="chip-btn" id="btnTerminar" type="button" hidden>Terminar</button>
+      <button class="chip-btn" id="btnEditar" type="button">Editar pantalla</button>
       <button class="chip-btn" id="btnSalir" type="button">Salir</button>
       <button class="chip-btn" id="btnConfig" type="button">Ajustes</button>
     </div>
@@ -169,22 +267,12 @@ input[type=color] { width: 56px; height: 40px; border: 1px solid var(--line); bo
     <span class="tipo-nombre" id="tipoNombre">LISTO</span>
     <span class="tipo-vuelta" id="tipoVuelta">4:00.0 ideal</span>
   </div>
-  <div class="centro">
-    <span class="lbl" id="cuentaLbl">Falta</span>
-    <span class="cuenta" id="cuenta">4:00.0</span>
-    <span class="delta" id="delta" hidden></span>
-    <div class="datos" id="datosVel" hidden>
-      <div class="dato"><span class="lbl">Necesaria</span><b id="vNec">–</b></div>
-      <div class="dato"><span class="lbl">Actual</span><b id="vAct">–</b></div>
-      <div class="dato"><span class="lbl">Faltan</span><b id="mFalta">–</b></div>
-    </div>
-    <div class="datos">
-      <div class="dato"><span class="lbl">Transcurrido</span><b id="dTrans">0:00.0</b></div>
-      <div class="dato"><span class="lbl">Ideal</span><b id="dIdeal">4:00.0</b></div>
-      <div class="dato"><span class="lbl">Próxima</span><b id="dProx">Medida</b></div>
-    </div>
+  <div class="tablero" id="tablero"></div>
+  <div class="edit-bar" id="editBar" hidden>
+    <select id="wAgregar" aria-label="Agregar widget"><option value="">+ Agregar widget…</option></select>
+    <button class="chip-btn" id="wRestablecer" type="button">Restablecer</button>
+    <button class="btn" id="wListo" type="button">Listo</button>
   </div>
-  <div class="ultima" id="ultima"></div>
   <div class="sim" id="sim" hidden title="Simulador de velocidad">
     <button class="chip-btn" id="simMenos" type="button" aria-label="Bajar velocidad simulada">−</button>
     <input type="range" id="simVel" min="0" max="160" step="1" aria-label="Velocidad simulada">
@@ -333,6 +421,49 @@ input[type=color] { width: 56px; height: 40px; border: 1px solid var(--line); bo
       <button class="btn" id="btnCerrar" type="button">Listo</button>
     </div>
 
+
+    <fieldset>
+      <h3>Tema y pantalla</h3>
+      <div class="row">
+        <label for="tema">Tema</label>
+        <select id="tema">
+          <option value="rally">Rally clásico</option>
+          <option value="sport">Deportivo moderno</option>
+          <option value="cabina">Cabina de avión</option>
+        </select>
+      </div>
+      <div class="row">
+        <label for="modoSol">Modo sol (fondo claro para pleno sol)</label>
+        <select id="modoSol">
+          <option value="no">Apagado</option>
+          <option value="si">Encendido</option>
+          <option value="auto">Automático (sensor de luz)</option>
+        </select>
+      </div>
+      <div class="row">
+        <label for="indicador">Cómo se marca el tipo de vuelta</label>
+        <select id="indicador">
+          <option value="marco">Marco de color</option>
+          <option value="fondo">Pantalla completa de color</option>
+        </select>
+      </div>
+      <p class="hint">Para acomodar los widgets de la pantalla de carrera, entrá a una carrera o a la práctica libre y tocá «Editar pantalla».</p>
+    </fieldset>
+
+    <fieldset>
+      <h3>Sonido</h3>
+      <div class="row">
+        <label for="volumenMax">Subir el volumen al máximo durante la carrera</label>
+        <input type="checkbox" id="volumenMax">
+      </div>
+      <div class="row">
+        <label for="canalAudio">Salida del sonido</label>
+        <select id="canalAudio">
+          <option value="alarma">Alarma: la más fuerte, por el parlante del teléfono</option>
+          <option value="multimedia">Multimedia: sale por Bluetooth o auriculares</option>
+        </select>
+      </div>
+    </fieldset>
 
     <fieldset>
       <h3>Cuenta regresiva</h3>
@@ -686,7 +817,8 @@ const Store = (() => {
 const DEF = { tiempoIdealMs: 240000, distanciaM: 3200, patron: 'alt1', cuentaN: 21, modoCuenta: 'voz', pitidoCero: true,
               anticipoMs: 250, avisoInicio: true, avisoProx: true, antirreboteMs: 3000, colMedida: '#b3132b', colPractica: '#0f6e3a',
               velActiva: true, fuenteVel: 'sim', simModo: 'fija', simRuido: false, simVelKmh: 48, umbralPrecisionM: 20,
-              calibrar: true, vozVel: false, vozVelCadaS: 15, teclas: null, teclaWeb: null, teclaNombre: '', pulsadorNombre: '' };
+              calibrar: true, vozVel: false, vozVelCadaS: 15, teclas: null, teclaWeb: null, teclaNombre: '', pulsadorNombre: '',
+              tema: 'rally', modoSol: 'no', indicador: 'marco', volumenMax: true, canalAudio: 'alarma', widgets: null };
 if (NATIVO) DEF.anticipoMs = 40;   // en nativa los números ya están grabados: solo queda el silencio inicial del audio
 const cfg = Object.assign({}, DEF, Store.config || {});
 
@@ -732,10 +864,10 @@ const Audio = (() => {
     let est = { motor: false, listos: 0, total: 0, idioma: '' };
     const numeros = Array.from({ length: 60 }, (_, i) => String(i + 1));
     Beto.addListener('voz', e => { est = e; });
-    Beto.prepararVoz({ textos: numeros, velocidad: 1.15 }).then(e => { est = e; }).catch(() => {});
+    Beto.prepararVoz({ textos: numeros, velocidad: 1.15, canal: (Store.config && Store.config.canalAudio) || 'alarma' }).then(e => { est = e; }).catch(() => {});
     return {
       desbloquear,
-      pitido,
+      pitido(freq, durMs) { Beto.reproducir({ texto: durMs > 200 ? '#largo' : '#corto' }).catch(() => {}); },
       hablar(texto) { Beto.hablar({ texto }).catch(() => {}); return null; },
       numero(k) { Beto.reproducir({ texto: String(k) }).catch(() => {}); },
       diagnostico() {
@@ -885,81 +1017,263 @@ function fmtDif(ms) {
   const s = (Math.abs(ms) / 1000).toFixed(1).replace('.', ',');
   return (ms > 0 ? '+' : ms < 0 ? '−' : '±') + s + ' s';
 }
+let solAuto = false;
+function aplicarTema() {
+  const r = document.documentElement;
+  r.dataset.tema = cfg.tema || 'rally';
+  r.classList.toggle('sol', cfg.modoSol === 'si' || (cfg.modoSol === 'auto' && solAuto));
+  document.body.classList.toggle('ind-fondo', cfg.indicador === 'fondo');
+  document.body.classList.toggle('ind-marco', cfg.indicador !== 'fondo');
+}
+function actualizarSensorLuz() { if (Beto) Beto.sensorLuz({ activo: cfg.modoSol === 'auto' }).catch(() => {}); }
+if (Beto) {   // modo sol automático: mucha luz sostenida 3 s lo enciende, poca luz sostenida 5 s lo apaga
+  let alta = 0, baja = 0;
+  Beto.addListener('luz', d => {
+    const t = ahora();
+    if (d.lux > 8000) { baja = 0; alta = alta || t; if (!solAuto && t - alta > 3000) { solAuto = true; aplicarTema(); } }
+    else if (d.lux < 2000) { alta = 0; baja = baja || t; if (solAuto && t - baja > 5000) { solAuto = false; aplicarTema(); } }
+    else { alta = 0; baja = 0; }
+  });
+}
 function aplicarColores() {
+  aplicarTema();
   document.documentElement.style.setProperty('--medida', cfg.colMedida);
   document.documentElement.style.setProperty('--practica', cfg.colPractica);
 }
-function mostrarUltima(v) {
-  const el = $('ultima');
-  el.innerHTML = '';
-  const a = document.createElement('span');
-  a.textContent = 'Vuelta ' + v.n + (v.medida ? ' (medida)' : ' (práctica)') + ': ' + fmt(v.realMs) + ' · ';
-  const b = document.createElement('span');
-  b.textContent = fmtDif(v.difMs) + (v.difMs > 0 ? ' tarde' : v.difMs < 0 ? ' antes' : '');
-  if (v.difMs !== 0) b.className = 'mas';
-  el.append(a, b);
-  if (v.distM) el.append(document.createTextNode(' · ' + v.distM.toLocaleString('es-AR') + ' m'));
-}
+let ultimaVuelta = null;
+function mostrarUltima(v) { ultimaVuelta = v; }
 const kmh = v => v === null || v === undefined ? '–' : Math.round(v) + ' km/h';
-function dibujarVel(e) {
-  const on = cfg.velActiva;
-  $('app').classList.toggle('conVel', on);
-  $('datosVel').hidden = !on;
-  const dEl = $('delta');
-  if (!on) { dEl.hidden = true; return; }
-  $('vAct').textContent = e.sinGps ? 'SIN GPS' : kmh(e.vActKmh);
-  $('vNec').textContent = kmh(e.vNecKmh) + (e.congelada ? ' ■' : '');
-  $('mFalta').textContent = e.restanteM === null || e.restanteM === undefined ? '–' : Math.max(0, Math.round(e.restanteM)).toLocaleString('es-AR') + ' m';
-  if (!e.enCurso || e.deltaS === null) { dEl.hidden = true; return; }
-  dEl.hidden = false;
-  const a = Math.abs(e.deltaS);
-  dEl.textContent = a < 0.05 ? 'EN TIEMPO' : (e.deltaS > 0 ? 'ADELANTADO ' : 'ATRASADO ') + a.toFixed(1).replace('.', ',') + ' s';
-  dEl.classList.toggle('atr', e.deltaS < -0.05);
-}
 let avisoT = null;
 function avisar(txt) {
   const el = $('aviso'); el.textContent = txt; el.hidden = false;
   clearTimeout(avisoT); avisoT = setTimeout(() => { el.hidden = true; }, 2200);
 }
 
-function dibujar() {
+/* ================= WIDGETS ================= */
+const TIPOS_W = {
+  cuenta: { nombre: 'Cuenta regresiva', estilos: { numeros: 'números', anillo: 'anillo' } },
+  delta: { nombre: 'Adelantado / atrasado', estilos: { numero: 'número', barra: 'barra' }, vel: true },
+  velocimetro: { nombre: 'Velocímetro', estilos: { analogico: 'analógico', digital: 'digital' }, vel: true },
+  necesaria: { nombre: 'Velocidad necesaria', vel: true },
+  faltan: { nombre: 'Metros que faltan', vel: true },
+  transcurrido: { nombre: 'Tiempo transcurrido' },
+  ideal: { nombre: 'Tiempo ideal' },
+  proxima: { nombre: 'Próxima vuelta' },
+  ultima: { nombre: 'Última vuelta' }
+};
+const WIDGETS_DEF = [
+  { t: 'cuenta', e: 'numeros', w: 2, h: 2 },
+  { t: 'delta', e: 'numero', w: 2, h: 1 },
+  { t: 'velocimetro', e: 'analogico', w: 2, h: 3 },
+  { t: 'necesaria', w: 1, h: 1 }, { t: 'faltan', w: 1, h: 1 },
+  { t: 'ultima', w: 2, h: 1 }
+];
+let wInst = [], modoEdicion = false;
+const NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, at, padre) { const x = document.createElementNS(NS, tag); for (const k in at) x.setAttribute(k, at[k]); if (padre) padre.append(x); return x; }
+function ponerNum(n, txt) { if (n.textContent !== txt) { n.textContent = txt; n.style.setProperty('--n', Math.max(3, txt.length)); } }
+const kmhN = v => v === null || v === undefined ? '–' : String(Math.round(v));
+
+// Velocímetro analógico: aguja = velocidad real; marca amarilla = velocidad necesaria; franja verde = ±2 km/h alrededor
+function velocimetro(box) {
+  const svg = svgEl('svg', { viewBox: '0 0 240 212', class: 'w-svg', preserveAspectRatio: 'xMidYMid meet' }, box);
+  const A0 = -210, R = 96, cx = 120, cy = 118;
+  let max = 0, zona, req, aguja, dif, uni;
+  const ang = v => (A0 + 240 * Math.max(0, Math.min(max, v)) / max);
+  const pt = (r, v) => { const a = ang(v) * Math.PI / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
+  const arco = (r, v0, v1) => { const [x0, y0] = pt(r, v0), [x1, y1] = pt(r, v1); return `M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 ${(v1 - v0) / max * 240 > 180 ? 1 : 0} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`; };
+  function armar(m) {
+    max = m; svg.innerHTML = '';
+    svgEl('path', { d: arco(R, 0, max), class: 'g-dial', 'stroke-width': 20, fill: 'none' }, svg);
+    zona = svgEl('path', { d: '', class: 'g-zona', 'stroke-width': 20, fill: 'none' }, svg);
+    const paso = max <= 80 ? 10 : 20;
+    for (let v = 0; v <= max + 0.1; v += paso / 2) {
+      const mayor = Math.abs(v / paso - Math.round(v / paso)) < 0.01, [a, b] = pt(83, v), [c, d] = pt(mayor ? 71 : 77, v);
+      svgEl('line', { x1: a, y1: b, x2: c, y2: d, class: 'g-tick', 'stroke-width': mayor ? 3 : 1.5 }, svg);
+      if (mayor) { const [x, y] = pt(57, v); const t = svgEl('text', { x, y: y + 5, class: 'g-txt', 'font-size': 14, 'text-anchor': 'middle' }, svg); t.textContent = v; }
+    }
+    req = svgEl('line', { x1: cx + 82, y1: cy, x2: cx + 112, y2: cy, class: 'g-req', 'stroke-width': 7, 'stroke-linecap': 'round' }, svg);
+    aguja = svgEl('line', { x1: cx - 14, y1: cy, x2: cx + 90, y2: cy, class: 'g-aguja', 'stroke-width': 5, 'stroke-linecap': 'round' }, svg);
+    svgEl('circle', { cx, cy, r: 9, class: 'g-eje' }, svg);
+    dif = svgEl('text', { x: cx, y: cy + 52, class: 'g-dif', 'font-size': 34, 'text-anchor': 'middle' }, svg);
+    uni = svgEl('text', { x: cx, y: cy + 72, class: 'g-txt', 'font-size': 11, 'text-anchor': 'middle', 'letter-spacing': 2 }, svg);
+    uni.textContent = 'KM/H';
+  }
+  return v => {
+    const base = v.vBaseKmh || v.vNecKmh || 60;
+    const m = Math.max(60, Math.min(200, Math.ceil(base * 1.6 / 20) * 20));
+    if (m !== max) armar(m);
+    const real = v.sinGps ? null : v.vActKmh, nec = v.vNecKmh;
+    aguja.setAttribute('transform', `rotate(${ang(real || 0)} ${cx} ${cy})`);
+    aguja.style.opacity = real === null ? .25 : 1;
+    if (nec !== null && nec !== undefined) {
+      req.setAttribute('transform', `rotate(${ang(nec)} ${cx} ${cy})`); req.style.opacity = 1;
+      zona.setAttribute('d', arco(R, Math.max(0, nec - 2), Math.min(max, nec + 2)));
+    } else { req.style.opacity = 0; zona.setAttribute('d', ''); }
+    let t = '';
+    if (real === null) t = 'SIN GPS';
+    else if (nec !== null && nec !== undefined) { const d = Math.round(real - nec); t = d > 0 ? '+' + d : d < 0 ? '−' + (-d) : '0'; }
+    else t = String(Math.round(real));
+    if (dif.textContent !== t) { dif.textContent = t; dif.setAttribute('font-size', t.length > 4 ? 22 : 34); }
+  };
+}
+
+function crearWidget(def) {
+  const box = el('div', undefined, 'w w-' + def.t + (def.e ? ' e-' + def.e : ''));
+  const lbl = el('span', '', 'lbl'), num = el('div', '', 'w-num');
+  box.append(lbl);
+  const txtCuenta = v => {
+    const over = v.restanteMs < 0;
+    lbl.textContent = over ? 'Pasado' : 'Falta';
+    ponerNum(num, over ? '+' + fmt(-v.restanteMs) : fmt(v.restanteMs, v.enCurso));
+    num.classList.toggle('over', over);
+  };
+  let upd = () => {};
+  switch (def.t) {
+    case 'cuenta': {
+      if (def.e === 'anillo') {
+        const L = 2 * Math.PI * 86, svg = svgEl('svg', { viewBox: '0 0 200 200', class: 'w-svg' }, box);
+        svgEl('circle', { cx: 100, cy: 100, r: 86, class: 'g-dial', 'stroke-width': 16, fill: 'none' }, svg);
+        const arc = svgEl('circle', { cx: 100, cy: 100, r: 86, class: 'g-req', 'stroke-width': 16, fill: 'none', 'stroke-linecap': 'round',
+                                      transform: 'rotate(-90 100 100)', 'stroke-dasharray': L.toFixed(1) }, svg);
+        box.append(num);
+        upd = v => { arc.setAttribute('stroke-dashoffset', (L * (1 - Math.max(0, Math.min(1, v.restanteMs / v.T)))).toFixed(1)); txtCuenta(v); };
+      } else { box.append(num); upd = txtCuenta; }
+      break;
+    }
+    case 'delta': {
+      lbl.textContent = 'Adelantado / atrasado';
+      if (def.e === 'barra') {   // cero en el medio; hacia la derecha adelantado, hacia la izquierda atrasado (±5 s)
+        const svg = svgEl('svg', { viewBox: '0 0 300 90', class: 'w-svg', preserveAspectRatio: 'none' }, box);
+        svgEl('rect', { x: 10, y: 40, width: 280, height: 26, rx: 6, class: 'g-dial', fill: 'none', 'stroke-width': 26 }, svg);
+        const barra = svgEl('rect', { x: 150, y: 30, width: 0, height: 46, rx: 4 }, svg);
+        svgEl('line', { x1: 150, y1: 22, x2: 150, y2: 84, class: 'g-tick', 'stroke-width': 3 }, svg);
+        const sub = el('div', '', 'w-sub'); box.append(sub);
+        upd = v => {
+          if (v.deltaS === null || v.deltaS === undefined) { barra.setAttribute('width', 0); sub.textContent = v.enCurso ? 'sin datos de velocidad' : 'en tiempo al largar'; return; }
+          const d = Math.max(-5, Math.min(5, v.deltaS)), w = Math.abs(d) * 28;
+          barra.setAttribute('x', d >= 0 ? 150 : 150 - w); barra.setAttribute('width', w);
+          barra.setAttribute('class', d >= 0 ? 'g-barra-pos' : 'g-barra-neg');
+          sub.textContent = Math.abs(v.deltaS) < 0.05 ? 'En tiempo' : (v.deltaS > 0 ? 'Adelantado ' : 'Atrasado ') + Math.abs(v.deltaS).toFixed(1).replace('.', ',') + ' s';
+        };
+      } else {
+        box.append(num);
+        upd = v => {
+          if (v.deltaS === null || v.deltaS === undefined) { ponerNum(num, v.enCurso ? 'SIN DATOS' : 'EN TIEMPO'); num.classList.remove('atr'); return; }
+          const a = Math.abs(v.deltaS);
+          ponerNum(num, a < 0.05 ? 'EN TIEMPO' : (v.deltaS > 0 ? 'ADELANTADO ' : 'ATRASADO ') + a.toFixed(1).replace('.', ',') + ' s');
+          num.classList.toggle('atr', v.deltaS < -0.05);
+        };
+      }
+      break;
+    }
+    case 'velocimetro': {
+      if (def.e === 'digital') {
+        lbl.textContent = 'Velocidad km/h'; const sub = el('div', '', 'w-sub'); box.append(num, sub);
+        upd = v => { ponerNum(num, v.sinGps ? 'SIN GPS' : kmhN(v.vActKmh)); sub.textContent = 'necesaria ' + kmhN(v.vNecKmh); };
+      } else { upd = velocimetro(box); }
+      break;
+    }
+    case 'necesaria': lbl.textContent = 'Necesaria km/h'; box.append(num); upd = v => ponerNum(num, kmhN(v.vNecKmh) + (v.congelada ? '■' : '')); break;
+    case 'faltan': lbl.textContent = 'Faltan'; box.append(num);
+      upd = v => ponerNum(num, v.restanteM === null || v.restanteM === undefined ? '–' : Math.max(0, Math.round(v.restanteM)).toLocaleString('es-AR') + ' m'); break;
+    case 'transcurrido': lbl.textContent = 'Transcurrido'; box.append(num); upd = v => ponerNum(num, fmt(v.transMs)); break;
+    case 'ideal': lbl.textContent = 'Ideal'; box.append(num); upd = v => ponerNum(num, fmt(v.T)); break;
+    case 'proxima': lbl.textContent = 'Próxima vuelta'; box.append(num); upd = v => ponerNum(num, v.proxMedida ? 'MEDIDA' : 'PRÁCTICA'); break;
+    case 'ultima': {
+      lbl.textContent = 'Última vuelta'; box.append(num);
+      upd = () => {
+        const u = ultimaVuelta;
+        ponerNum(num, u ? 'V' + u.n + ' ' + fmt(u.realMs) + ' ' + fmtDif(u.difMs) : '–');
+        num.classList.toggle('atr', !!(u && u.difMs !== 0));
+      };
+      break;
+    }
+  }
+  return { el: box, upd };
+}
+
+function controlesWidget(i) {
+  const lista = cfg.widgets, c = el('div', undefined, 'w-ctl');
+  const b = (txt, titulo, fn) => { const x = boton(txt, 'w-b', ev => { ev.stopPropagation(); fn(); Store.setConfig(cfg); construirTablero(); }); x.title = titulo; x.setAttribute('aria-label', titulo); return x; };
+  c.append(b('▲', 'Subir', () => { if (i > 0) [lista[i - 1], lista[i]] = [lista[i], lista[i - 1]]; }),
+           b('▼', 'Bajar', () => { if (i < lista.length - 1) [lista[i + 1], lista[i]] = [lista[i], lista[i + 1]]; }),
+           b('↔', 'Cambiar el ancho', () => { lista[i].w = lista[i].w === 2 ? 1 : 2; }),
+           b('↕', 'Cambiar el alto', () => { lista[i].h = (lista[i].h || 1) >= 3 ? 1 : (lista[i].h || 1) + 1; }));
+  const est = TIPOS_W[lista[i].t].estilos;
+  if (est) c.append(b('◐', 'Cambiar el estilo', () => { const ks = Object.keys(est); lista[i].e = ks[(ks.indexOf(lista[i].e) + 1) % ks.length]; }));
+  c.append(b('✕', 'Quitar', () => { lista.splice(i, 1); }));
+  return c;
+}
+
+function construirTablero() {
+  if (!Array.isArray(cfg.widgets)) cfg.widgets = JSON.parse(JSON.stringify(WIDGETS_DEF));
+  const cont = $('tablero'); cont.innerHTML = ''; wInst = [];
+  cont.classList.toggle('editando', modoEdicion);
+  cfg.widgets.forEach((def, i) => {
+    const tipo = TIPOS_W[def.t];
+    if (!tipo || (tipo.vel && !cfg.velActiva && !modoEdicion)) return;
+    const w = crearWidget(def);
+    w.el.style.gridColumn = 'span ' + (def.w === 1 ? 1 : 2);
+    w.el.style.gridRow = 'span ' + Math.max(1, Math.min(3, def.h || 1));
+    if (modoEdicion) {
+      w.el.append(el('span', tipo.nombre + (tipo.estilos && def.e ? ' · ' + tipo.estilos[def.e] : '') + (tipo.vel && !cfg.velActiva ? ' (velocidad apagada)' : ''), 'w-nombre'));
+      w.el.append(controlesWidget(i));
+    }
+    cont.append(w.el); wInst.push(w);
+  });
+  $('editBar').hidden = !modoEdicion;
+  $('btnMarcar').hidden = modoEdicion;
+}
+function editarPantalla(si) {
+  if (si && motor && motor.enCurso) return;
+  modoEdicion = si; construirTablero();
+}
+(() => {
+  const sel = $('wAgregar');
+  for (const k in TIPOS_W) { const o = el('option', TIPOS_W[k].nombre); o.value = k; sel.append(o); }
+  sel.addEventListener('change', () => {
+    const t = sel.value; sel.value = ''; if (!t) return;
+    const est = TIPOS_W[t].estilos;
+    cfg.widgets.push({ t, e: est ? Object.keys(est)[0] : undefined, w: 2, h: t === 'velocimetro' ? 3 : 1 });
+    Store.setConfig(cfg); construirTablero();
+  });
+  let armado = null;
+  $('wRestablecer').addEventListener('click', () => {
+    const b = $('wRestablecer');
+    if (!armado) { b.textContent = 'Tocá otra vez'; armado = setTimeout(() => { armado = null; b.textContent = 'Restablecer'; }, 3000); return; }
+    clearTimeout(armado); armado = null; b.textContent = 'Restablecer';
+    cfg.widgets = JSON.parse(JSON.stringify(WIDGETS_DEF)); Store.setConfig(cfg); construirTablero();
+  });
+  $('wListo').addEventListener('click', () => editarPantalla(false));
+  $('btnEditar').addEventListener('click', () => editarPantalla(true));
+  // mantener apretado el tablero 0,7 s (sin carrera en curso) también entra al modo edición
+  let lp = null;
+  $('tablero').addEventListener('pointerdown', () => { if (modoEdicion || (motor && motor.enCurso)) return; lp = setTimeout(() => editarPantalla(true), 700); });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => $('tablero').addEventListener(t, () => clearTimeout(lp)));
+})();
+
+function vista() {
   const e = motor ? motor.estado(ahora()) : null;
-  const S = seleccion || cfg, T = S.tiempoIdealMs;
-  if (!e || !e.enCurso) {
-    document.body.className = '';
-    $('tipoNombre').textContent = 'LISTO';
-    $('tipoVuelta').textContent = fmt(T) + ' ideal';
-    $('cuentaLbl').textContent = 'Falta';
-    $('cuenta').textContent = fmt(T); $('cuenta').classList.remove('over');
-    $('dTrans').textContent = '0:00.0';
-    $('dIdeal').textContent = fmt(T);
-    $('dProx').textContent = Motor.esMedida(S.patron, 1) ? 'Medida' : 'Práctica';
-    $('btnMarcar').firstChild.nodeValue = 'LARGAR';
-    $('btnMarcar').lastChild.textContent = 'Tocá en la largada';
-    $('btnTerminar').hidden = true;
-    $('btnSalir').hidden = false;
-  } else {
-    document.body.className = e.medida ? 'medida' : 'practica';
-    $('tipoNombre').textContent = e.medida ? 'MEDIDA' : 'PRÁCTICA';
-    $('tipoVuelta').textContent = 'Vuelta ' + e.n;
-    const over = e.restanteMs < 0;
-    $('cuentaLbl').textContent = over ? 'Pasado' : 'Falta';
-    $('cuenta').textContent = over ? '+' + fmt(-e.restanteMs) : fmt(e.restanteMs, true);
-    $('cuenta').classList.toggle('over', over);
-    $('dTrans').textContent = fmt(e.transMs);
-    $('dIdeal').textContent = fmt(carrera.tiempoIdealMs);
-    $('dProx').textContent = e.proxMedida ? 'Medida' : 'Práctica';
-    $('btnMarcar').firstChild.nodeValue = 'MARCAR';
-    $('btnMarcar').lastChild.textContent = 'Fin de vuelta ' + e.n;
-    $('btnTerminar').hidden = false;
-    $('btnSalir').hidden = true;
-  }
-  if (e) dibujarVel(e);
-  else {
-    const D = S.distanciaM, sinGps = !ultimaMuestra || ahora() - ultimaMuestra.t > 3000;
-    const vb = D > 0 ? D / (T / 1000) * 3.6 : null;
-    dibujarVel({ enCurso: false, sinGps, vActKmh: sinGps ? null : ultimaMuestra.velMs * 3.6, vNecKmh: vb, restanteM: D, deltaS: null });
-  }
+  if (e && e.enCurso) return Object.assign({ T: carrera.tiempoIdealMs }, e);
+  const S = seleccion || cfg, T = S.tiempoIdealMs, D = S.distanciaM;
+  const sinGps = !ultimaMuestra || ahora() - ultimaMuestra.t > 3000, vb = D > 0 ? D / (T / 1000) * 3.6 : null;
+  return { enCurso: false, n: 0, T, restanteMs: T, transMs: 0, medida: Motor.esMedida(S.patron, 1), proxMedida: Motor.esMedida(S.patron, 1),
+           sinGps, vActKmh: sinGps ? null : ultimaMuestra.velMs * 3.6, vNecKmh: vb, vBaseKmh: vb, restanteM: D, deltaS: null, congelada: false };
+}
+
+function dibujar() {
+  const v = vista(), b = document.body;
+  b.classList.toggle('medida', v.enCurso && v.medida);
+  b.classList.toggle('practica', v.enCurso && !v.medida);
+  $('tipoNombre').textContent = v.enCurso ? (v.medida ? 'MEDIDA' : 'PRÁCTICA') : 'LISTO';
+  $('tipoVuelta').textContent = v.enCurso ? 'Vuelta ' + v.n : fmt(v.T) + ' ideal';
+  $('btnMarcar').firstChild.nodeValue = v.enCurso ? 'MARCAR' : 'LARGAR';
+  $('btnMarcar').lastChild.textContent = v.enCurso ? 'Fin de vuelta ' + v.n : 'Tocá en la largada';
+  $('btnTerminar').hidden = !v.enCurso;
+  $('btnSalir').hidden = v.enCurso || modoEdicion;
+  $('btnEditar').hidden = v.enCurso || modoEdicion;
+  for (const w of wInst) w.upd(v);
   requestAnimationFrame(dibujar);
 }
 
@@ -977,7 +1291,7 @@ function marcar(tMarca, fuente) {
   const enCurso = !!(motor && motor.enCurso);
   if (!enCurso && (pantalla !== 'crono' || !$('config').hidden || !seleccion)) return;   // fuera del cronómetro no se larga sin querer
   Audio.desbloquear();
-  if (!motor || !motor.enCurso) { nuevaCarrera(); if (!Store.buscar(seleccion.id)) Store.guardarCarrera(seleccion); $('ultima').textContent = ''; pedirPantallaEncendida(); }
+  if (!motor || !motor.enCurso) { nuevaCarrera(); if (!Store.buscar(seleccion.id)) Store.guardarCarrera(seleccion); ultimaVuelta = null; if (Beto && cfg.volumenMax) Beto.volumenCarrera({ activo: true, canal: cfg.canalAudio }).catch(() => {}); pedirPantallaEncendida(); }
   const largada = !motor.enCurso;
   motor.marcar(t, fuente || 'pantalla');
   if (largada && ultimaMuestra) motor.muestra(Object.assign({}, ultimaMuestra, { t }));   // la distancia arranca en la largada
@@ -1041,6 +1355,7 @@ $('btnTerminar').addEventListener('click', () => {
   motor.terminar();
   if (wakeLock) { try { wakeLock.release(); } catch (e) {} }
   if (KeepAwake) KeepAwake.allowSleep().catch(() => {});
+  if (Beto) Beto.volumenCarrera({ activo: false }).catch(() => {});
   avisar('Carrera terminada: ' + carrera.vueltas.length + ' vueltas guardadas');
   mostrar('detalle');
 });
@@ -1056,6 +1371,8 @@ function cargarForm() {
   $('velActiva').checked = cfg.velActiva; $('fuenteVel').value = cfg.fuenteVel; $('simModo').value = cfg.simModo;
   $('simRuido').checked = cfg.simRuido; $('umbral').value = cfg.umbralPrecisionM; $('calibrar').checked = cfg.calibrar;
   $('vozVel').checked = cfg.vozVel; $('vozVelCada').value = cfg.vozVelCadaS;
+  $('tema').value = cfg.tema; $('modoSol').value = cfg.modoSol; $('indicador').value = cfg.indicador;
+  $('volumenMax').checked = cfg.volumenMax; $('canalAudio').value = cfg.canalAudio;
   const enCurso = !!(motor && motor.enCurso);
   $('fsCarrera').disabled = enCurso; $('carreraHint').hidden = !enCurso;
   velBase(); infoPulsador();
@@ -1078,6 +1395,14 @@ function leerForm() {
   cfg.velActiva = $('velActiva').checked; cfg.fuenteVel = $('fuenteVel').value; cfg.simModo = $('simModo').value;
   cfg.simRuido = $('simRuido').checked; cfg.umbralPrecisionM = Math.round(num('umbral', cfg.umbralPrecisionM, 1, 200));
   cfg.calibrar = $('calibrar').checked; cfg.vozVel = $('vozVel').checked;
+  const antes = { vel: cfg.velActiva, sol: cfg.modoSol, canal: cfg.canalAudio };
+  cfg.tema = $('tema').value; cfg.modoSol = $('modoSol').value; cfg.indicador = $('indicador').value;
+  cfg.volumenMax = $('volumenMax').checked; cfg.canalAudio = $('canalAudio').value;
+  setTimeout(() => {   // efectos que dependen de lo que cambió
+    if (antes.sol !== cfg.modoSol) actualizarSensorLuz();
+    if (antes.canal !== cfg.canalAudio && Beto) Beto.configurarAudio({ canal: cfg.canalAudio }).catch(() => {});
+    construirTablero();
+  }, 0);
   cfg.vozVelCadaS = Math.round(num('vozVelCada', cfg.vozVelCadaS, 5, 120));
   if (carrera && motor && motor.enCurso) { carrera.umbralPrecisionM = cfg.umbralPrecisionM; carrera.calibrar = cfg.calibrar; }
   aplicarColores(); Store.setConfig(cfg); velBase(); actualizarFuente();
@@ -1344,7 +1669,7 @@ function irACrono(c) {
   seleccion = c;
   pantalla = 'crono';
   for (const x of PANTALLAS) $('p-' + x).hidden = true;
-  $('ultima').textContent = '';
+  ultimaVuelta = null;
   $('cronoNombre').textContent = c.practica ? 'Práctica libre' : c.nombre;
 }
 function practicaLibre() {
@@ -1432,11 +1757,14 @@ if (NATIVO) {
   if (AppInfo) AppInfo.addListener('backButton', volver);
   setTimeout(() => buscarActualizacion(true), 4000);
 }
+construirTablero();
+actualizarSensorLuz();
 requestAnimationFrame(dibujar);
 (async () => {
   await Store.cargar();
   Object.assign(cfg, DEF, Store.config || {});
-  aplicarColores(); infoPulsador(); aplicarTeclasNativas(); actualizarFuente();
+  aplicarColores(); infoPulsador(); aplicarTeclasNativas(); actualizarFuente(); construirTablero(); actualizarSensorLuz();
+  if (Beto && cfg.canalAudio !== 'alarma') Beto.configurarAudio({ canal: cfg.canalAudio }).catch(() => {});
   mostrar('inicio');
 })();
 })();

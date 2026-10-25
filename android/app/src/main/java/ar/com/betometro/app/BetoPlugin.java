@@ -2,7 +2,12 @@ package ar.com.betometro.app;
 
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.hardware.input.InputManager;
+import android.media.AudioManager;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
 import android.net.Uri;
@@ -28,7 +33,10 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
@@ -42,6 +50,8 @@ import java.util.Set;
  *  - Voz sin demora: los números se sintetizan una vez a archivos y se reproducen con SoundPool.
  *  - Pulsador: captura de teclas (incluidos los botones de volumen) y aviso de desconexión.
  *  - Actualizador: descarga el APK de la última versión y abre el instalador de Android.
+ *  - Sonido fuerte: canal de alarma o multimedia, volumen al máximo durante la carrera, pitidos generados acá.
+ *  - Sensor de luz para el modo sol automático.
  */
 @CapacitorPlugin(name = "Beto")
 public class BetoPlugin extends Plugin implements InputManager.InputDeviceListener {
@@ -56,8 +66,24 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
     private final Map<String, Integer> sonidos = new HashMap<>();   // texto -> id en SoundPool (cargado)
     private final Map<Integer, String> cargando = new HashMap<>();  // id SoundPool -> texto
     private final Map<String, File> archivos = new HashMap<>();     // utteranceId -> archivo
+    private final Map<String, String> rutas = new HashMap<>();      // texto -> archivo listo (para recargar al cambiar de canal)
     private int total = 0;
     private float velocidadVoz = 1.15f;
+    private String canal = "alarma";
+    private int volPrevio = -1, streamPrevio = AudioManager.STREAM_ALARM;
+
+    // ---------- Sensor de luz ----------
+    private SensorManager sensores;
+    private long ultimaLuz = 0;
+    private final SensorEventListener oyenteLuz = new SensorEventListener() {
+        @Override public void onSensorChanged(SensorEvent e) {
+            long t = SystemClock.uptimeMillis();
+            if (t - ultimaLuz < 1000) return;
+            ultimaLuz = t;
+            notifyListeners("luz", new JSObject().put("lux", e.values[0]));
+        }
+        @Override public void onAccuracyChanged(Sensor s, int a) { }
+    };
 
     // ---------- Teclas ----------
     private final Set<Integer> teclas = new HashSet<>();
@@ -72,16 +98,12 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
         teclas.add(KeyEvent.KEYCODE_SPACE);
         teclas.add(KeyEvent.KEYCODE_F9);
 
-        AudioAttributes attrs = new AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                .build();
-        pool = new SoundPool.Builder().setMaxStreams(2).setAudioAttributes(attrs).build();
-        pool.setOnLoadCompleteListener((sp, id, status) -> {
-            String texto = cargando.remove(id);
-            if (texto != null && status == 0) sonidos.put(texto, id);
-            emitirEstadoVoz();
-        });
+        crearPool();
+        try {   // pitidos agudos con armónicos: se distinguen mejor del ruido grave del motor
+            rutas.put("#corto", generarPitido("pitido_corto", 1400, 110).getAbsolutePath());
+            rutas.put("#largo", generarPitido("pitido_largo", 1900, 480).getAbsolutePath());
+            cargar("#corto"); cargar("#largo");
+        } catch (IOException ignored) { }
 
         InputManager im = (InputManager) getContext().getSystemService(Context.INPUT_SERVICE);
         if (im != null) {
@@ -92,9 +114,115 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
 
     @Override
     protected void handleOnDestroy() {
+        restaurarVolumen();
+        if (sensores != null) sensores.unregisterListener(oyenteLuz);
         if (tts != null) tts.shutdown();
         if (pool != null) pool.release();
         instancia = null;
+    }
+
+    // ======================= SONIDO =======================
+
+    private AudioAttributes atributos() {
+        boolean alarma = "alarma".equals(canal);
+        return new AudioAttributes.Builder()
+                .setUsage(alarma ? AudioAttributes.USAGE_ALARM : AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+    }
+
+    private void crearPool() {
+        pool = new SoundPool.Builder().setMaxStreams(3).setAudioAttributes(atributos()).build();
+        pool.setOnLoadCompleteListener((sp, id, status) -> {
+            String texto = cargando.remove(id);
+            if (texto != null && status == 0) sonidos.put(texto, id);
+            emitirEstadoVoz();
+        });
+    }
+
+    private void cargar(String texto) {
+        String ruta = rutas.get(texto);
+        if (ruta == null) return;
+        int sid = pool.load(ruta, 1);
+        cargando.put(sid, texto);
+    }
+
+    private File dirVoz() {
+        File dir = new File(getContext().getCacheDir(), "voz");
+        if (!dir.exists()) dir.mkdirs();
+        return dir;
+    }
+
+    /** Genera un WAV de 16 bits con la nota y dos armónicos, levemente saturado para que corte más. */
+    private File generarPitido(String nombre, double freq, int ms) throws IOException {
+        int sr = 44100, n = sr * ms / 1000, ataque = sr / 200;
+        File f = new File(dirVoz(), nombre + "_" + (int) freq + "_" + ms + ".wav");
+        if (f.exists()) return f;
+        ByteBuffer b = ByteBuffer.allocate(44 + n * 2).order(ByteOrder.LITTLE_ENDIAN);
+        b.put("RIFF".getBytes()); b.putInt(36 + n * 2); b.put("WAVE".getBytes());
+        b.put("fmt ".getBytes()); b.putInt(16); b.putShort((short) 1); b.putShort((short) 1);
+        b.putInt(sr); b.putInt(sr * 2); b.putShort((short) 2); b.putShort((short) 16);
+        b.put("data".getBytes()); b.putInt(n * 2);
+        for (int i = 0; i < n; i++) {
+            double t = (double) i / sr;
+            double s = (Math.sin(2 * Math.PI * freq * t) + 0.5 * Math.sin(4 * Math.PI * freq * t) + 0.3 * Math.sin(6 * Math.PI * freq * t)) / 1.8;
+            double env = Math.min(1.0, Math.min(i / (double) ataque, (n - i) / (double) ataque));
+            b.putShort((short) (Math.max(-1.0, Math.min(1.0, s * 1.3)) * env * 32000));
+        }
+        try (FileOutputStream o = new FileOutputStream(f)) { o.write(b.array()); }
+        return f;
+    }
+
+    @PluginMethod
+    public void configurarAudio(PluginCall call) {
+        canal = call.getString("canal", "alarma");
+        SoundPool viejo = pool;
+        sonidos.clear(); cargando.clear();
+        crearPool();
+        for (String t : rutas.keySet()) cargar(t);
+        if (viejo != null) viejo.release();
+        if (tts != null) tts.setAudioAttributes(atributos());
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void volumenCarrera(PluginCall call) {
+        boolean activo = call.getBoolean("activo", false);
+        if (call.getString("canal") != null) canal = call.getString("canal");
+        AudioManager am = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+        if (am == null) { call.resolve(); return; }
+        try {
+            if (activo) {
+                int st = "alarma".equals(canal) ? AudioManager.STREAM_ALARM : AudioManager.STREAM_MUSIC;
+                if (volPrevio < 0) { volPrevio = am.getStreamVolume(st); streamPrevio = st; }
+                am.setStreamVolume(st, am.getStreamMaxVolume(st), 0);
+            } else {
+                restaurarVolumen();
+            }
+            call.resolve();
+        } catch (SecurityException e) {
+            call.reject("Android no dejó cambiar el volumen (¿modo No molestar?)");
+        }
+    }
+
+    private void restaurarVolumen() {
+        if (volPrevio < 0) return;
+        AudioManager am = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+        try { if (am != null) am.setStreamVolume(streamPrevio, volPrevio, 0); } catch (SecurityException ignored) { }
+        volPrevio = -1;
+    }
+
+    // ======================= SENSOR DE LUZ =======================
+
+    @PluginMethod
+    public void sensorLuz(PluginCall call) {
+        boolean activo = call.getBoolean("activo", false);
+        if (sensores == null) sensores = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE);
+        if (sensores == null) { call.resolve(new JSObject().put("disponible", false)); return; }
+        Sensor luz = sensores.getDefaultSensor(Sensor.TYPE_LIGHT);
+        sensores.unregisterListener(oyenteLuz);
+        if (activo && luz != null) sensores.registerListener(oyenteLuz, luz, SensorManager.SENSOR_DELAY_NORMAL);
+        call.resolve(new JSObject().put("disponible", luz != null));
     }
 
     // ======================= VOZ =======================
@@ -103,6 +231,8 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
     public void prepararVoz(PluginCall call) {
         JSArray lista = call.getArray("textos");
         velocidadVoz = call.getFloat("velocidad", 1.15f);
+        String c = call.getString("canal");
+        if (c != null && !c.equals(canal)) { canal = c; SoundPool viejo = pool; sonidos.clear(); cargando.clear(); crearPool(); for (String t : rutas.keySet()) cargar(t); if (viejo != null) viejo.release(); }
         final String[] textos;
         try {
             textos = new String[lista.length()];
@@ -124,6 +254,7 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
                 if (r != TextToSpeech.LANG_MISSING_DATA && r != TextToSpeech.LANG_NOT_SUPPORTED) { idioma = l.toString(); break; }
             }
             tts.setSpeechRate(velocidadVoz);
+            tts.setAudioAttributes(atributos());
             ttsListo = true;
             tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                 @Override public void onStart(String id) { }
@@ -132,8 +263,8 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
                     File f = archivos.remove(id);
                     if (f == null || !id.startsWith("arch:")) return;
                     String texto = id.substring(5);
-                    int sid = pool.load(f.getAbsolutePath(), 1);
-                    cargando.put(sid, texto);
+                    rutas.put(texto, f.getAbsolutePath());
+                    cargar(texto);
                 }
             });
             sintetizar(textos);
@@ -143,8 +274,7 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
 
     private void sintetizar(String[] textos) {
         if (!ttsListo) return;
-        File dir = new File(getContext().getCacheDir(), "voz");
-        if (!dir.exists()) dir.mkdirs();
+        File dir = dirVoz();
         total = textos.length;
         for (String t : textos) {
             if (sonidos.containsKey(t)) continue;
@@ -163,7 +293,7 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
         if (id != null) {
             pool.play(id, 1f, 1f, 1, 0, 1f);
             call.resolve(new JSObject().put("modo", "audio"));
-        } else if (ttsListo) {
+        } else if (ttsListo && !texto.startsWith("#")) {
             tts.speak(texto, TextToSpeech.QUEUE_FLUSH, null, "vivo");
             call.resolve(new JSObject().put("modo", "voz"));
         } else {
@@ -185,7 +315,9 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
         JSObject o = new JSObject();
         o.put("motor", ttsListo);
         o.put("idioma", idioma);
-        o.put("listos", sonidos.size());
+        int listos = 0;
+        for (String k : sonidos.keySet()) if (!k.startsWith("#")) listos++;
+        o.put("listos", listos);
         o.put("total", total);
         return o;
     }
