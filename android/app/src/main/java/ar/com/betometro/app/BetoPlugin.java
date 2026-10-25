@@ -143,6 +143,14 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
         call.resolve();
     }
 
+    /** Android 13 o más: permiso para mostrar notificaciones (aviso de versión nueva). */
+    @PluginMethod
+    public void pedirNotificaciones(PluginCall call) {
+        if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(getContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
+            ActivityCompat.requestPermissions(getActivity(), new String[] { Manifest.permission.POST_NOTIFICATIONS }, 4522);
+        call.resolve();
+    }
+
     // ======================= MODO CARRERA =======================
     private int filtroPrevio = -1;
     private NotificationManager.Policy politicaPrevia = null;

@@ -337,7 +337,7 @@ body.ind-fondo.medida .app, body.ind-fondo.practica .app { background: transpare
 .inicio-logo b { display: block; font-family: var(--font-num); font-weight: var(--peso-num); font-size: clamp(34px, 12.4vw, 64px); white-space: nowrap; letter-spacing: .06em; line-height: 1; color: var(--ink); text-shadow: 0 0 18px var(--glow); }
 .inicio-logo small { display: block; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-dim); margin-top: 6px; }
 .inicio-logo .ver { display: block; font-size: 12px; color: var(--ink-dim); margin-top: 4px; }
-#inicioAct { position: absolute; left: 22px; right: 22px; top: calc(env(safe-area-inset-top, 0px) + 6vh + 110px); z-index: 3; }
+#inicioAct { position: absolute; left: 22px; right: 22px; top: calc(env(safe-area-inset-top, 0px) + 6vh + 140px); z-index: 3; font-weight: 700; }
 .inicio .w { pointer-events: none; }
 .ico { position: absolute; width: 104px; margin: -46px 0 0 -52px; text-align: center; background: none; border: 0; color: var(--ink); font: 700 15px var(--font-ui); line-height: 1.15; cursor: pointer; padding: 0; z-index: 2; }
 .ico .disco { width: 72px; height: 72px; margin: 0 auto 7px; border-radius: 50%; display: grid; place-items: center;
@@ -2377,7 +2377,7 @@ $('p-practica').addEventListener('input', leerForm);
 $('p-practica').addEventListener('change', leerForm);
 $('mChequeo').addEventListener('click', () => mostrar('chequeo'));
 $('mAjustes').addEventListener('click', () => { cargarForm(); $('config').hidden = false; $('medirRes').textContent = Audio.diagnostico(); });
-$('inicioAct').addEventListener('click', () => { $('mAjustes').click(); });
+$('inicioAct').addEventListener('click', () => { if (ultimaRel) instalarActualizacion(); else $('mAjustes').click(); });   // instala directo
 $('carrerasVolver').addEventListener('click', volver);
 $('carrerasNueva').addEventListener('click', () => abrirEditor(null));
 $('editorCancelar').addEventListener('click', volver);
@@ -2404,24 +2404,28 @@ async function buscarActualizacion(silencioso) {
       ultimaRel = { ver, url: apk.browser_download_url };
       $('actRes').textContent = 'Hay una versión nueva: ' + ver + '.';
       $('btnActualizar').textContent = 'Descargar e instalar ' + ver;
-      if (silencioso) { avisar('Hay una actualización de Betómetro: entrá a Ajustes'); $('inicioAct').hidden = false; }
+      if (silencioso) { $('inicioAct').textContent = 'Hay una versión nueva (' + ver + '). Tocá acá para instalarla.'; $('inicioAct').hidden = false; }
     } else { ultimaRel = null; if (!silencioso) $('actRes').textContent = 'Tenés la última versión.'; }
   } catch (e) { if (!silencioso) $('actRes').textContent = 'No se pudo buscar: ' + e.message + '. Revisá la conexión a internet.'; }
 }
+function estadoAct(txt) {   // el progreso se ve en Ajustes y en el cartel del inicio
+  $('actRes').textContent = txt;
+  if (!$('inicioAct').hidden) $('inicioAct').textContent = txt;
+}
 async function instalarActualizacion() {
-  if (motor && motor.enCurso) { $('actRes').textContent = 'Terminá la carrera antes de actualizar.'; return; }
+  if (motor && motor.enCurso) { estadoAct('Terminá la carrera antes de actualizar.'); return; }
   try {
     const p = await Beto.puedeInstalar();
     if (!p.permitido) {
-      $('actRes').textContent = 'Android necesita permiso para instalar la actualización. Activá «Permitir de esta fuente», volvé y tocá el botón otra vez.';
+      estadoAct('Android necesita permiso para instalar. Activá «Permitir de esta fuente», volvé y tocá otra vez.');
       await Beto.pedirPermisoInstalar(); return;
     }
-    $('actRes').textContent = 'Descargando… 0 %';
+    estadoAct('Descargando… 0 %');
     await Beto.descargarEInstalar({ url: ultimaRel.url });
-    $('actRes').textContent = 'Descarga completa: confirmá la instalación.';
-  } catch (e) { $('actRes').textContent = (e && e.message) || 'No se pudo descargar.'; }
+    estadoAct('Descarga completa: confirmá la instalación.');
+  } catch (e) { estadoAct((e && e.message) || 'No se pudo descargar.'); }
 }
-if (Beto) Beto.addListener('descarga', d => { $('actRes').textContent = 'Descargando… ' + d.porcentaje + ' %'; });
+if (Beto) Beto.addListener('descarga', d => estadoAct('Descargando… ' + d.porcentaje + ' %'));
 $('btnActualizar').addEventListener('click', () => {
   if (!NATIVO) { $('actRes').textContent = 'La actualización funciona en la app instalada.'; return; }
   if (ultimaRel) instalarActualizacion(); else { $('actRes').textContent = 'Buscando…'; buscarActualizacion(false); }
@@ -2446,6 +2450,7 @@ requestAnimationFrame(dibujar);
   aplicarColores(); infoPulsador(); aplicarTeclasNativas(); actualizarFuente(); construirTablero(); actualizarSensorLuz();
   if (Beto && cfg.canalAudio !== 'alarma') Beto.configurarAudio({ canal: cfg.canalAudio }).catch(() => {});
   if (Beto && cfg.velActiva) setTimeout(async () => { if ((await ubicacionPrecisa()) === false) pedirUbicacionPrecisa(); }, 1500);
+  if (Beto) setTimeout(() => Beto.pedirNotificaciones().catch(() => {}), 7000);   // para avisar de versiones nuevas con la app cerrada
   mostrar('inicio');
 })();
 })();
