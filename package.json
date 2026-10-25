@@ -1,6 +1,6 @@
 {
   "name": "betometro",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "private": true,
   "description": "Betómetro: cronómetro de regularidad para el navegante",
   "scripts": {

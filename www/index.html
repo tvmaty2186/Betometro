@@ -652,7 +652,7 @@ html, body { margin: 0; }
       <label class="f" for="e-fecha"><span><i>▦</i>Fecha</span><input type="date" id="e-fecha"></label>
       <div class="f"><span><i>↻</i>Vueltas</span>
         <div class="stepper"><button type="button" data-paso="-1" data-campo="e-vueltas" aria-label="Una vuelta menos">−</button><input type="number" id="e-vueltas" min="1" max="300" inputmode="numeric"><button type="button" data-paso="1" data-campo="e-vueltas" aria-label="Una vuelta más">+</button></div></div>
-      <div class="f f-2"><span><i>⏱</i>Tiempo ideal por vuelta</span><div class="reloj-c"><div class="t-campo"><input type="number" id="e-min" min="0" max="99" inputmode="numeric" aria-label="Minutos" placeholder="0">:<input type="number" id="e-seg" min="0" max="59" inputmode="numeric" aria-label="Segundos" placeholder="00">.<input type="number" id="e-dec" min="0" max="9" inputmode="numeric" aria-label="Décimas" placeholder="0"></div><div class="reloj-u"><span>MIN</span><span>SEG</span><span>DÉC</span></div></div></div>
+      <div class="f f-2"><span><i>⏱</i>Tiempo ideal por vuelta</span><div class="reloj-c"><div class="t-campo"><input type="text" pattern="[0-9]*" autocomplete="off" id="e-min" min="0" max="99" inputmode="numeric" aria-label="Minutos" placeholder="0">:<input type="text" pattern="[0-9]*" autocomplete="off" id="e-seg" min="0" max="59" inputmode="numeric" aria-label="Segundos" placeholder="00">.<input type="text" pattern="[0-9]*" autocomplete="off" id="e-dec" min="0" max="9" inputmode="numeric" aria-label="Décimas" placeholder="0"></div><div class="reloj-u"><span>MIN</span><span>SEG</span><span>DÉC</span></div></div></div>
       <label class="f f-2" for="e-distancia"><span><i>↔</i>Distancia por vuelta (metros)</span><input type="number" id="e-distancia" min="0" step="1" inputmode="numeric"></label>
       <div class="f f-2"><span><i>◉</i>Vueltas medidas</span><select id="e-patron" class="oculto" aria-label="Vueltas medidas">
           <option value="todas">Todas medidas</option>
@@ -689,7 +689,7 @@ html, body { margin: 0; }
   <div class="config-in">
     <div class="cab"><button class="btn sec" id="practicaVolver" type="button">Volver</button><h2>Práctica libre</h2></div>
     <div class="form" id="fsCarrera">
-      <div class="f f-2"><span><i>⏱</i>Tiempo ideal por vuelta</span><div class="reloj-c"><div class="t-campo"><input type="number" id="tMin" min="0" max="99" inputmode="numeric" aria-label="Minutos" placeholder="0">:<input type="number" id="tSeg" min="0" max="59" inputmode="numeric" aria-label="Segundos" placeholder="00">.<input type="number" id="tDec" min="0" max="9" inputmode="numeric" aria-label="Décimas" placeholder="0"></div><div class="reloj-u"><span>MIN</span><span>SEG</span><span>DÉC</span></div></div></div>
+      <div class="f f-2"><span><i>⏱</i>Tiempo ideal por vuelta</span><div class="reloj-c"><div class="t-campo"><input type="text" pattern="[0-9]*" autocomplete="off" id="tMin" min="0" max="99" inputmode="numeric" aria-label="Minutos" placeholder="0">:<input type="text" pattern="[0-9]*" autocomplete="off" id="tSeg" min="0" max="59" inputmode="numeric" aria-label="Segundos" placeholder="00">.<input type="text" pattern="[0-9]*" autocomplete="off" id="tDec" min="0" max="9" inputmode="numeric" aria-label="Décimas" placeholder="0"></div><div class="reloj-u"><span>MIN</span><span>SEG</span><span>DÉC</span></div></div></div>
       <label class="f f-2" for="distancia"><span><i>↔</i>Distancia por vuelta (metros)</span><input type="number" id="distancia" min="0" step="1" inputmode="numeric"></label>
       <div class="f f-2"><span><i>◉</i>Vueltas medidas</span><select id="patron" class="oculto" aria-label="Vueltas medidas">
           <option value="todas">Todas medidas</option>
@@ -1889,10 +1889,11 @@ function cargarForm() {
   $('carreraHint').hidden = !enCurso;
   velBase(); infoPulsador();
 }
+const entero = (id, max) => { const v = parseInt(String($(id).value).replace(/\D/g, ''), 10); return isFinite(v) ? Math.min(max, Math.max(0, v)) : 0; };   // solo dígitos (teclados de Android)
 const num = (id, def, min, max) => { const v = parseFloat($(id).value); return isFinite(v) ? Math.min(max, Math.max(min, v)) : def; };
 function leerForm() {
   if (!(motor && motor.enCurso)) {
-    const T = (num('tMin', 0, 0, 99) * 60 + num('tSeg', 0, 0, 59)) * 1000 + num('tDec', 0, 0, 9) * 100;
+    const T = (entero('tMin', 99) * 60 + entero('tSeg', 59)) * 1000 + entero('tDec', 9) * 100;
     if (T >= 5000) cfg.tiempoIdealMs = Math.round(T);
     cfg.distanciaM = Math.round(num('distancia', cfg.distanciaM, 0, 1e6));
     cfg.patron = $('patron').value;
@@ -1974,7 +1975,7 @@ function syncPats() {
 document.addEventListener('click', ev => {
   const b = ev.target.closest('[data-paso]');
   if (b) { const i = $(b.dataset.campo); if (i.disabled) return;
-    i.value = Math.max(+i.min || 0, Math.min(+i.max || 999, (+i.value || 0) + +b.dataset.paso)); i.dispatchEvent(new Event('input', { bubbles: true })); return; }
+    i.value = Math.max(+i.getAttribute('min') || 0, Math.min(+i.getAttribute('max') || 999, (+i.value || 0) + +b.dataset.paso)); i.dispatchEvent(new Event('input', { bubbles: true })); return; }
   const p = ev.target.closest('.pats [data-v]');
   if (p) { const sel = $(p.closest('.pats').dataset.sel); if (sel.disabled) return; sel.value = p.dataset.v; sel.dispatchEvent(new Event('change', { bubbles: true })); syncPats(); }
 });
@@ -2340,7 +2341,7 @@ function irACrono(c) {
   pantalla = 'crono';
   for (const x of PANTALLAS) $('p-' + x).hidden = true;
   ultimaVuelta = null;
-  $('cronoNombre').textContent = c.practica ? 'Práctica libre' : c.nombre;
+  $('cronoNombre').textContent = (c.practica ? 'Práctica libre' : c.nombre) + ' · ' + fmt(c.tiempoIdealMs);
 }
 function practicaLibre() {
   const c = { id: nuevaId(), nombre: 'Práctica ' + new Date().toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }), fecha: hoyISO(),
@@ -2372,7 +2373,10 @@ $('mCompartir').addEventListener('click', async () => {
 });
 $('mPractica').addEventListener('click', () => { cargarForm(); mostrar('practica'); });
 $('practicaVolver').addEventListener('click', volver);
-$('practicaLargar').addEventListener('click', () => { leerForm(); practicaLibre(); });
+$('practicaLargar').addEventListener('click', () => {
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();   // el teclado confirma lo escrito
+  setTimeout(() => { leerForm(); practicaLibre(); }, 60);
+});
 $('p-practica').addEventListener('input', leerForm);
 $('p-practica').addEventListener('change', leerForm);
 $('mChequeo').addEventListener('click', () => mostrar('chequeo'));
