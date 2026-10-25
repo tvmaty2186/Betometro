@@ -1,6 +1,10 @@
 package ar.com.betometro.app;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -107,7 +111,8 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
         try {   // pitidos agudos con armónicos: se distinguen mejor del ruido grave del motor
             rutas.put("#corto", generarPitido("pitido_corto", 1400, 110).getAbsolutePath());
             rutas.put("#largo", generarPitido("pitido_largo", 1900, 480).getAbsolutePath());
-            cargar("#corto"); cargar("#largo");
+            rutas.put("#tic", generarPitido("pitido_tic", 1000, 70).getAbsolutePath());
+            cargar("#corto"); cargar("#largo"); cargar("#tic");
         } catch (IOException ignored) { }
 
         InputManager im = (InputManager) getContext().getSystemService(Context.INPUT_SERVICE);
@@ -115,6 +120,27 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
             for (int id : im.getInputDeviceIds()) registrarDispositivo(id);
             im.registerInputDeviceListener(this, new Handler(Looper.getMainLooper()));
         }
+    }
+
+    // ======================= UBICACIÓN PRECISA =======================
+    @PluginMethod
+    public void ubicacionPrecisa(PluginCall call) {
+        boolean fina = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        boolean aprox = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        call.resolve(new JSObject().put("fina", fina).put("aproximada", aprox));
+    }
+
+    /** Pide la ubicación precisa; con ajustes=true abre la pantalla de permisos de la app (si Android ya no muestra el pedido). */
+    @PluginMethod
+    public void pedirUbicacionPrecisa(PluginCall call) {
+        if (call.getBoolean("ajustes", false)) {
+            Intent i = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getContext().getPackageName()));
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(i);
+        } else {
+            ActivityCompat.requestPermissions(getActivity(), new String[] { Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION }, 4521);
+        }
+        call.resolve();
     }
 
     // ======================= MODO CARRERA =======================
