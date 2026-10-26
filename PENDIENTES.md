@@ -21,3 +21,4 @@ Anotado el 26/10/2026. Nada de esto está programado todavía.
 2. **Sonido tipo clic al apretar el pulsador:** un clic corto en lugar de un pitido.
 3. **Pitido del cero configurable:** se puede apagar y dejar solo la cuenta regresiva.
    - Ya existe en Ajustes → "Pitido largo al llegar a cero". Hay que revisar que se vea claro y quizás llevarlo junto a la cuenta regresiva.
+   - **De fábrica tiene que venir desactivado** (hoy viene activado).
