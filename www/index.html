@@ -1396,8 +1396,8 @@ const WIDGETS_DEF = [   // pantalla de fábrica (la que armó Matías)
   Object.assign({ t: 'tipo' }, caja(0, 246, 105, 88)),
   Object.assign({ t: 'necesaria' }, caja(276, 242, 102, 92)),
   Object.assign({ t: 'cuenta', e: 'numeros', ancho: 1.2, extra: true }, caja(0, 338, 378, 141)),
-  Object.assign({ t: 'ultima' }, caja(6, 484, 366, 50)),
-  Object.assign({ t: 'marcar' }, caja(0, 544, 378, 208))
+  Object.assign({ t: 'ultima' }, caja(0, 485, 378, 52)),     // justo entre la cuenta y MARCAR, mismos bordes
+  Object.assign({ t: 'marcar' }, caja(0, 543, 378, 209))
 ];
 // Pantalla horizontal de fábrica (referencia 800 × 378): velocímetro a la izquierda, datos y MARCAR a la derecha
 const cajaH = (x, y, w, h) => ({ x: x / 800, y: y / 378, w: w / 800, h: h / 378 });
@@ -1405,9 +1405,9 @@ const WIDGETS_DEF_H = [   // la que armó Matías: cuenta arriba a lo ancho, vel
   Object.assign({ t: 'cuenta', e: 'numeros', ancho: 1.2, extra: true }, cajaH(3, 3, 795, 164)),
   Object.assign({ t: 'tipo' }, cajaH(3, 3, 109, 101)),
   Object.assign({ t: 'necesaria' }, cajaH(676, 65, 122, 102)),
-  Object.assign({ t: 'velocimetro', e: 'digital' }, cajaH(3, 183, 206, 192)),
-  Object.assign({ t: 'ultima' }, cajaH(214, 185, 140, 184)),
-  Object.assign({ t: 'marcar' }, cajaH(361, 183, 411, 184))
+  Object.assign({ t: 'velocimetro', e: 'digital' }, cajaH(3, 175, 206, 200)),   // fila de abajo: mismo alto y mismas separaciones
+  Object.assign({ t: 'ultima' }, cajaH(215, 175, 140, 200)),
+  Object.assign({ t: 'marcar' }, cajaH(361, 175, 437, 200))
 ];
 let horizontal = false;   // la pantalla de carrera tiene un armado propio cuando el teléfono está acostado
 const capa = () => horizontal ? cfg.widgetsH : cfg.widgets;
