@@ -1139,14 +1139,15 @@ const Store = (() => {
 })();
 
 /* ================= CONFIGURACIÓN ================= */
-const DEF = { tiempoIdealMs: 240000, distanciaM: 3200, patron: 'alt1', cuentaN: 60, modoCuenta: 'voz', pitidoCero: true,   // valores de fábrica (los que eligió Matías)
+const DEF = { tiempoIdealMs: 240000, distanciaM: 3200, patron: 'alt1', cuentaN: 20, modoCuenta: 'voz', pitidoCero: true,   // valores de fábrica (los que eligió Matías)
               anticipoMs: 250, avisoInicio: true, avisoProx: false, antirreboteMs: 3000, colMedida: '#b3132b', colPractica: '#0f6e3a',
               velActiva: true, fuenteVel: 'gps', pitidoCadaS: 0, simVelKmh: 48, umbralPrecisionM: 20,
               calibrar: true, teclas: null, teclaWeb: null, teclaNombre: '', pulsadorNombre: '',
               modoCarrera: true, tema: 'sport', modoSol: 'auto', indicador: 'fondo', volumenMax: true, canalAudio: 'alarma', widgets: null };
 if (NATIVO) DEF.anticipoMs = 40;   // en nativa los números ya están grabados: solo queda el silencio inicial del audio
 const cfg = Object.assign({}, DEF, Store.config || {});
-function fijarCfg() { cfg.fuenteVel = 'gps'; cfg.vozVel = false; cfg.avisoProx = false; cfg.widgets = Array.isArray(cfg.widgets) ? cfg.widgets.filter(w => w.t !== 'simulador') : cfg.widgets; }
+function fijarCfg() { if (!cfg.cuenta20) { if (cfg.cuentaN === 60) cfg.cuentaN = 20; cfg.cuenta20 = true; }   // la cuenta hablada pasó de 60 a 20 s de fábrica
+  cfg.fuenteVel = 'gps'; cfg.vozVel = false; cfg.avisoProx = false; cfg.widgets = Array.isArray(cfg.widgets) ? cfg.widgets.filter(w => w.t !== 'simulador') : cfg.widgets; }
 fijarCfg();
 
 /* ================= AUDIO ================= */
