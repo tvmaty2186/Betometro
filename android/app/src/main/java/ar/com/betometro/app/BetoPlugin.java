@@ -209,6 +209,17 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
         call.resolve();
     }
 
+    /** vertical (menús), horizontal (para armar esa pantalla) o libre (cronómetro: sigue al teléfono). */
+    @PluginMethod
+    public void orientacion(PluginCall call) {
+        String modo = call.getString("modo", "vertical");
+        int o = "horizontal".equals(modo) ? android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+              : "libre".equals(modo) ? android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+              : android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+        getActivity().runOnUiThread(() -> getActivity().setRequestedOrientation(o));
+        call.resolve();
+    }
+
     // ======================= PANTALLA PROTEGIDA =======================
     // Con la carrera en curso: si se aprieta el botón de encendido (o la pantalla se apaga por lo que sea),
     // la pantalla se vuelve a prender sola y Betómetro aparece encima del bloqueo, sin pedir PIN.

@@ -307,6 +307,9 @@ body.ind-fondo.medida .app, body.ind-fondo.practica .app { background: transpare
 .crono-chips { position: absolute; top: max(10px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); display: flex; gap: 6px; z-index: 8; }
 .crono-chips .chip-btn { min-height: 30px; padding: 4px 12px; font-size: 13px; background: rgba(0,0,0,.45); color: var(--ink); }
 :root.sol .crono-chips .chip-btn { background: #fff; border-color: #000; }
+@media (orientation: landscape) {   /* acostado: Terminar/Salir abajo a la izquierda, en la esquina libre del velocímetro */
+  .crono-chips { top: auto !important; right: auto !important; bottom: max(10px, env(safe-area-inset-bottom, 0px)); left: max(12px, env(safe-area-inset-left, 0px)); }
+}
 .crono-nombre { position: absolute; top: max(14px, env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px)); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-dim); z-index: 8; }
 
 /* ===== editor ===== */
@@ -328,6 +331,10 @@ body.ind-fondo.medida .app, body.ind-fondo.practica .app { background: transpare
 .ed-panel { position: absolute; top: calc(max(10px, env(safe-area-inset-top, 0px)) + 60px); right: max(12px, env(safe-area-inset-right, 0px)); z-index: 27;
             display: flex; flex-direction: column; gap: 8px; background: rgba(18,18,18,.96); border: 1px solid #444; border-radius: 14px; padding: 10px; width: min(300px, 80vw); }
 .ed-panel select, .ed-panel button { width: 100%; }
+.ed-panel { max-height: calc(100% - 80px); overflow-y: auto; }
+.ed-orient { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding-bottom: 10px; border-bottom: 1px solid #444; }
+.ed-orient button { color: #fff; font: 600 14px var(--font-ui); padding: 9px 6px; border-radius: 9px; background: #2a2a2a; border: 0; min-height: 40px; }
+.ed-orient button.on { background: #ffd23f; color: #111; }
 .ed-toast { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); background: rgba(18,18,18,.92); color: #fff; font: 600 13px var(--font-ui);
             padding: 8px 14px; border-radius: 999px; z-index: 27; width: max-content; max-width: 90vw; text-align: center; pointer-events: none; }
 
@@ -633,6 +640,7 @@ html, body { margin: 0; }
   <button class="w marcar" id="btnMarcar" type="button"><span class="m-txt">LARGAR</span><small>Tocá en la largada</small></button>
   <button class="ed-fab" id="edFab" type="button" aria-label="Opciones del editor" hidden>✎</button>
   <div class="ed-panel" id="edPanel" hidden>
+    <div class="ed-orient"><button type="button" id="edVert">▯ Vertical</button><button type="button" id="edHoriz">▭ Horizontal</button></div>
     <div class="ed-menu" id="edMenu" hidden></div>
     <select id="wAgregar" aria-label="Agregar widget"><option value="">+ Agregar widget…</option></select>
     <button class="btn sec" id="wRestablecer" type="button">Restablecer</button>
@@ -1391,7 +1399,21 @@ const WIDGETS_DEF = [   // pantalla de fábrica (la que armó Matías)
   Object.assign({ t: 'cuenta', e: 'numeros', ancho: 1.2, extra: true }, caja(0, 338, 378, 141)),
   Object.assign({ t: 'marcar' }, caja(0, 485, 378, 276))
 ];
+// Pantalla horizontal de fábrica (referencia 800 × 378): velocímetro a la izquierda, datos y MARCAR a la derecha
+const cajaH = (x, y, w, h) => ({ x: x / 800, y: y / 378, w: w / 800, h: h / 378 });
+const WIDGETS_DEF_H = [
+  Object.assign({ t: 'velocimetro', e: 'analogico', forma: 'redondo' }, cajaH(14, 6, 366, 366)),
+  Object.assign({ t: 'tipo' }, cajaH(392, 0, 200, 88)),
+  Object.assign({ t: 'necesaria' }, cajaH(600, 0, 200, 88)),
+  Object.assign({ t: 'cuenta', e: 'numeros', ancho: 1.2, extra: true }, cajaH(392, 94, 408, 140)),
+  Object.assign({ t: 'marcar' }, cajaH(392, 240, 408, 138))
+];
+let horizontal = false;   // la pantalla de carrera tiene un armado propio cuando el teléfono está acostado
+const capa = () => horizontal ? cfg.widgetsH : cfg.widgets;
+const capaDef = () => horizontal ? WIDGETS_DEF_H : WIDGETS_DEF;
 function normalizarWidgets() {
+  if (!Array.isArray(cfg.widgetsH)) cfg.widgetsH = JSON.parse(JSON.stringify(WIDGETS_DEF_H));
+  if (!cfg.teclaNombre && !cfg.widgetsH.some(w => w.t === 'marcar')) cfg.widgetsH.push(JSON.parse(JSON.stringify(WIDGETS_DEF_H.find(w => w.t === 'marcar'))));
   if (cfg.widgetsV !== 6 || !Array.isArray(cfg.widgets)) { cfg.widgets = JSON.parse(JSON.stringify(WIDGETS_DEF)); cfg.widgetsV = 6; }
   // sin pulsador físico asignado, el botón MARCAR de la pantalla es obligatorio
   if (!cfg.teclaNombre && !cfg.widgets.some(w => w.t === 'marcar')) cfg.widgets.push(JSON.parse(JSON.stringify(WIDGETS_DEF.find(w => w.t === 'marcar'))));
@@ -1551,13 +1573,15 @@ function construirTablero() {
   tab.innerHTML = ''; wInst = [];
   tab.classList.toggle('editando', modoEdicion);
   const W = tab.clientWidth, H = tab.clientHeight;
+  const h = W > H; if (h !== horizontal) { horizontal = h; selW = -1; }
+  const ed = $('edVert'); if (ed) { ed.classList.toggle('on', !horizontal); $('edHoriz').classList.toggle('on', horizontal); }
   const simActivo = cfg.velActiva && cfg.fuenteVel === 'sim';
   $('sim').hidden = true;
   // los más grandes se dibujan primero: los chicos quedan siempre adelante y nunca se pierden debajo
   const area = d => d.forma === 'redondo' ? (d.w * W) * (d.w * W) : (d.w * W) * (d.h * H);
-  const orden = cfg.widgets.map((d, i) => i).sort((a, b) => area(cfg.widgets[b]) - area(cfg.widgets[a]));
+  const orden = capa().map((d, i) => i).sort((a, b) => area(capa()[b]) - area(capa()[a]));
   orden.forEach(i => {
-    const def = cfg.widgets[i], tipo = TIPOS_W[def.t];
+    const def = capa()[i], tipo = TIPOS_W[def.t];
     if (!tipo || (tipo.vel && !cfg.velActiva && !modoEdicion) || (def.t === 'simulador' && !simActivo)) return;
     const w = crearWidget(def), g = geom(def, W, H);
     Object.assign(w.el.style, { left: g.left + 'px', top: g.top + 'px', width: g.width + 'px', height: g.height + 'px' });
@@ -1577,7 +1601,7 @@ function dibujarEdicion() {
   tab.querySelectorAll('.asa, .guia').forEach(x => x.remove());
   $('edFab').hidden = !modoEdicion;
   if (!modoEdicion) { $('edPanel').hidden = true; $('edToast').hidden = true; return; }
-  const def = cfg.widgets[selW], wEl = def ? tab.querySelector(`.w[data-i="${selW}"]`) : null, menu = $('edMenu');
+  const def = capa()[selW], wEl = def ? tab.querySelector(`.w[data-i="${selW}"]`) : null, menu = $('edMenu');
   if (!wEl) { menu.hidden = true; return; }
   const L = wEl.offsetLeft, T = wEl.offsetTop, Wd = wEl.offsetWidth, Hd = wEl.offsetHeight;
   const asa = (x, y, id) => { const a = el('span', undefined, 'asa'); a.style.left = x + 'px'; a.style.top = y + 'px'; a.dataset.asa = id; tab.append(a); };
@@ -1600,7 +1624,7 @@ function dibujarEdicion() {
   }
   b('✕ Quitar', () => {
     if (tipo.pideBoton && !cfg.teclaNombre) { avisar('Para quitar MARCAR, primero asigná un pulsador en Ajustes → Pulsador'); return; }
-    cfg.widgets.splice(selW, 1); selW = -1;
+    capa().splice(selW, 1); selW = -1;
   });
   menu.hidden = false;   // las opciones del widget elegido están en el panel ✎ (no tapan las asas)
 }
@@ -1683,7 +1707,7 @@ function dibujarEdicion() {
     const a = acc; acc = null;
     tab.querySelectorAll('.guia').forEach(x => x.remove());
     if (a.modo === 'toque') { selW = a.el ? +a.el.dataset.i : -1; construirTablero(); return; }
-    const e = a.el, i = +e.dataset.i, def = cfg.widgets[i];
+    const e = a.el, i = +e.dataset.i, def = capa()[i];
     let w = Math.min(e.offsetWidth, W()), h = Math.min(e.offsetHeight, H());
     if (def.forma === 'redondo') h = w = Math.min(w, H());
     const L = Math.max(0, Math.min(W() - w, e.offsetLeft)), T = Math.max(0, Math.min(H() - h, e.offsetTop));
@@ -1708,17 +1732,17 @@ function cerrarConfigPantalla() { modoEdicion = false; selW = -1; construirTable
   const sel = $('wAgregar');
   const llenar = () => {   // los únicos (MARCAR, simulador) solo se ofrecen si no están en pantalla
     sel.length = 1;
-    for (const k in TIPOS_W) { if (TIPOS_W[k].unico && cfg.widgets.some(w => w.t === k)) continue; const o = el('option', TIPOS_W[k].nombre); o.value = k; sel.append(o); }
+    for (const k in TIPOS_W) { if (TIPOS_W[k].unico && capa().some(w => w.t === k)) continue; const o = el('option', TIPOS_W[k].nombre); o.value = k; sel.append(o); }
   };
   $('edFab').addEventListener('pointerdown', llenar);
   sel.addEventListener('change', () => {
     const t = sel.value; sel.value = ''; if (!t) return;
     const est = TIPOS_W[t].estilos;
-    const base = WIDGETS_DEF.find(w => w.t === t);
-    cfg.widgets.push(base && TIPOS_W[t].unico ? JSON.parse(JSON.stringify(base)) :
+    const base = capaDef().find(w => w.t === t);
+    capa().push(base && TIPOS_W[t].unico ? JSON.parse(JSON.stringify(base)) :
       Object.assign({ t, e: est ? Object.keys(est)[0] : undefined, forma: t === 'velocimetro' ? 'redondo' : undefined },
                     t === 'velocimetro' ? caja(80, 280, 220, 220) : caja(70, 340, 240, 90)));
-    selW = cfg.widgets.length - 1; $('edPanel').hidden = true;
+    selW = capa().length - 1; $('edPanel').hidden = true;
     Store.setConfig(cfg); construirTablero();
   });
   let armado = null;
@@ -1726,10 +1750,13 @@ function cerrarConfigPantalla() { modoEdicion = false; selW = -1; construirTable
     const b = $('wRestablecer');
     if (!armado) { b.textContent = 'Tocá otra vez para restablecer'; armado = setTimeout(() => { armado = null; b.textContent = 'Restablecer'; }, 3000); return; }
     clearTimeout(armado); armado = null; b.textContent = 'Restablecer';
-    cfg.widgets = JSON.parse(JSON.stringify(WIDGETS_DEF)); selW = -1; $('edPanel').hidden = true; Store.setConfig(cfg); construirTablero();
+    const nuevo = JSON.parse(JSON.stringify(capaDef())); if (horizontal) cfg.widgetsH = nuevo; else cfg.widgets = nuevo;
+    selW = -1; $('edPanel').hidden = true; Store.setConfig(cfg); construirTablero();
   });
   $('edFab').addEventListener('click', () => { $('edPanel').hidden = !$('edPanel').hidden; });
   $('wListo').addEventListener('click', cerrarConfigPantalla);
+  $('edVert').addEventListener('click', () => { orientacion('vertical'); $('edPanel').hidden = true; });
+  $('edHoriz').addEventListener('click', () => { orientacion('horizontal'); $('edPanel').hidden = true; if (!Beto) avisar('Girar la pantalla solo funciona en la app instalada'); });
   $('mPantalla').addEventListener('click', abrirConfigPantalla);
 })();
 
@@ -2018,8 +2045,9 @@ document.addEventListener('click', ev => {
   const p = ev.target.closest('.pats [data-v]');
   if (p) { const sel = $(p.closest('.pats').dataset.sel); if (sel.disabled) return; sel.value = p.dataset.v; sel.dispatchEvent(new Event('change', { bubbles: true })); syncPats(); }
 });
+function orientacion(modo) { if (Beto) Beto.orientacion({ modo }).catch(() => {}); }
 function mostrar(p) {
-  pantalla = p;
+  pantalla = p; orientacion('vertical');
   for (const x of PANTALLAS) $('p-' + x).hidden = x !== p;
   if (p === 'inicio') dibujarInicio();
   if (p === 'carreras') dibujarCarreras();
@@ -2386,7 +2414,7 @@ function marcaDePrueba(fuente) {
 
 /* ---------- Ir al cronómetro ---------- */
 function irACrono(c) {
-  seleccion = c;
+  seleccion = c; orientacion('libre');   // acostando el teléfono se ve la pantalla horizontal
   pantalla = 'crono';
   for (const x of PANTALLAS) $('p-' + x).hidden = true;
   ultimaVuelta = null;
