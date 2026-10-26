@@ -116,7 +116,8 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
             rutas.put("#corto", generarPitido("pitido_corto", 1400, 110).getAbsolutePath());
             rutas.put("#largo", generarPitido("pitido_largo", 1900, 480).getAbsolutePath());
             rutas.put("#tic", generarPitido("pitido_tic", 1000, 70).getAbsolutePath());
-            cargar("#corto"); cargar("#largo"); cargar("#tic");
+            rutas.put("#clic", generarClic().getAbsolutePath());
+            cargar("#corto"); cargar("#largo"); cargar("#tic"); cargar("#clic");
         } catch (IOException ignored) { }
 
         InputManager im = (InputManager) getContext().getSystemService(Context.INPUT_SERVICE);
@@ -179,7 +180,7 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
     @Override
     protected void handleOnResume() {
         super.handleOnResume();
-        try { ((NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE)).cancel(NOTIF_DESPERTAR); } catch (Exception ignored) { }
+        try { NotificationManager nm = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE); nm.cancel(NOTIF_DESPERTAR); nm.cancel(4540); } catch (Exception ignored) { }
     }
 
     /** Qué permisos faltan para que la pantalla vuelva sola si se bloquea. */
@@ -395,6 +396,38 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
         }
         try (FileOutputStream o = new FileOutputStream(f)) { o.write(b.array()); }
         return f;
+    }
+
+    /** Clic mecánico corto (como un pulsador): golpe de ruido filtrado + un "toc" grave, unos 25 ms. */
+    private File generarClic() throws IOException {
+        int sr = 44100, n = sr * 28 / 1000;
+        File f = new File(dirVoz(), "clic_v1.wav");
+        if (f.exists()) return f;
+        ByteBuffer b = ByteBuffer.allocate(44 + n * 2).order(ByteOrder.LITTLE_ENDIAN);
+        b.put("RIFF".getBytes()); b.putInt(36 + n * 2); b.put("WAVE".getBytes());
+        b.put("fmt ".getBytes()); b.putInt(16); b.putShort((short) 1); b.putShort((short) 1);
+        b.putInt(sr); b.putInt(sr * 2); b.putShort((short) 2); b.putShort((short) 16);
+        b.put("data".getBytes()); b.putInt(n * 2);
+        java.util.Random r = new java.util.Random(7);
+        double prev = 0;
+        for (int i = 0; i < n; i++) {
+            double t = (double) i / sr;
+            double ruido = r.nextDouble() * 2 - 1; prev = prev * 0.55 + ruido * 0.45;      // ruido algo filtrado: "tac"
+            double golpe = prev * Math.exp(-t * 900);
+            double toc = Math.sin(2 * Math.PI * 1800 * t) * Math.exp(-t * 350) * 0.6;      // cuerpo del clic
+            double s = Math.max(-1, Math.min(1, (golpe + toc) * 1.4));
+            b.putShort((short) (s * 32000));
+        }
+        try (FileOutputStream o = new FileOutputStream(f)) { o.write(b.array()); }
+        return f;
+    }
+
+    /** Abrir Betómetro al prender el teléfono (solo para el equipo dedicado). */
+    @PluginMethod
+    public void iniciarAlPrender(PluginCall call) {
+        android.content.SharedPreferences sp = getContext().getSharedPreferences("betometro", Context.MODE_PRIVATE);
+        if (call.hasOption("activo")) sp.edit().putBoolean("iniciarAlPrender", call.getBoolean("activo", false)).apply();
+        call.resolve(new JSObject().put("activo", sp.getBoolean("iniciarAlPrender", false)));
     }
 
     @PluginMethod

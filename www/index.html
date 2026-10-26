@@ -829,6 +829,10 @@ html, body { margin: 0; }
         <input type="checkbox" id="pitidoCero">
       </div>
       <div class="row">
+        <label for="clicMarca">Clic al marcar<br><span class="hint">Suena un clic cada vez que se aprieta el pulsador o MARCAR.</span></label>
+        <input type="checkbox" id="clicMarca">
+      </div>
+      <div class="row">
         <label for="anticipo">Anticipar la voz (milisegundos)<br><span class="hint">Compensa lo que tarda el teléfono en empezar a hablar.</span></label>
         <input type="number" id="anticipo" min="0" max="1500" step="10" inputmode="numeric">
       </div>
@@ -890,6 +894,10 @@ html, body { margin: 0; }
       </div>
       <p class="hint" id="noMolestarInfo"></p>
       <div class="row"><button class="btn sec" id="btnNoMolestar" type="button">Dar permiso de No molestar</button></div>
+      <div class="row">
+        <label for="iniciarPrender">Abrir Betómetro al prender el teléfono<br><span class="hint">Para el equipo dedicado. Necesita el permiso «mostrar encima de otras apps» (botón de abajo).</span></label>
+        <input type="checkbox" id="iniciarPrender">
+      </div>
       <p class="hint" id="pantallaInfo"></p>
       <div class="row"><button class="btn sec" id="btnPantalla" type="button">Permitir que la pantalla vuelva sola</button></div>
     </fieldset>
@@ -1146,14 +1154,15 @@ const Store = (() => {
 })();
 
 /* ================= CONFIGURACIÓN ================= */
-const DEF = { tiempoIdealMs: 240000, distanciaM: 3200, patron: 'alt1', cuentaN: 20, modoCuenta: 'voz', pitidoCero: true,   // valores de fábrica (los que eligió Matías)
+const DEF = { tiempoIdealMs: 240000, distanciaM: 3200, patron: 'alt1', cuentaN: 20, modoCuenta: 'voz', pitidoCero: false, clicMarca: true,   // valores de fábrica (los que eligió Matías)
               anticipoMs: 250, avisoInicio: true, avisoProx: false, antirreboteMs: 3000, colMedida: '#b3132b', colPractica: '#0f6e3a',
               velActiva: true, fuenteVel: 'gps', pitidoCadaS: 0, simVelKmh: 48, umbralPrecisionM: 20,
               calibrar: true, teclas: null, teclaWeb: null, teclaNombre: '', pulsadorNombre: '',
               modoCarrera: true, tema: 'sport', modoSol: 'auto', indicador: 'fondo', volumenMax: true, canalAudio: 'alarma', widgets: null };
 if (NATIVO) DEF.anticipoMs = 40;   // en nativa los números ya están grabados: solo queda el silencio inicial del audio
 const cfg = Object.assign({}, DEF, Store.config || {});
-function fijarCfg() { if (!cfg.cuenta20) { if (cfg.cuentaN === 60) cfg.cuentaN = 20; cfg.cuenta20 = true; }   // la cuenta hablada pasó de 60 a 20 s de fábrica
+function fijarCfg() { if (!cfg.cero0) { cfg.pitidoCero = false; cfg.cero0 = true; }   // el pitido del cero pasó a venir apagado
+  if (!cfg.cuenta20) { if (cfg.cuentaN === 60) cfg.cuentaN = 20; cfg.cuenta20 = true; }   // la cuenta hablada pasó de 60 a 20 s de fábrica
   cfg.fuenteVel = 'gps'; cfg.vozVel = false; cfg.avisoProx = false; cfg.widgets = Array.isArray(cfg.widgets) ? cfg.widgets.filter(w => w.t !== 'simulador') : cfg.widgets; }
 fijarCfg();
 
@@ -1186,6 +1195,12 @@ const Audio = (() => {
     g.gain.setValueAtTime(0.35, t + durMs / 1000 - 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + durMs / 1000);
     o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + durMs / 1000 + 0.02);
   }
+  function clic() {   // clic mecánico corto (ruido filtrado que se apaga rápido)
+    if (!ctx) return;
+    const n = Math.floor(ctx.sampleRate * 0.03), buf = ctx.createBuffer(1, n, ctx.sampleRate), d = buf.getChannelData(0);
+    let p = 0; for (let i = 0; i < n; i++) { const t = i / ctx.sampleRate; p = p * 0.55 + (Math.random() * 2 - 1) * 0.45; d[i] = Math.max(-1, Math.min(1, (p * Math.exp(-t * 900) + Math.sin(2 * Math.PI * 1800 * t) * Math.exp(-t * 350) * 0.6) * 1.4)); }
+    const s = ctx.createBufferSource(); s.buffer = buf; s.connect(ctx.destination); s.start();
+  }
   function hablar(texto, alEmpezar) {
     if (!synth) return null;
     synth.cancel();
@@ -1204,6 +1219,7 @@ const Audio = (() => {
       desbloquear,
       pitido(freq, durMs) { Beto.reproducir({ texto: durMs > 200 ? '#largo' : '#corto' }).catch(() => {}); },
       tic() { Beto.reproducir({ texto: '#tic' }).catch(() => {}); },
+      clic() { Beto.reproducir({ texto: '#clic' }).catch(() => {}); },
       hablar(texto) { Beto.hablar({ texto }).catch(() => {}); return null; },
       numero(k) { Beto.reproducir({ texto: String(k) }).catch(() => {}); },
       diagnostico() {
@@ -1213,7 +1229,7 @@ const Audio = (() => {
       hayVoz: true
     };
   }
-  return { desbloquear, pitido, tic() { pitido(1000, 70); }, hablar, numero(k) { hablar(String(k)); }, diagnostico, hayVoz: !!synth };
+  return { desbloquear, pitido, tic() { pitido(1000, 70); }, clic, hablar, numero(k) { hablar(String(k)); }, diagnostico, hayVoz: !!synth };
 })();
 
 /* ================= ESTADO DE LA APP ================= */
@@ -1878,7 +1894,8 @@ function marcar(tMarca, fuente) {
   Audio.desbloquear();
   if (!motor || !motor.enCurso) { nuevaCarrera(); if (!Store.buscar(seleccion.id)) Store.guardarCarrera(seleccion); ultimaVuelta = null; mejorDif = null; velMaxVuelta = 0; modoCarrera(true); if (Beto && cfg.volumenMax) Beto.volumenCarrera({ activo: true, canal: cfg.canalAudio }).catch(() => {}); pedirPantallaEncendida(); }
   const largada = !motor.enCurso;
-  motor.marcar(t, fuente || 'pantalla');
+  const res = motor.marcar(t, fuente || 'pantalla');
+  if (res !== 'ignorada' && cfg.clicMarca !== false) Audio.clic();
   if (largada && ultimaMuestra) motor.muestra(Object.assign({}, ultimaMuestra, { t }));   // la distancia arranca en la largada
   const b = $('btnMarcar'); b.classList.add('hit'); setTimeout(() => b.classList.remove('hit'), 120);
   if (navigator.vibrate) { try { navigator.vibrate(40); } catch (e) {} }
@@ -1939,6 +1956,11 @@ async function estadoPantalla() {
     $('btnPantalla').hidden = !falta.length;
   } catch (e) {}
 }
+$('iniciarPrender').addEventListener('change', ev => {
+  if (!Beto) { ev.target.checked = false; avisar('Solo en la app instalada'); return; }
+  Beto.iniciarAlPrender({ activo: ev.target.checked }).catch(() => {});
+  if (ev.target.checked) avisar('Al prender el teléfono se va a abrir Betómetro');
+});
 $('btnPantalla').addEventListener('click', () => { if (Beto) Beto.pedirPantalla().catch(() => {}); });
 $('btnNoMolestar').addEventListener('click', () => { if (Beto) Beto.pedirNoMolestar().catch(() => {}); else avisar('Solo en la app instalada'); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && !$('config').hidden) { estadoNoMolestar().then(t => { $('noMolestarInfo').textContent = t; }); estadoPantalla(); } });
@@ -1969,7 +1991,8 @@ function cargarForm() {
   const T = cfg.tiempoIdealMs;
   $('tMin').value = Math.floor(T / 60000); $('tSeg').value = Math.floor((T % 60000) / 1000); $('tDec').value = Math.floor((T % 1000) / 100);
   $('distancia').value = cfg.distanciaM; $('patron').value = cfg.patron;
-  $('cuentaN').value = cfg.cuentaN; $('modoCuenta').value = cfg.modoCuenta; $('pitidoCero').checked = cfg.pitidoCero;
+  $('cuentaN').value = cfg.cuentaN; $('modoCuenta').value = cfg.modoCuenta; $('pitidoCero').checked = cfg.pitidoCero; $('clicMarca').checked = cfg.clicMarca !== false;
+  if (Beto) Beto.iniciarAlPrender({}).then(r => { $('iniciarPrender').checked = !!r.activo; }).catch(() => {});
   $('anticipo').value = cfg.anticipoMs; $('avisoInicio').checked = cfg.avisoInicio;
   $('antirrebote').value = cfg.antirreboteMs / 1000; $('colMedida').value = cfg.colMedida; $('colPractica').value = cfg.colPractica;
   $('velActiva').checked = cfg.velActiva; $('umbral').value = cfg.umbralPrecisionM; $('calibrar').checked = cfg.calibrar;
@@ -1994,7 +2017,7 @@ function leerForm() {
     cfg.patron = $('patron').value;
   }
   cfg.cuentaN = Math.round(num('cuentaN', cfg.cuentaN, 0, 60));
-  cfg.modoCuenta = $('modoCuenta').value; cfg.pitidoCero = $('pitidoCero').checked;
+  cfg.modoCuenta = $('modoCuenta').value; cfg.pitidoCero = $('pitidoCero').checked; cfg.clicMarca = $('clicMarca').checked;
   cfg.anticipoMs = Math.round(num('anticipo', cfg.anticipoMs, 0, 1500));
   cfg.avisoInicio = $('avisoInicio').checked;
   cfg.antirreboteMs = Math.round(num('antirrebote', cfg.antirreboteMs / 1000, 0, 60) * 1000);

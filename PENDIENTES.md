@@ -15,10 +15,8 @@ Anotado el 26/10/2026. Nada de esto está programado todavía.
 - **Auriculares:** Bluetooth. Por ahora no se cambia nada en la app.
 - **Placa ESP32:** por ahora no se hace nada.
 
-## Cambios en la app
+## Cambios en la app — hechos en la 1.9.0
 
-1. **Abrir Betómetro al prender el celular:** un ajuste que viene apagado de fábrica. Se activa solo en el celular de la caja, para que no se abra en el teléfono de pruebas.
-2. **Sonido tipo clic al apretar el pulsador:** un clic corto en lugar de un pitido.
-3. **Pitido del cero configurable:** se puede apagar y dejar solo la cuenta regresiva.
-   - Ya existe en Ajustes → "Pitido largo al llegar a cero". Hay que revisar que se vea claro y quizás llevarlo junto a la cuenta regresiva.
-   - **De fábrica tiene que venir desactivado** (hoy viene activado).
+1. Ajustes → Modo carrera → «Abrir Betómetro al prender el teléfono» (apagado de fábrica).
+2. Clic al marcar con el pulsador o MARCAR (Ajustes → Cuenta regresiva → «Clic al marcar»).
+3. Pitido del cero apagado de fábrica; se prende en Ajustes → «Pitido largo al llegar a cero».
