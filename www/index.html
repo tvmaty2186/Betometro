@@ -2089,9 +2089,9 @@ function volver() {   // botón atrás de Android y botones "Volver"
   if (!$('visor').hidden) { cerrarInforme(); return; }
   if (!$('config').hidden) { leerForm(); $('config').hidden = true; return; }
   if (pantalla === 'pantalla') { cerrarConfigPantalla(); return; }
-  if (pantalla === 'crono') { if (motor && motor.enCurso) { avisar('Para salir, terminá la carrera'); return; } mostrar(seleccion && !seleccion.practica ? 'detalle' : 'practica'); return; }
+  if (pantalla === 'crono') { if (motor && motor.enCurso) { avisar('Para salir, terminá la carrera'); return; } mostrar(seleccion && Store.buscar(seleccion.id) ? 'detalle' : 'practica'); return; }
   if (pantalla === 'editor') { mostrar(editando && Store.buscar(editando.id) ? 'detalle' : 'carreras'); return; }
-  if (pantalla === 'detalle') { mostrar(seleccion && seleccion.practica ? 'inicio' : 'carreras'); return; }
+  if (pantalla === 'detalle') { mostrar('carreras'); return; }
   if (pantalla === 'practica') { leerForm(); mostrar('inicio'); return; }
   if (pantalla === 'carreras' || pantalla === 'chequeo') { mostrar('inicio'); return; }
   if (AppInfo) AppInfo.exitApp();
@@ -2190,8 +2190,9 @@ function tarjetaCarnet(c) {
 }
 function dibujarCarreras() {
   const hoy = hoyISO(), cont = $('carrerasLista'); cont.innerHTML = '';
-  const prox = Store.carreras.filter(c => !c.practica && c.fecha >= hoy).sort((a, b) => a.fecha.localeCompare(b.fecha));
-  const ant = Store.carreras.filter(c => c.practica || c.fecha < hoy)
+  const pendiente = c => !c.practica && c.fecha >= hoy && !estadoLargada(c).fin;   // una carrera terminada pasa a «Corridas»
+  const prox = Store.carreras.filter(pendiente).sort((a, b) => a.fecha.localeCompare(b.fecha));
+  const ant = Store.carreras.filter(c => !pendiente(c))
     .sort((a, b) => b.fecha.localeCompare(a.fecha) || String(b.creada).localeCompare(String(a.creada)));
   if (!prox.length && !ant.length) { cont.append(el('p', 'Todavía no hay carreras. Tocá + para cargar la primera.', 'vacio')); return; }
   cont.append(el('p', 'Mantené apretada una carrera para borrarla.', 'hint ayuda-c'));
@@ -2268,9 +2269,8 @@ function graficoVueltas(c) {   // una barra por vuelta: a la derecha llegó tard
   return g;
 }
 function botonesExportar(c) {
-  const archivo = archivoCarrera(c), acc = el('div', undefined, 'acciones');
+  const acc = el('div', undefined, 'acciones');
   acc.append(boton('VER INFORME', 'btn ancho', () => abrirInforme(c)));   // recorrido, velocidad, aceleración y todas las vueltas
-  acc.append(boton('Exportar planilla', 'btn sec', () => exportar(archivo + '.csv', csv(c))), boton('Exportar JSON', 'btn sec', () => exportar(archivo + '.json', JSON.stringify(c, null, 1))));
   return acc;
 }
 function estadoLargada(c) {
@@ -2346,39 +2346,6 @@ function detalleCarnet(c, cont) {
   }
   cont.append(k, accionesCarrera(c));
   if (c.vueltas.length) cont.append(botonesExportar(c));
-}
-function renderResultados(c, cont) {
-  if (!c.vueltas.length) { cont.append(el('p', 'Todavía no se corrió. Los resultados aparecen acá al terminar.', 'vacio')); return; }
-  const r = resumen(c), box = el('div', undefined, 'res-c'), res = el('div', undefined, 'datos-c');
-  const dato = (lbl, val) => { const d = el('div', undefined, 'dato-c'); d.append(el('span', lbl), el('b', val)); return d; };
-  res.append(dato('Corridas', String(r.total)), dato('Medidas', String(r.medidas)));
-  if (r.medidas) res.append(dato('Error total', dur(r.sumaMs)), dato('Error promedio', dur(r.promMs)), dato('Mejor vuelta', dur(r.mejorMs)));
-  const varias = new Set(c.vueltas.map(v => v.largada || 1)).size > 1;
-  const wrap = el('div', undefined, 'tabla-wrap'), t = el('table', undefined, 'tabla');
-  const hr = el('tr'); [varias ? 'Larg.' : null, 'Vuelta', 'Tipo', 'Tiempo', 'Diferencia', 'km/h'].filter(Boolean).forEach(h => hr.append(el('th', h)));
-  const thead = el('thead'); thead.append(hr); t.append(thead);
-  const tb = el('tbody');
-  for (const v of c.vueltas) {
-    const tr = el('tr'), tipo = el('td');
-    tipo.append(el('span', undefined, 'tag ' + (v.medida ? 'm' : 'p')), document.createTextNode(v.medida ? 'Medida' : 'Práctica'));
-    if (varias) tr.append(el('td', String(v.largada || 1)));
-    tr.append(el('td', String(v.n)), tipo, el('td', fmt(v.realMs)), el('td', fmtDif(v.difMs), v.difMs !== 0 ? 'dif-mas' : ''),
-              el('td', v.velPromKmh ? String(v.velPromKmh).replace('.', ',') : '–'));
-    tb.append(tr);
-  }
-  t.append(tb); wrap.append(t);
-  const archivo = 'betometro-' + c.fecha + '-' + c.nombre.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30);
-  const acc = el('div', undefined, 'hist-acc');
-  acc.append(boton('Exportar planilla (CSV)', 'btn sec', () => exportar(archivo + '.csv', csv(c))),
-             boton('Exportar JSON', 'btn sec', () => exportar(archivo + '.json', JSON.stringify(c, null, 1))));
-  if (c.practica) {
-    const b = boton('Borrar', 'btn sec', () => {
-      if (!b.dataset.armado) { b.dataset.armado = '1'; b.textContent = 'Tocá otra vez para borrar'; setTimeout(() => { delete b.dataset.armado; b.textContent = 'Borrar'; }, 3000); return; }
-      Store.borrarCarrera(c.id); seleccion = null; mostrar('carreras');
-    });
-    acc.append(b);
-  }
-  box.append(res, wrap, acc); cont.append(box);
 }
 /* ================= INFORME: RECORRIDO, VELOCIDAD Y ACELERACIÓN ================= */
 // El recorrido se arma con TODAS las vueltas: cada tramo de ~5 m toma la mediana de los puntos buenos de las vueltas
@@ -2480,7 +2447,6 @@ function informeHTML(c) {
   const esc = t => String(t).replace(/[&<>"]/g, x => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[x]);
   return window.INFORME_TPL.replace('__DATOS__', () => datos).replace('__NOMBRE__', () => esc(c.nombre));
 }
-const archivoCarrera = c => 'betometro-' + c.fecha + '-' + c.nombre.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30);
 function abrirInforme(c) {
   const html = informeHTML(c); if (!html) { avisar('No se pudo armar el informe'); return; }
   const v = $('visor'); $('visorMarco').srcdoc = html; v.hidden = false; v._c = c;
@@ -2533,13 +2499,6 @@ async function compartirInforme(c) {
   } catch (e) { if (!/cancel/i.test(String(e && e.message))) avisar('No se pudo compartir'); }
 }
 function cerrarInforme() { $('visor').hidden = true; $('visorMarco').srcdoc = ''; }
-function csv(c) {
-  const n = x => x === undefined || x === null ? '' : String(x).replace('.', ',');
-  const filas = [['Largada', 'Vuelta', 'Tipo', 'Ideal (s)', 'Tiempo (s)', 'Diferencia (s)', 'Metros', 'Vel. promedio (km/h)', 'Vel. máxima (km/h)', 'Marca'].join(';')];
-  for (const v of c.vueltas) filas.push([v.largada || 1, v.n, v.medida ? 'Medida' : 'Práctica', n(v.idealMs / 1000), n(v.realMs / 1000), n(v.difMs / 1000),
-                                         n(v.distM), n(v.velPromKmh), n(v.velMaxKmh), v.fuente].join(';'));
-  return '﻿' + 'Carrera;' + c.nombre + '\r\nFecha;' + c.fecha + '\r\n\r\n' + filas.join('\r\n');
-}
 
 /* ---------- Chequeo previo ---------- */
 let chequeoT = null;
