@@ -412,6 +412,13 @@ html, body { margin: 0; }
 .w-tipo .chip-vuelta { background: none !important; color: #fff; padding: 0; font-size: min(34cqh, calc(var(--k) * .9cqw / 8 / var(--ancho, 1))); transform: scaleX(var(--ancho, 1)); }
 .w-num { transform: scaleX(var(--ancho, 1)); font-size: min(58cqh, calc(var(--k) * 1cqw / var(--n, 4) / var(--ancho, 1))); }
 .w-cuenta .w-num { font-size: min(82cqh, calc(var(--k) * 1.05cqw / var(--n, 6) / var(--ancho, 1))); }
+.w-cuenta.con-barra .w-num { font-size: min(66cqh, calc(var(--k) * 1.05cqw / var(--n, 6) / var(--ancho, 1))); }
+.w-barra { position: relative; width: 62%; height: max(4px, 4.5cqh); margin-top: 3cqh; flex: none; border-radius: 99px;
+  background: linear-gradient(90deg, #d7263d 0%, #f5c518 25%, #2ecc71 45%, #2ecc71 55%, #f5c518 75%, #d7263d 100%); }
+.w-barra i { position: absolute; top: 50%; left: 50%; width: max(3px, 2.2cqh); height: max(12px, 12cqh); transform: translate(-50%, -50%); border-radius: 99px;
+  background: #fff; box-shadow: 0 0 0 1.5px #111, 0 0 6px rgba(0,0,0,.6); transition: left .25s linear; }
+.w-barra.sin-dato i { opacity: .35; }
+:root[data-tema="rally"] .w-barra i { background: #2a2118; box-shadow: 0 0 0 1.5px #f3ead6; }
 .w-delta.e-numero .w-num { font-size: min(70cqh, calc(var(--k) * .95cqw / var(--n, 12) / var(--ancho, 1))); }
 
 /* ===================== 1.4: línea de diseño de menús ===================== */
@@ -1375,6 +1382,7 @@ const TIPOS_W = {
 };
 // Posiciones como fracción del tablero (sirve para cualquier tamaño de pantalla). En los redondos, w es el diámetro (fracción del ancho).
 const REF_W = 378, REF_H = 800;
+const RANGO_BARRA = 5;   // segundos de adelanto/atraso que llenan media barra
 const caja = (x, y, w, h) => ({ x: x / REF_W, y: y / REF_H, w: w / REF_W, h: h / REF_H });
 const WIDGETS_DEF = [   // pantalla de fábrica (la que armó Matías)
   Object.assign({ t: 'velocimetro', e: 'analogico', forma: 'redondo' }, caja(21, 0, 333, 333)),
@@ -1471,6 +1479,12 @@ function crearWidget(def) {
                                       transform: 'rotate(-90 100 100)', 'stroke-dasharray': L.toFixed(1) }, svg);
         box.append(num);
         upd = v => { arc.setAttribute('stroke-dashoffset', (L * (1 - Math.max(0, Math.min(1, v.restanteMs / v.T)))).toFixed(1)); txtCuenta(v); fx(v); };
+      } else if (def.barra !== false) {   // barra delicada: rojo-amarillo-verde-amarillo-rojo, el cursor marca adelantado (→) / atrasado (←)
+        box.classList.add('con-barra');
+        const barra = el('div', undefined, 'w-barra'), cur = el('i'); barra.append(cur); box.append(barra);
+        upd = v => { txtCuenta(v); fx(v);
+          const d = v.deltaS === null || v.deltaS === undefined ? 0 : Math.max(-RANGO_BARRA, Math.min(RANGO_BARRA, v.deltaS));
+          cur.style.left = (50 + d / RANGO_BARRA * 50).toFixed(1) + '%'; barra.classList.toggle('sin-dato', v.deltaS === null || v.deltaS === undefined); };
       } else { upd = v => { txtCuenta(v); fx(v); }; }
       break;
     }
@@ -1578,6 +1592,7 @@ function dibujarEdicion() {
     else { const d = Math.min(def.w * W, def.h * H); def.forma = 'redondo'; def.w = d / W; }
   });
   if (tipo.extra) b(def.extra ? 'Sin dato extra' : 'Dato extra', () => { def.extra = !def.extra; });
+  if (def.t === 'cuenta' && def.e !== 'anillo') b(def.barra === false ? 'Barra ±' : 'Sin barra ±', () => { def.barra = def.barra === false ? undefined : false; });
   const conNumero = !['marcar', 'simulador'].includes(def.t) && !(def.t === 'velocimetro' && def.e !== 'digital') && !(def.t === 'delta' && def.e === 'barra');
   if (conNumero) {   // números más angostos o más anchos (el alto lo pone el tamaño del widget)
     b('Números −', () => { def.ancho = Math.max(0.7, Math.round(((def.ancho || 1) - 0.1) * 10) / 10); });
