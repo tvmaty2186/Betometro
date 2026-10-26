@@ -6,6 +6,10 @@ import android.content.pm.PackageManager;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import android.content.Intent;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
+import android.os.PowerManager;
+import android.view.WindowManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -172,6 +176,50 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
     }
 
     /** Al largar: pantalla completa y No molestar (solo suenan las alarmas, que es el canal de Betómetro). Al terminar: todo como estaba. */
+    // ======================= PANTALLA PROTEGIDA =======================
+    // Con la carrera en curso: si se aprieta el botón de encendido (o la pantalla se apaga por lo que sea),
+    // la pantalla se vuelve a prender sola y Betómetro aparece encima del bloqueo, sin pedir PIN.
+    private BroadcastReceiver receptorApagado = null;
+    static volatile boolean pantallaProtegida = false;
+
+    @PluginMethod
+    public void protegerPantalla(PluginCall call) {
+        final boolean activo = call.getBoolean("activo", false);
+        pantallaProtegida = activo;
+        getActivity().runOnUiThread(() -> {
+            android.app.Activity a = getActivity();
+            if (Build.VERSION.SDK_INT >= 27) { a.setShowWhenLocked(activo); a.setTurnScreenOn(activo); }
+            else {
+                int f = WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON;
+                if (activo) a.getWindow().addFlags(f); else a.getWindow().clearFlags(f);
+            }
+        });
+        Context ctx = getContext().getApplicationContext();
+        if (activo && receptorApagado == null) {
+            receptorApagado = new BroadcastReceiver() {
+                @Override public void onReceive(Context c, Intent i) { if (pantallaProtegida) despertar(c); }
+            };
+            ContextCompat.registerReceiver(ctx, receptorApagado, new IntentFilter(Intent.ACTION_SCREEN_OFF), ContextCompat.RECEIVER_NOT_EXPORTED);
+        } else if (!activo && receptorApagado != null) {
+            try { ctx.unregisterReceiver(receptorApagado); } catch (Exception ignored) { }
+            receptorApagado = null;
+        }
+        call.resolve();
+    }
+
+    @SuppressWarnings("deprecation")
+    private void despertar(Context c) {
+        try {
+            PowerManager pm = (PowerManager) c.getSystemService(Context.POWER_SERVICE);
+            PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.ON_AFTER_RELEASE, "betometro:carrera");
+            wl.acquire(3000);
+        } catch (Exception ignored) { }
+        try {   // traer la app al frente (queda encima del bloqueo)
+            Intent i = new Intent(c, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            c.startActivity(i);
+        } catch (Exception ignored) { }
+    }
+
     @PluginMethod
     public void modoCarrera(PluginCall call) {
         final boolean activo = call.getBoolean("activo", false);
@@ -450,7 +498,7 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
     boolean manejarTecla(KeyEvent e) {
         int code = e.getKeyCode();
         boolean esNuestra = aprender || teclas.contains(code);
-        if (!esNuestra) return false;
+        if (!esNuestra) return pantallaProtegida && (code == KeyEvent.KEYCODE_VOLUME_UP || code == KeyEvent.KEYCODE_VOLUME_DOWN || code == KeyEvent.KEYCODE_VOLUME_MUTE);   // en carrera se ignoran
         if (e.getAction() == KeyEvent.ACTION_DOWN && e.getRepeatCount() == 0) {
             JSObject o = new JSObject();
             o.put("codigo", code);

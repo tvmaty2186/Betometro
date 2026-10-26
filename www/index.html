@@ -1776,6 +1776,7 @@ $('btnUbicPrecisa').addEventListener('click', pedirUbicacionPrecisa);
 /* ================= MODO CARRERA: No molestar y pantalla completa ================= */
 let avisoNoMolestar = false;
 function modoCarrera(activo) {
+  if (Beto) Beto.protegerPantalla({ activo }).catch(() => {});   // siempre: la pantalla no queda bloqueada durante la carrera
   if (!Beto || (activo && !cfg.modoCarrera)) return;
   Beto.modoCarrera({ activo }).then(r => {
     if (activo && !r.noMolestar && !avisoNoMolestar) { avisoNoMolestar = true; avisar('Para silenciar llamadas y notificaciones, permití «No molestar» en Ajustes → Modo carrera'); }
