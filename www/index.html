@@ -1382,7 +1382,7 @@ const TIPOS_W = {
 };
 // Posiciones como fracción del tablero (sirve para cualquier tamaño de pantalla). En los redondos, w es el diámetro (fracción del ancho).
 const REF_W = 378, REF_H = 800;
-const PROP_BARRA = 0.05;   // cada punta de la barra = 5 % del tiempo ideal de la vuelta (o sea, 5 % de su distancia)
+const PROP_BARRA = 0.10;   // cada punta de la barra = 10 % del tiempo ideal de la vuelta (o sea, 10 % de su distancia)
 const caja = (x, y, w, h) => ({ x: x / REF_W, y: y / REF_H, w: w / REF_W, h: h / REF_H });
 const WIDGETS_DEF = [   // pantalla de fábrica (la que armó Matías)
   Object.assign({ t: 'velocimetro', e: 'analogico', forma: 'redondo' }, caja(21, 0, 333, 333)),
@@ -2058,11 +2058,20 @@ const nombrePatron = p => p === 'alt1' ? 'alternadas, 1.ª medida' : p === 'alt2
 const esCarnet = () => (cfg.tema || 'sport') === 'rally';
 const MESES = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
 const nivelErr = s => s <= 0.2 ? 'ok' : s <= 0.5 ? 'medio' : 'mal';   // segundos de error por vuelta
-const difCorta = ms => (ms > 0 ? '+' : ms < 0 ? '−' : '±') + (Math.abs(ms) / 1000).toFixed(1).replace('.', ',');
+// Tiempos de error: hasta 59,9 s en segundos; desde 1 minuto en m:ss,d y desde 1 hora en h:mm:ss,d
+function durNum(ms) {
+  const a = Math.abs(ms);
+  if (a < 59950) return (a / 1000).toFixed(1).replace('.', ',');
+  const t = Math.round(a / 100), d = t % 10, s = Math.floor(t / 10), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), ss = s % 60, p2 = n => String(n).padStart(2, '0');
+  return (h ? h + ':' + p2(m) : m) + ':' + p2(ss) + ',' + d;
+}
+const dur = ms => durNum(ms) + (Math.abs(ms) < 59950 ? ' s' : '');
+const difCorta = ms => (ms > 0 ? '+' : ms < 0 ? '−' : '±') + durNum(ms);
+const difDur = ms => (ms > 0 ? '+' : ms < 0 ? '−' : '±') + dur(ms);
 function diasHasta(iso) { const [a, m, d] = iso.split('-').map(Number), h = new Date(); h.setHours(0, 0, 0, 0); return Math.round((new Date(a, m - 1, d) - h) / 864e5); }
 function estadoCarrera(c) {
   const r = resumen(c);
-  if (r.medidas) return { txt: 'ERROR ' + seg(r.sumaMs) + ' s', cls: 'e-' + nivelErr(r.promMs / 1000) };
+  if (r.medidas) return { txt: 'ERROR ' + dur(r.sumaMs), cls: 'e-' + nivelErr(r.promMs / 1000) };
   if (c.practica) return { txt: 'PRÁCTICA', cls: 'e-prox' };
   if (estadoLargada(c).fin) return { txt: 'FINALIZADA', cls: 'e-prox' };
   const d = diasHasta(c.fecha);
@@ -2111,7 +2120,7 @@ function tarjetaCarnet(c) {
     const cas = el('div', undefined, 'casillas');
     med.slice(0, 6).forEach(v => { const x = el('div'); x.append(el('span', 'V' + v.n), el('b', difCorta(v.difMs))); cas.append(x); });
     const r = resumen(c);
-    t.append(cas, el('span', 'ERROR ' + seg(r.sumaMs) + ' s', 'sello ' + (nivelErr(r.promMs / 1000) === 'mal' ? 'rojo' : 'verde')));
+    t.append(cas, el('span', 'ERROR ' + dur(r.sumaMs), 'sello ' + (nivelErr(r.promMs / 1000) === 'mal' ? 'rojo' : 'verde')));
     t.classList.add('con-sello');
   } else {
     const lin = el('div', undefined, 'carnet-lin');
@@ -2185,17 +2194,17 @@ function resumen(c) {
 }
 function dotsPatron(p) { const d = el('span', undefined, 'dots'); for (let n = 1; n <= 4; n++) d.append(el('i', undefined, Motor.esMedida(p, n) ? 'm' : 'p')); return d; }
 function graficoVueltas(c) {   // una barra por vuelta: a la derecha llegó tarde, a la izquierda antes
-  const g = el('div', undefined, 'grafico-c'), max = Math.max(1000, ...c.vueltas.map(v => Math.abs(v.difMs)));
+  const g = el('div', undefined, 'grafico-c'), max = Math.max(1000, c.tiempoIdealMs * PROP_BARRA);   // las puntas = 10 % de la vuelta
   const varias = new Set(c.vueltas.map(v => v.largada || 1)).size > 1;
   let larg = 0;
   for (const v of c.vueltas) {
     if (varias && (v.largada || 1) !== larg) { larg = v.largada || 1; g.append(el('div', 'Largada ' + larg, 'grafico-sep')); }
     const fila = el('div', undefined, 'filav' + (v.medida ? '' : ' practica'));
     const eje = el('div', undefined, 'eje'), barra = el('i', undefined, 'b-' + nivelErr(Math.abs(v.difMs) / 1000));
-    barra.style.width = (Math.abs(v.difMs) / max * 48) + '%';
+    barra.style.width = (Math.min(1, Math.abs(v.difMs) / max) * 48) + '%';
     barra.style[v.difMs >= 0 ? 'left' : 'right'] = '50%';
     eje.append(barra);
-    fila.append(el('span', String(v.n), 'chipv ' + (v.medida ? 'm' : 'p')), eje, el('span', difCorta(v.difMs) + ' s', 'valv'));
+    fila.append(el('span', String(v.n), 'chipv ' + (v.medida ? 'm' : 'p')), eje, el('span', difDur(v.difMs), 'valv'));
     g.append(fila);
   }
   return g;
@@ -2239,9 +2248,9 @@ function dibujarDetalle() {
   cont.append(el('p', fechaLarga(c.fecha), 'hint fecha-ficha'));
   const hero = el('div', undefined, 'hero-c');
   if (r.medidas) {
-    hero.append(el('span', 'Error total · vueltas medidas', 'et'), el('b', seg(r.sumaMs) + ' s', 'grande n-' + nivelErr(r.promMs / 1000)));
+    hero.append(el('span', 'Error total · vueltas medidas', 'et'), el('b', dur(r.sumaMs), 'grande n-' + nivelErr(r.promMs / 1000)));
     const sub = el('div', undefined, 'sub'); const d = (k, v) => { const x = el('div'); x.append(el('span', k), el('b', v)); sub.append(x); };
-    d('Promedio', seg(r.promMs) + ' s'); d('Mejor', seg(r.mejorMs) + ' s'); d('Vueltas', r.total + (c.vueltasTotal ? '/' + c.vueltasTotal : ''));
+    d('Promedio', dur(r.promMs)); d('Mejor', dur(r.mejorMs)); d('Vueltas', r.total + (c.vueltasTotal ? '/' + c.vueltasTotal : ''));
     hero.append(sub);
   } else {
     const dd = diasHasta(c.fecha);
@@ -2274,7 +2283,7 @@ function detalleCarnet(c, cont) {
     for (const v of c.vueltas) { const x = el('div', undefined, v.medida ? '' : 'practica'); x.append(el('span', 'V' + v.n), el('b', difCorta(v.difMs))); cas.append(x); }
     k.append(cas);
     const r = resumen(c);
-    if (r.medidas) { k.classList.add('con-sello'); k.append(el('span', 'ERROR ' + seg(r.sumaMs) + ' s', 'sello ' + (nivelErr(r.promMs / 1000) === 'mal' ? 'rojo' : 'verde'))); }
+    if (r.medidas) { k.classList.add('con-sello'); k.append(el('span', 'ERROR ' + dur(r.sumaMs), 'sello ' + (nivelErr(r.promMs / 1000) === 'mal' ? 'rojo' : 'verde'))); }
   }
   cont.append(k, accionesCarrera(c));
   if (c.vueltas.length) cont.append(botonesExportar(c));
@@ -2284,7 +2293,7 @@ function renderResultados(c, cont) {
   const r = resumen(c), box = el('div', undefined, 'res-c'), res = el('div', undefined, 'datos-c');
   const dato = (lbl, val) => { const d = el('div', undefined, 'dato-c'); d.append(el('span', lbl), el('b', val)); return d; };
   res.append(dato('Corridas', String(r.total)), dato('Medidas', String(r.medidas)));
-  if (r.medidas) res.append(dato('Error total', seg(r.sumaMs) + ' s'), dato('Error promedio', seg(r.promMs) + ' s'), dato('Mejor vuelta', seg(r.mejorMs) + ' s'));
+  if (r.medidas) res.append(dato('Error total', dur(r.sumaMs)), dato('Error promedio', dur(r.promMs)), dato('Mejor vuelta', dur(r.mejorMs)));
   const varias = new Set(c.vueltas.map(v => v.largada || 1)).size > 1;
   const wrap = el('div', undefined, 'tabla-wrap'), t = el('table', undefined, 'tabla');
   const hr = el('tr'); [varias ? 'Larg.' : null, 'Vuelta', 'Tipo', 'Tiempo', 'Diferencia', 'km/h'].filter(Boolean).forEach(h => hr.append(el('th', h)));
