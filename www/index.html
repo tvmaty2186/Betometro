@@ -2485,6 +2485,53 @@ function abrirInforme(c) {
   const html = informeHTML(c); if (!html) { avisar('No se pudo armar el informe'); return; }
   const v = $('visor'); $('visorMarco').srcdoc = html; v.hidden = false; v._c = c;
 }
+// Imagen de vista previa (1080 × 1080) para mandar junto con el informe
+function imagenInforme(c) {
+  const D = datosInforme(c), cv = document.createElement('canvas'); cv.width = cv.height = 1080;
+  const g = cv.getContext('2d'), F = 'system-ui, -apple-system, Roboto, sans-serif';
+  g.fillStyle = '#121417'; g.fillRect(0, 0, 1080, 1080);
+  g.strokeStyle = 'rgba(255,255,255,.025)'; g.lineWidth = 6; for (let i = -1080; i < 1080; i += 24) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 1080, 1080); g.stroke(); }
+  g.fillStyle = '#d7263d'; g.font = '700 30px ' + F; g.fillText('BETÓMETRO · INFORME DE CARRERA', 60, 90);
+  g.fillStyle = '#eef0f2'; g.font = '800 64px ' + F; g.fillText(c.nombre.slice(0, 26), 60, 165);
+  g.fillStyle = '#8a929b'; g.font = '500 30px ' + F;
+  g.fillText(new Date(c.fecha + 'T12:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }) + ' · ideal ' + fmt(c.tiempoIdealMs) + (c.distanciaM ? ' · ' + c.distanciaM.toLocaleString('es-AR') + ' m' : ''), 60, 212);
+  // recorrido: la vuelta medida (o la primera con datos) pintada por velocidad
+  const iv = D.vueltas.findIndex(v => v.m && v.medida) >= 0 ? D.vueltas.findIndex(v => v.m && v.medida) : D.vueltas.findIndex(v => v.m);
+  const caja = { x: 90, y: 250, w: 900, h: 560 };
+  if (D.pista.length && iv >= 0) {
+    const k = Math.min(caja.w / 364, caja.h / 330), ox = caja.x + (caja.w - 364 * k) / 2, oy = caja.y + (caja.h - 330 * k) / 2, P = q => [ox + q[0] * k, oy + q[1] * k];
+    g.lineCap = g.lineJoin = 'round';
+    g.strokeStyle = '#3a3f45'; g.lineWidth = 30; g.beginPath(); D.pista.forEach((q, i) => { const [x, y] = P(q); i ? g.lineTo(x, y) : g.moveTo(x, y); }); if (D.cerrada) g.closePath(); g.stroke();
+    const vSug = D.distanciaM ? D.distanciaM / (D.idealMs / 1000) * 3.6 : null;
+    const col = v => { if (!vSug) return '#2ecc71'; const d = v - vSug; return d > 6 ? '#d7263d' : d > 2 ? '#f5c518' : d < -6 ? '#3d8bfd' : d < -2 ? '#7fd3ff' : '#2ecc71'; };
+    const M = D.vueltas[iv].m; g.lineWidth = 20;
+    for (let i = 1; i < M.length; i++) { if (!M[i][7] || !M[i - 1][7]) continue; const [a, b] = P(M[i - 1].slice(5, 7)), [x, y] = P(M[i].slice(5, 7)); g.strokeStyle = col(M[i][2]); g.beginPath(); g.moveTo(a, b); g.lineTo(x, y); g.stroke(); }
+    const [lx, ly] = P(D.pista[0]); g.fillStyle = '#fff'; g.beginPath(); g.arc(lx, ly, 16, 0, 7); g.fill();
+    g.fillStyle = '#8a929b'; g.font = '600 26px ' + F; g.textAlign = 'center'; g.fillText('Vuelta ' + D.vueltas[iv].n + ' · coloreada por velocidad', 540, 845); g.textAlign = 'left';
+  } else { g.fillStyle = '#8a929b'; g.font = '600 32px ' + F; g.textAlign = 'center'; g.fillText('Resultados de la carrera', 540, 530); g.textAlign = 'left'; }
+  // tres datos
+  const r = resumen(c), datos = [[c.vueltas.length + (c.vueltasTotal ? '/' + c.vueltasTotal : ''), 'VUELTAS'],
+    [r.medidas ? dur(r.sumaMs) : '–', 'ERROR TOTAL'], [r.medidas ? dur(r.mejorMs) : '–', 'MEJOR VUELTA']];
+  datos.forEach(([v, et], i) => {
+    const x = 60 + i * 330; g.fillStyle = '#1b1e22'; g.strokeStyle = '#2c3137'; g.lineWidth = 3;
+    g.beginPath(); g.roundRect ? g.roundRect(x, 880, 300, 140, 24) : g.rect(x, 880, 300, 140); g.fill(); g.stroke();
+    g.textAlign = 'center'; g.fillStyle = '#eef0f2'; g.font = '800 54px ' + F; g.fillText(v, x + 150, 955);
+    g.fillStyle = '#8a929b'; g.font = '700 22px ' + F; g.fillText(et, x + 150, 995); g.textAlign = 'left';
+  });
+  return cv.toDataURL('image/png').split(',')[1];
+}
+async function compartirInforme(c) {
+  const html = informeHTML(c); if (!html) { avisar('No se pudo armar el informe'); return; }
+  const f = new Date(c.fecha + 'T12:00'), dd = String(f.getDate()).padStart(2, '0') + '-' + String(f.getMonth() + 1).padStart(2, '0') + '-' + f.getFullYear();
+  const base = '🏁 ' + c.nombre.replace(/[\\/:*?"<>|]+/g, ' ').trim().slice(0, 40) + ' ' + dd;
+  if (!(NATIVO && FS && Share)) { exportar(base + '.html', html); return; }
+  try {
+    const a = await FS.writeFile({ path: base + '.html', data: html, directory: 'CACHE', encoding: 'utf8' });
+    const files = [a.uri];
+    try { const img = await FS.writeFile({ path: base + '.png', data: imagenInforme(c), directory: 'CACHE' }); files.unshift(img.uri); } catch (e) { }
+    await Share.share({ title: base, files });
+  } catch (e) { if (!/cancel/i.test(String(e && e.message))) avisar('No se pudo compartir'); }
+}
 function cerrarInforme() { $('visor').hidden = true; $('visorMarco').srcdoc = ''; }
 function csv(c) {
   const n = x => x === undefined || x === null ? '' : String(x).replace('.', ',');
@@ -2576,7 +2623,7 @@ async function exportar(nombre, texto) {
 }
 $('btnSalir').addEventListener('click', volver);
 $('visorVolver').addEventListener('click', cerrarInforme);
-$('visorCompartir').addEventListener('click', () => { const c = $('visor')._c; if (c) exportar(archivoCarrera(c) + '.html', informeHTML(c)); });
+$('visorCompartir').addEventListener('click', () => { const c = $('visor')._c; if (c) compartirInforme(c); });
 $('mCarreras').addEventListener('click', () => mostrar('carreras'));
 const APK_URL = 'https://github.com/tvmaty2186/Betometro/releases/latest/download/betometro.apk';
 $('mCompartir').addEventListener('click', async () => {
