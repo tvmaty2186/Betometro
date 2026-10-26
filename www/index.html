@@ -307,9 +307,6 @@ body.ind-fondo.medida .app, body.ind-fondo.practica .app { background: transpare
 .crono-chips { position: absolute; top: max(10px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); display: flex; gap: 6px; z-index: 8; }
 .crono-chips .chip-btn { min-height: 30px; padding: 4px 12px; font-size: 13px; background: rgba(0,0,0,.45); color: var(--ink); }
 :root.sol .crono-chips .chip-btn { background: #fff; border-color: #000; }
-@media (orientation: landscape) {   /* acostado: Terminar/Salir abajo a la izquierda, en la esquina libre del velocímetro */
-  .crono-chips { top: auto !important; right: auto !important; bottom: max(10px, env(safe-area-inset-bottom, 0px)); left: max(12px, env(safe-area-inset-left, 0px)); }
-}
 .crono-nombre { position: absolute; top: max(14px, env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px)); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-dim); z-index: 8; }
 
 /* ===== editor ===== */
@@ -1399,16 +1396,18 @@ const WIDGETS_DEF = [   // pantalla de fábrica (la que armó Matías)
   Object.assign({ t: 'tipo' }, caja(0, 246, 105, 88)),
   Object.assign({ t: 'necesaria' }, caja(276, 242, 102, 92)),
   Object.assign({ t: 'cuenta', e: 'numeros', ancho: 1.2, extra: true }, caja(0, 338, 378, 141)),
-  Object.assign({ t: 'marcar' }, caja(0, 485, 378, 276))
+  Object.assign({ t: 'ultima' }, caja(6, 484, 366, 50)),
+  Object.assign({ t: 'marcar' }, caja(0, 544, 378, 208))
 ];
 // Pantalla horizontal de fábrica (referencia 800 × 378): velocímetro a la izquierda, datos y MARCAR a la derecha
 const cajaH = (x, y, w, h) => ({ x: x / 800, y: y / 378, w: w / 800, h: h / 378 });
-const WIDGETS_DEF_H = [
-  Object.assign({ t: 'velocimetro', e: 'analogico', forma: 'redondo' }, cajaH(14, 6, 366, 366)),
-  Object.assign({ t: 'tipo' }, cajaH(392, 0, 200, 88)),
-  Object.assign({ t: 'necesaria' }, cajaH(600, 0, 200, 88)),
-  Object.assign({ t: 'cuenta', e: 'numeros', ancho: 1.2, extra: true }, cajaH(392, 94, 408, 140)),
-  Object.assign({ t: 'marcar' }, cajaH(392, 240, 408, 138))
+const WIDGETS_DEF_H = [   // la que armó Matías: cuenta arriba a lo ancho, velocímetro digital, última vuelta y MARCAR abajo
+  Object.assign({ t: 'cuenta', e: 'numeros', ancho: 1.2, extra: true }, cajaH(3, 3, 795, 164)),
+  Object.assign({ t: 'tipo' }, cajaH(3, 3, 109, 101)),
+  Object.assign({ t: 'necesaria' }, cajaH(676, 65, 122, 102)),
+  Object.assign({ t: 'velocimetro', e: 'digital' }, cajaH(3, 183, 206, 192)),
+  Object.assign({ t: 'ultima' }, cajaH(214, 185, 140, 184)),
+  Object.assign({ t: 'marcar' }, cajaH(361, 183, 411, 184))
 ];
 let horizontal = false;   // la pantalla de carrera tiene un armado propio cuando el teléfono está acostado
 const capa = () => horizontal ? cfg.widgetsH : cfg.widgets;
