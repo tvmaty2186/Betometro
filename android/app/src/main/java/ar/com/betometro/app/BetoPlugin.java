@@ -209,13 +209,6 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
         call.resolve();
     }
 
-    @PluginMethod
-    public void abrirAjustesSeguridad(PluginCall call) {
-        Intent i = new Intent(Settings.ACTION_SECURITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        try { getContext().startActivity(i); } catch (Exception ignored) { }
-        call.resolve();
-    }
-
     // ======================= PANTALLA PROTEGIDA =======================
     // Con la carrera en curso: si se aprieta el botón de encendido (o la pantalla se apaga por lo que sea),
     // la pantalla se vuelve a prender sola y Betómetro aparece encima del bloqueo, sin pedir PIN.
@@ -224,17 +217,10 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
 
     @PluginMethod
     public void protegerPantalla(PluginCall call) {
-        final boolean activo = call.getBoolean("activo", false), fijar = call.getBoolean("fijar", false);
+        final boolean activo = call.getBoolean("activo", false);
         pantallaProtegida = activo;
         getActivity().runOnUiThread(() -> {
             android.app.Activity a = getActivity();
-            // Fijar la app: Inicio y apps recientes no sacan de Betómetro durante la carrera
-            try {
-                android.app.ActivityManager am = (android.app.ActivityManager) a.getSystemService(Context.ACTIVITY_SERVICE);
-                boolean fijada = am != null && am.getLockTaskModeState() != android.app.ActivityManager.LOCK_TASK_MODE_NONE;
-                if (activo && fijar && !fijada) a.startLockTask();
-                if (!activo && fijada) a.stopLockTask();
-            } catch (Exception ignored) { }
             if (Build.VERSION.SDK_INT >= 27) { a.setShowWhenLocked(activo); a.setTurnScreenOn(activo); }
             else {
                 int f = WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON;
