@@ -1562,8 +1562,9 @@ function crearWidget(def) {
     case 'ideal': ponerTxt(lbl, 'Ideal'); box.append(num); upd = v => ponerNum(num, fmt(v.T)); break;
     case 'proxima': ponerTxt(lbl, 'Próxima vuelta'); box.append(num); upd = v => ponerNum(num, v.proxMedida ? 'MEDIDA' : 'PRÁCTICA'); break;
     case 'ultima': {
-      ponerTxt(lbl, 'Última vuelta'); box.append(num); const fx = conExt(() => 'mejor ' + (mejorDif === null ? '–' : fmtDif(mejorDif)));
-      upd = v => { const u = ultimaVuelta; ponerNum(num, u ? 'V' + u.n + ' ' + fmtDif(u.difMs) : '–'); num.classList.toggle('atr', !!(u && u.difMs !== 0)); fx(v); };
+      // el tiempo real medido de la última vuelta corrida; el dato extra es la diferencia con el ideal
+      ponerTxt(lbl, 'Última vuelta'); box.append(num); const fx = conExt(() => ultimaVuelta ? difDur(ultimaVuelta.difMs) + ' del ideal' : '');
+      upd = v => { const u = ultimaVuelta; ponerTxt(lbl, u ? 'Última vuelta · V' + u.n : 'Última vuelta'); ponerNum(num, u ? fmt(u.realMs) : '–'); fx(v); };
       break;
     }
   }
