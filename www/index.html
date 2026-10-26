@@ -425,6 +425,7 @@ html, body { margin: 0; }
 .w-barra i { position: absolute; top: 50%; left: 50%; width: max(3px, 2.2cqh); height: max(12px, 12cqh); transform: translate(-50%, -50%); border-radius: 99px;
   background: #fff; box-shadow: 0 0 0 1.5px #111, 0 0 6px rgba(0,0,0,.6); transition: left .25s linear; }
 .w-barra.sin-dato i { opacity: .35; }
+.w-velocimetro.con-barra .w-num { font-size: min(46cqh, calc(var(--k) * 1cqw / var(--n, 4) / var(--ancho, 1))); }
 :root[data-tema="rally"] .w-barra i { background: #2a2118; box-shadow: 0 0 0 1.5px #f3ead6; }
 .w-delta.e-numero .w-num { font-size: min(70cqh, calc(var(--k) * .95cqw / var(--n, 12) / var(--ancho, 1))); }
 
@@ -1379,7 +1380,7 @@ const TIPOS_W = {
   tipo: { nombre: 'Vuelta y tipo (medida o práctica)', formas: false },
   cuenta: { nombre: 'Cuenta regresiva', estilos: { numeros: 'Números', anillo: 'Anillo' }, extra: true },
   delta: { nombre: 'Adelantado / atrasado', estilos: { numero: 'Número', barra: 'Barra' }, vel: true },
-  velocimetro: { nombre: 'Velocímetro', estilos: { analogico: 'Analógico', digital: 'Digital' }, vel: true, extra: true },
+  velocimetro: { nombre: 'Velocímetro', vel: true, extra: true },   // redondo = analógico, cuadrado = digital
   necesaria: { nombre: 'Velocidad sugerida', vel: true, extra: true },
   faltan: { nombre: 'Metros que faltan', vel: true, extra: true },
   transcurrido: { nombre: 'Tiempo transcurrido' },
@@ -1539,9 +1540,16 @@ function crearWidget(def) {
     }
     case 'velocimetro': {
       const fx = v => conExtra ? 'máx ' + Math.round(velMaxVuelta) : '';
-      if (def.e === 'digital') {
+      if (def.forma !== 'redondo') {   // cuadrado = digital, con barra de diferencia contra la velocidad sugerida
         ponerTxt(lbl, 'Velocidad km/h'); box.append(num); const f2 = conExt(v => 'máx ' + Math.round(velMaxVuelta));
-        upd = v => { ponerNum(num, v.sinGps ? 'SIN GPS' : kmhN(v.vActKmh)); f2(v); };
+        let barra = null, cur = null;
+        if (def.barra !== false) { box.classList.add('con-barra'); barra = el('div', undefined, 'w-barra'); cur = el('i'); barra.append(cur); box.append(barra); }
+        upd = v => { ponerNum(num, v.sinGps ? 'SIN GPS' : kmhN(v.vActKmh)); f2(v);
+          if (!barra) return;
+          const ok = !v.sinGps && v.vActKmh !== null && v.vActKmh !== undefined && v.vNecKmh > 0;
+          const rango = Math.max(5, (v.vNecKmh || 0) * PROP_BARRA);   // cada punta: 10 % de la sugerida (mínimo 5 km/h)
+          const d = ok ? Math.max(-rango, Math.min(rango, v.vActKmh - v.vNecKmh)) : 0;
+          cur.style.left = (50 + d / rango * 50).toFixed(1) + '%'; barra.classList.toggle('sin-dato', !ok); };
       } else { box.innerHTML = ''; upd = velocimetro(box, fx); }
       break;
     }
@@ -1616,8 +1624,8 @@ function dibujarEdicion() {
     else { const d = Math.min(def.w * W, def.h * H); def.forma = 'redondo'; def.w = d / W; }
   });
   if (tipo.extra) b(def.extra ? 'Sin dato extra' : 'Dato extra', () => { def.extra = !def.extra; });
-  if (def.t === 'cuenta' && def.e !== 'anillo') b(def.barra === false ? 'Barra ±' : 'Sin barra ±', () => { def.barra = def.barra === false ? undefined : false; });
-  const conNumero = !['marcar', 'simulador'].includes(def.t) && !(def.t === 'velocimetro' && def.e !== 'digital') && !(def.t === 'delta' && def.e === 'barra');
+  if ((def.t === 'cuenta' && def.e !== 'anillo') || (def.t === 'velocimetro' && def.forma !== 'redondo')) b(def.barra === false ? 'Barra ±' : 'Sin barra ±', () => { def.barra = def.barra === false ? undefined : false; });
+  const conNumero = !['marcar', 'simulador'].includes(def.t) && !(def.t === 'velocimetro' && def.forma === 'redondo') && !(def.t === 'delta' && def.e === 'barra');
   if (conNumero) {   // números más angostos o más anchos (el alto lo pone el tamaño del widget)
     b('Números −', () => { def.ancho = Math.max(0.7, Math.round(((def.ancho || 1) - 0.1) * 10) / 10); });
     b('Números +', () => { def.ancho = Math.min(1.8, Math.round(((def.ancho || 1) + 0.1) * 10) / 10); });
