@@ -1212,7 +1212,7 @@ const Audio = (() => {
   }
   if (NATIVO && Beto) {
     let est = { motor: false, listos: 0, total: 0, idioma: '' };
-    const numeros = Array.from({ length: 60 }, (_, i) => String(i + 1));
+    const numeros = ['cero'].concat(Array.from({ length: 60 }, (_, i) => String(i + 1)));
     Beto.addListener('voz', e => { est = e; });
     Beto.prepararVoz({ textos: numeros, velocidad: 1.15, canal: (Store.config && Store.config.canalAudio) || 'alarma' }).then(e => { est = e; }).catch(() => {});
     return {
@@ -1221,7 +1221,7 @@ const Audio = (() => {
       tic() { Beto.reproducir({ texto: '#tic' }).catch(() => {}); },
       clic() { Beto.reproducir({ texto: '#clic' }).catch(() => {}); },
       hablar(texto) { Beto.hablar({ texto }).catch(() => {}); return null; },
-      numero(k) { Beto.reproducir({ texto: String(k) }).catch(() => {}); },
+      numero(k) { Beto.reproducir({ texto: k === 0 ? 'cero' : String(k) }).catch(() => {}); },
       diagnostico() {
         if (!est.motor) return 'Voz: preparando el motor de voz de Android… Si no avanza, revisá en Ajustes de Android que esté instalada la voz de Google en español.';
         return 'Voz: ' + (est.idioma || 'idioma por defecto') + '. Números grabados: ' + est.listos + ' de ' + est.total + '.';
@@ -1229,7 +1229,7 @@ const Audio = (() => {
       hayVoz: true
     };
   }
-  return { desbloquear, pitido, tic() { pitido(1000, 70); }, clic, hablar, numero(k) { hablar(String(k)); }, diagnostico, hayVoz: !!synth };
+  return { desbloquear, pitido, tic() { pitido(1000, 70); }, clic, hablar, numero(k) { hablar(k === 0 ? 'cero' : String(k)); }, diagnostico, hayVoz: !!synth };
 })();
 
 /* ================= ESTADO DE LA APP ================= */
@@ -1362,6 +1362,10 @@ function programador() {
     }
   }
   if (cfg.pitidoCero && !pitoCero && e.restanteMs <= 0) { pitoCero = true; Audio.pitido(1320, 450); }
+  // sin pitido largo, el cero lo marca la misma cuenta: dice «cero» (o un pitido corto si cuenta con pitidos)
+  if (!cfg.pitidoCero && N > 0 && !pitoCero && ultimoK !== null && e.restanteMs - ant <= 0) {
+    pitoCero = true; if (cfg.modoCuenta === 'voz') Audio.numero(0); else Audio.pitido(880, 90);
+  }
 }
 setInterval(programador, 15);
 
@@ -2076,7 +2080,7 @@ $('btnProbar').addEventListener('click', () => {
     const ant = cfg.modoCuenta === 'voz' ? cfg.anticipoMs : 0;
     const k = Math.ceil((rest - ant) / 1000);
     if (k >= 1 && k <= 5 && k !== ult) { ult = k; if (cfg.modoCuenta === 'voz') Audio.numero(k); else Audio.pitido(880, 90); }
-    if (!cero && rest <= 0) { cero = true; Audio.pitido(1320, 450); }
+    if (!cero && (cfg.pitidoCero ? rest <= 0 : rest - ant <= 0)) { cero = true; if (cfg.pitidoCero) Audio.pitido(1320, 450); else if (cfg.modoCuenta === 'voz') Audio.numero(0); else Audio.pitido(880, 90); }
     el.textContent = 'Prueba: ' + (rest > 0 ? fmt(rest, true) : '0:00.0');
     if (rest > -600) setTimeout(tick, 10);
   };
