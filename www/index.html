@@ -1382,7 +1382,7 @@ const TIPOS_W = {
 };
 // Posiciones como fracción del tablero (sirve para cualquier tamaño de pantalla). En los redondos, w es el diámetro (fracción del ancho).
 const REF_W = 378, REF_H = 800;
-const RANGO_BARRA = 5;   // segundos de adelanto/atraso que llenan media barra
+const PROP_BARRA = 0.05;   // cada punta de la barra = 5 % del tiempo ideal de la vuelta (o sea, 5 % de su distancia)
 const caja = (x, y, w, h) => ({ x: x / REF_W, y: y / REF_H, w: w / REF_W, h: h / REF_H });
 const WIDGETS_DEF = [   // pantalla de fábrica (la que armó Matías)
   Object.assign({ t: 'velocimetro', e: 'analogico', forma: 'redondo' }, caja(21, 0, 333, 333)),
@@ -1429,8 +1429,7 @@ function velocimetro(box, extraFn) {
     svgEl('circle', { cx, cy, r: 9, class: 'g-eje' }, svg);
   }
   return v => {
-    const base = v.vBaseKmh || v.vNecKmh || 60;
-    const m = Math.max(60, Math.min(200, Math.ceil(base * 1.6 / 20) * 20));
+    const m = 160;   // escala fija 0–160 km/h
     if (m !== max) armar(m);
     const real = v.sinGps ? null : v.vActKmh, nec = v.vNecKmh;
     aguja.setAttribute('transform', `rotate(${ang(real || 0)} ${cx} ${cy})`);
@@ -1483,8 +1482,9 @@ function crearWidget(def) {
         box.classList.add('con-barra');
         const barra = el('div', undefined, 'w-barra'), cur = el('i'); barra.append(cur); box.append(barra);
         upd = v => { txtCuenta(v); fx(v);
-          const d = v.deltaS === null || v.deltaS === undefined ? 0 : Math.max(-RANGO_BARRA, Math.min(RANGO_BARRA, v.deltaS));
-          cur.style.left = (50 + d / RANGO_BARRA * 50).toFixed(1) + '%'; barra.classList.toggle('sin-dato', v.deltaS === null || v.deltaS === undefined); };
+          const rango = Math.max(1, (v.T || 0) / 1000 * PROP_BARRA);   // se ajusta solo a cada vuelta
+          const d = v.deltaS === null || v.deltaS === undefined ? 0 : Math.max(-rango, Math.min(rango, v.deltaS));
+          cur.style.left = (50 + d / rango * 50).toFixed(1) + '%'; barra.classList.toggle('sin-dato', v.deltaS === null || v.deltaS === undefined); };
       } else { upd = v => { txtCuenta(v); fx(v); }; }
       break;
     }
