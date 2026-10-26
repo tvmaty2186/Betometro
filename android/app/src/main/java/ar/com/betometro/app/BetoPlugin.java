@@ -176,6 +176,46 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
     }
 
     /** Al largar: pantalla completa y No molestar (solo suenan las alarmas, que es el canal de Betómetro). Al terminar: todo como estaba. */
+    @Override
+    protected void handleOnResume() {
+        super.handleOnResume();
+        try { ((NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE)).cancel(NOTIF_DESPERTAR); } catch (Exception ignored) { }
+    }
+
+    /** Qué permisos faltan para que la pantalla vuelva sola si se bloquea. */
+    @PluginMethod
+    public void estadoPantalla(PluginCall call) {
+        Context c = getContext();
+        boolean notif = Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(c, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+        boolean completa = true;
+        if (Build.VERSION.SDK_INT >= 34) { NotificationManager nm = notificaciones(); completa = nm != null && nm.canUseFullScreenIntent(); }
+        boolean encima = Settings.canDrawOverlays(c);
+        call.resolve(new JSObject().put("notificaciones", notif).put("pantallaCompleta", completa).put("encima", encima));
+    }
+
+    /** Abre el ajuste que falta (de a uno): notificaciones → pantalla completa → mostrar encima. */
+    @PluginMethod
+    public void pedirPantalla(PluginCall call) {
+        Context c = getContext();
+        Uri pkg = Uri.parse("package:" + c.getPackageName());
+        Intent i;
+        if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(c, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
+            i = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, c.getPackageName());
+        else if (Build.VERSION.SDK_INT >= 34 && notificaciones() != null && !notificaciones().canUseFullScreenIntent())
+            i = new Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, pkg);
+        else i = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, pkg);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try { c.startActivity(i); } catch (Exception e) { c.startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, pkg).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); }
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void abrirAjustesSeguridad(PluginCall call) {
+        Intent i = new Intent(Settings.ACTION_SECURITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try { getContext().startActivity(i); } catch (Exception ignored) { }
+        call.resolve();
+    }
+
     // ======================= PANTALLA PROTEGIDA =======================
     // Con la carrera en curso: si se aprieta el botón de encendido (o la pantalla se apaga por lo que sea),
     // la pantalla se vuelve a prender sola y Betómetro aparece encima del bloqueo, sin pedir PIN.
@@ -184,10 +224,17 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
 
     @PluginMethod
     public void protegerPantalla(PluginCall call) {
-        final boolean activo = call.getBoolean("activo", false);
+        final boolean activo = call.getBoolean("activo", false), fijar = call.getBoolean("fijar", false);
         pantallaProtegida = activo;
         getActivity().runOnUiThread(() -> {
             android.app.Activity a = getActivity();
+            // Fijar la app: Inicio y apps recientes no sacan de Betómetro durante la carrera
+            try {
+                android.app.ActivityManager am = (android.app.ActivityManager) a.getSystemService(Context.ACTIVITY_SERVICE);
+                boolean fijada = am != null && am.getLockTaskModeState() != android.app.ActivityManager.LOCK_TASK_MODE_NONE;
+                if (activo && fijar && !fijada) a.startLockTask();
+                if (!activo && fijada) a.stopLockTask();
+            } catch (Exception ignored) { }
             if (Build.VERSION.SDK_INT >= 27) { a.setShowWhenLocked(activo); a.setTurnScreenOn(activo); }
             else {
                 int f = WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON;
@@ -207,8 +254,31 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
         call.resolve();
     }
 
+    static final int NOTIF_DESPERTAR = 4530;
+
     @SuppressWarnings("deprecation")
     private void despertar(Context c) {
+        // 1) Aviso de pantalla completa (como un despertador): Android prende la pantalla y abre Betómetro encima del bloqueo
+        try {
+            NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (Build.VERSION.SDK_INT >= 26) {
+                android.app.NotificationChannel ch = new android.app.NotificationChannel("carrera", "Carrera en curso", NotificationManager.IMPORTANCE_HIGH);
+                ch.setSound(null, null); ch.enableVibration(false);
+                try { ch.setBypassDnd(true); } catch (Exception ignored) { }
+                nm.createNotificationChannel(ch);
+            }
+            Intent abrir = new Intent(c, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            android.app.PendingIntent pi = android.app.PendingIntent.getActivity(c, 7, abrir, android.app.PendingIntent.FLAG_IMMUTABLE | android.app.PendingIntent.FLAG_UPDATE_CURRENT);
+            androidx.core.app.NotificationCompat.Builder n = new androidx.core.app.NotificationCompat.Builder(c, "carrera")
+                    .setSmallIcon(android.R.drawable.ic_menu_recent_history)
+                    .setContentTitle("Carrera en curso").setContentText("Volviendo a Betómetro…")
+                    .setPriority(androidx.core.app.NotificationCompat.PRIORITY_MAX)
+                    .setCategory(androidx.core.app.NotificationCompat.CATEGORY_ALARM)
+                    .setFullScreenIntent(pi, true).setContentIntent(pi).setAutoCancel(true).setSilent(true);
+            nm.notify(NOTIF_DESPERTAR, n.build());
+            new Handler(Looper.getMainLooper()).postDelayed(() -> { try { nm.cancel(NOTIF_DESPERTAR); } catch (Exception ignored) { } }, 5000);
+        } catch (Exception ignored) { }
+        // 2) Pedido directo de prender la pantalla (algunos teléfonos lo respetan)
         try {
             PowerManager pm = (PowerManager) c.getSystemService(Context.POWER_SERVICE);
             PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.ON_AFTER_RELEASE, "betometro:carrera");
@@ -244,7 +314,7 @@ public class BetoPlugin extends Plugin implements InputManager.InputDeviceListen
             if (filtroPrevio < 0) { filtroPrevio = nm.getCurrentInterruptionFilter(); politicaPrevia = nm.getNotificationPolicy(); }
             int efectos;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                efectos = NotificationManager.Policy.SUPPRESSED_EFFECT_FULL_SCREEN_INTENT | NotificationManager.Policy.SUPPRESSED_EFFECT_LIGHTS
+                efectos = NotificationManager.Policy.SUPPRESSED_EFFECT_LIGHTS
                         | NotificationManager.Policy.SUPPRESSED_EFFECT_PEEK | NotificationManager.Policy.SUPPRESSED_EFFECT_STATUS_BAR
                         | NotificationManager.Policy.SUPPRESSED_EFFECT_BADGE | NotificationManager.Policy.SUPPRESSED_EFFECT_AMBIENT
                         | NotificationManager.Policy.SUPPRESSED_EFFECT_NOTIFICATION_LIST;

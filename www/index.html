@@ -868,6 +868,14 @@ html, body { margin: 0; }
       </div>
       <p class="hint" id="noMolestarInfo"></p>
       <div class="row"><button class="btn sec" id="btnNoMolestar" type="button">Dar permiso de No molestar</button></div>
+      <div class="row">
+        <label for="fijarApp">Fijar Betómetro durante la carrera (Inicio y apps recientes no sacan de la app)</label>
+        <input type="checkbox" id="fijarApp">
+      </div>
+      <p class="hint">Al largar, Android pregunta si querés fijar la app: tocá «Fijar» o «Aceptar». En Samsung tiene que estar activado «Fijar ventanas» (Ajustes → Seguridad y privacidad → Otros ajustes de seguridad).</p>
+      <div class="row"><button class="btn sec" id="btnFijarAjustes" type="button">Abrir ajustes de seguridad</button></div>
+      <p class="hint" id="pantallaInfo"></p>
+      <div class="row"><button class="btn sec" id="btnPantalla" type="button">Permitir que la pantalla vuelva sola</button></div>
     </fieldset>
 
     <fieldset>
@@ -1776,7 +1784,7 @@ $('btnUbicPrecisa').addEventListener('click', pedirUbicacionPrecisa);
 /* ================= MODO CARRERA: No molestar y pantalla completa ================= */
 let avisoNoMolestar = false;
 function modoCarrera(activo) {
-  if (Beto) Beto.protegerPantalla({ activo }).catch(() => {});   // siempre: la pantalla no queda bloqueada durante la carrera
+  if (Beto) Beto.protegerPantalla({ activo, fijar: cfg.fijarApp !== false }).catch(() => {});   // siempre: la pantalla no queda bloqueada durante la carrera
   if (!Beto || (activo && !cfg.modoCarrera)) return;
   Beto.modoCarrera({ activo }).then(r => {
     if (activo && !r.noMolestar && !avisoNoMolestar) { avisoNoMolestar = true; avisar('Para silenciar llamadas y notificaciones, permití «No molestar» en Ajustes → Modo carrera'); }
@@ -1856,8 +1864,20 @@ if (Beto) {
 }
 
 let terminarArmado = null;
+async function estadoPantalla() {
+  if (!Beto) return;
+  try {
+    const r = await Beto.estadoPantalla(), falta = [];
+    if (!r.notificaciones) falta.push('notificaciones'); if (!r.pantallaCompleta) falta.push('pantalla completa'); if (!r.encima) falta.push('mostrar encima de otras apps');
+    $('pantallaInfo').textContent = falta.length ? 'Si se bloquea la pantalla en carrera, para que vuelva sola falta permitir: ' + falta.join(', ') + '. Tocá el botón (de a un permiso).'
+                                                 : 'Listo: si se bloquea la pantalla en carrera, vuelve sola a Betómetro.';
+    $('btnPantalla').hidden = !falta.length;
+  } catch (e) {}
+}
+$('btnPantalla').addEventListener('click', () => { if (Beto) Beto.pedirPantalla().catch(() => {}); });
+$('btnFijarAjustes').addEventListener('click', () => { if (Beto) Beto.abrirAjustesSeguridad().catch(() => {}); else avisar('Solo en la app instalada'); });
 $('btnNoMolestar').addEventListener('click', () => { if (Beto) Beto.pedirNoMolestar().catch(() => {}); else avisar('Solo en la app instalada'); });
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && !$('config').hidden) estadoNoMolestar().then(t => { $('noMolestarInfo').textContent = t; }); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && !$('config').hidden) { estadoNoMolestar().then(t => { $('noMolestarInfo').textContent = t; }); estadoPantalla(); } });
 $('btnTerminar').addEventListener('click', () => {
   const b = $('btnTerminar');
   if (!terminarArmado) {
@@ -1893,6 +1913,7 @@ function cargarForm() {
   $('tema').value = cfg.tema; $('modoSol').value = cfg.modoSol; $('indicador').value = cfg.indicador;
   $('volumenMax').checked = cfg.volumenMax; $('canalAudio').value = cfg.canalAudio;
   infoUbicacion();
+  $('fijarApp').checked = cfg.fijarApp !== false; estadoPantalla();
   $('modoCarreraChk').checked = cfg.modoCarrera !== false; estadoNoMolestar().then(t => { $('noMolestarInfo').textContent = t; });
   const enCurso = !!(motor && motor.enCurso);
   for (const id of ['tMin', 'tSeg', 'tDec', 'distancia', 'patron']) $(id).disabled = enCurso;
@@ -1919,7 +1940,7 @@ function leerForm() {
   cfg.calibrar = $('calibrar').checked; cfg.pitidoCadaS = Math.round(num('pitidoCada', 0, 0, 600));
   const antes = { vel: cfg.velActiva, sol: cfg.modoSol, canal: cfg.canalAudio };
   cfg.tema = $('tema').value; cfg.modoSol = $('modoSol').value; cfg.indicador = $('indicador').value;
-  cfg.volumenMax = $('volumenMax').checked; cfg.canalAudio = $('canalAudio').value; cfg.modoCarrera = $('modoCarreraChk').checked;
+  cfg.volumenMax = $('volumenMax').checked; cfg.canalAudio = $('canalAudio').value; cfg.modoCarrera = $('modoCarreraChk').checked; cfg.fijarApp = $('fijarApp').checked;
   setTimeout(() => {   // efectos que dependen de lo que cambió
     if (antes.sol !== cfg.modoSol) actualizarSensorLuz();
     if (antes.canal !== cfg.canalAudio && Beto) Beto.configurarAudio({ canal: cfg.canalAudio }).catch(() => {});
