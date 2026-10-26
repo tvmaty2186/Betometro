@@ -328,6 +328,11 @@ body.ind-fondo.medida .app, body.ind-fondo.practica .app { background: transpare
 .ed-panel { position: absolute; top: calc(max(10px, env(safe-area-inset-top, 0px)) + 60px); right: max(12px, env(safe-area-inset-right, 0px)); z-index: 27;
             display: flex; flex-direction: column; gap: 8px; background: rgba(18,18,18,.96); border: 1px solid #444; border-radius: 14px; padding: 10px; width: min(300px, 80vw); }
 .ed-panel select, .ed-panel button { width: 100%; }
+.visor { position: fixed; inset: 0; z-index: 100; background: #121417; display: flex; flex-direction: column; }
+.visor-barra { display: flex; align-items: center; gap: 10px; padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px; background: #0d0f11; border-bottom: 1px solid #2c3137; }
+.visor-barra b { flex: 1; text-align: center; color: #eef0f2; font: 700 15px var(--font-ui); }
+.visor-barra .btn { min-height: 40px; padding: 6px 14px; }
+.visor iframe { flex: 1; width: 100%; border: 0; background: #121417; }
 .ed-panel { max-height: calc(100% - 80px); overflow-y: auto; }
 .ed-orient { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding-bottom: 10px; border-bottom: 1px solid #444; }
 .ed-orient button { color: #fff; font: 600 14px var(--font-ui); padding: 9px 6px; border-radius: 9px; background: #2a2a2a; border: 0; min-height: 40px; }
@@ -622,6 +627,10 @@ html, body { margin: 0; }
 </head>
 <body>
 
+<div class="visor" id="visor" hidden>
+  <div class="visor-barra"><button class="btn sec" id="visorVolver" type="button">Volver</button><b>Informe de la carrera</b><button class="btn" id="visorCompartir" type="button">Compartir</button></div>
+  <iframe id="visorMarco" title="Informe de la carrera"></iframe>
+</div>
 <div class="app" id="app">
   <span class="crono-nombre" id="cronoNombre">Betómetro</span>
   <div class="crono-chips">
@@ -909,6 +918,7 @@ html, body { margin: 0; }
 
 <!-- Puente con el código nativo (lo copia la compilación desde @capacitor/core) -->
 <script src="capacitor.js"></script>
+<script src="informe.js"></script>
 <script>
 (() => {
 'use strict';
@@ -1223,7 +1233,16 @@ function nuevaCarrera() {   // datos de la carrera elegida → lo que necesita e
 
 /* ================= FUENTE DE VELOCIDAD: SIMULADOR (el GPS real entrará por el mismo camino) ================= */
 let ultimaMuestra = null;
-function recibirMuestra(m) { ultimaMuestra = m; if (motor) motor.muestra(m); }
+function recibirMuestra(m) { ultimaMuestra = m; if (motor) motor.muestra(m); grabarTraza(m); }
+// Recorrido de la vuelta: una fila por lectura del GPS → [t s, distancia m, km/h, lat, lon, precisión m]
+let traza = [], trazaInicio = 0;
+function grabarTraza(m) {
+  if (!motor || !motor.enCurso || m.lat === undefined || m.lat === null) return;
+  const e = motor.estado(m.t), d = (carrera.distanciaM || 0) - e.restanteM;
+  traza.push([+((m.t - trazaInicio) / 1000).toFixed(1), Math.round(Math.max(0, d) * 10) / 10, +(m.velMs * 3.6).toFixed(1),
+              +m.lat.toFixed(6), +m.lon.toFixed(6), Math.round(m.precisionM || 0)]);
+  if (traza.length > 20000) traza.shift();   // tope de seguridad (más de 5 horas por vuelta)
+}
 const Simulador = (() => {
   let timer = null, t0 = 0;
   function tick() {
@@ -1259,7 +1278,7 @@ const GpsReal = (() => {
         let v = (typeof loc.speed === 'number' && loc.speed >= 0) ? loc.speed : null;
         if (v === null && prev && loc.time > prev.time) v = metros(prev, loc) / ((loc.time - prev.time) / 1000);
         prev = loc;
-        if (v !== null) recibirMuestra({ t, velMs: v, precisionM: loc.accuracy || 0 });
+        if (v !== null) recibirMuestra({ t, velMs: v, precisionM: loc.accuracy || 0, lat: loc.latitude, lon: loc.longitude });
       });
     } catch (e) { id = null; avisar('No se pudo iniciar el GPS'); }
   }
@@ -1293,12 +1312,13 @@ function textoDelta(ds) {
 
 function alEvento(tipo, d) {
   if (tipo === 'vuelta') {
-    velMaxVuelta = 0;
+    velMaxVuelta = 0; traza = []; trazaInicio = d.inicio;
     resetVueltaAudio();
     const tot = carrera && carrera.vueltasTotal;
     if (tot && d.n > tot) return;   // la carrera ya terminó
     if (cfg.avisoInicio) Audio.hablar((tot && d.n === tot ? 'Última vuelta' : 'Vuelta ' + d.n) + ', ' + (d.medida ? 'medida' : 'práctica'));
   } else if (tipo === 'cerrada') {
+    if (traza.length >= 5) d.traza = traza.slice();
     Store.agregarVuelta(seleccion, Object.assign({ largada: largadaN }, d));
     mostrarUltima(d);
     if (carrera.vueltasTotal && d.n >= carrera.vueltasTotal) setTimeout(() => terminarCarrera('Carrera completa'), 0);
@@ -2066,6 +2086,7 @@ function mostrar(p) {
   window.scrollTo(0, 0);
 }
 function volver() {   // botón atrás de Android y botones "Volver"
+  if (!$('visor').hidden) { cerrarInforme(); return; }
   if (!$('config').hidden) { leerForm(); $('config').hidden = true; return; }
   if (pantalla === 'pantalla') { cerrarConfigPantalla(); return; }
   if (pantalla === 'crono') { if (motor && motor.enCurso) { avisar('Para salir, terminá la carrera'); return; } mostrar(seleccion && !seleccion.practica ? 'detalle' : 'practica'); return; }
@@ -2247,7 +2268,8 @@ function graficoVueltas(c) {   // una barra por vuelta: a la derecha llegó tard
   return g;
 }
 function botonesExportar(c) {
-  const archivo = 'betometro-' + c.fecha + '-' + c.nombre.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30), acc = el('div', undefined, 'acciones');
+  const archivo = archivoCarrera(c), acc = el('div', undefined, 'acciones');
+  acc.append(boton('VER INFORME', 'btn ancho', () => abrirInforme(c)));   // recorrido, velocidad, aceleración y todas las vueltas
   acc.append(boton('Exportar planilla', 'btn sec', () => exportar(archivo + '.csv', csv(c))), boton('Exportar JSON', 'btn sec', () => exportar(archivo + '.json', JSON.stringify(c, null, 1))));
   return acc;
 }
@@ -2358,6 +2380,112 @@ function renderResultados(c, cont) {
   }
   box.append(res, wrap, acc); cont.append(box);
 }
+/* ================= INFORME: RECORRIDO, VELOCIDAD Y ACELERACIÓN ================= */
+// El recorrido se arma con TODAS las vueltas: cada tramo de ~5 m toma la mediana de los puntos buenos de las vueltas
+// que tuvieron señal ahí; si una vuelta perdió el GPS, las otras completan el dibujo (sin inventar velocidades).
+function armarRecorrido(c) {
+  const vs = c.vueltas.filter(v => Array.isArray(v.traza) && v.traza.length >= 5);
+  if (!vs.length) return null;
+  const umbral = Math.max(10, cfg.umbralPrecisionM || 20);
+  const p0 = vs[0].traza.find(p => p[5] <= umbral) || vs[0].traza[0];
+  const kx = 111320 * Math.cos(p0[3] * Math.PI / 180), ky = 110540;
+  const xy = p => [(p[4] - p0[4]) * kx, (p[3] - p0[3]) * ky];
+  // 1) puntos buenos de cada vuelta: precisión aceptable y sin saltos imposibles
+  const vueltas = vs.map(v => {
+    const T = v.traza, L = Math.max(50, v.distM || T[T.length - 1][1] || 1);
+    const pts = T.map(p => ({ p, L, f: Math.min(1, p[1] / L), q: xy(p), ok: p[5] <= umbral }));
+    let prev = null;
+    for (const o of pts) {
+      if (!o.ok) continue;
+      if (prev) { const dt = Math.max(0.5, o.p[0] - prev.p[0]), dd = Math.hypot(o.q[0] - prev.q[0], o.q[1] - prev.q[1]);
+                  if (dd / dt > Math.max(o.p[2], prev.p[2]) / 3.6 * 1.6 + 8 + (o.p[5] + prev.p[5]) / dt) { o.ok = false; continue; } }
+      prev = o;
+    }
+    return { v, L, pts };
+  });
+  const Lm = vueltas.reduce((a, x) => a + x.L, 0) / vueltas.length;
+  const B = Math.max(40, Math.min(1500, Math.round(Lm / 5)));
+  const mediana = (arr, w) => { const o = arr.map((x, i) => [x, w[i]]).sort((a, b) => a[0] - b[0]); const tot = w.reduce((a, b) => a + b, 0); let s = 0; for (const [x, k] of o) { s += k; if (s >= tot / 2) return x; } return o[o.length - 1][0]; };
+  let pista = null, cerrada = false;
+  const construir = () => {
+    const bx = Array.from({ length: B }, () => ({ x: [], y: [], w: [] }));
+    for (const V of vueltas) for (const o of V.pts) if (o.ok) { const b = bx[Math.min(B - 1, Math.floor(o.f * B))]; const w = 1 / Math.max(3, o.p[5]) ** 2; b.x.push(o.q[0]); b.y.push(o.q[1]); b.w.push(w); }
+    let P = bx.map(b => b.x.length ? [mediana(b.x, b.w), mediana(b.y, b.w)] : null);
+    const llenos = P.map((p, i) => p ? i : -1).filter(i => i >= 0);
+    if (!llenos.length) return null;
+    const ini = P[llenos[0]], fin = P[llenos[llenos.length - 1]];
+    cerrada = Math.hypot(ini[0] - fin[0], ini[1] - fin[1]) < Math.max(40, Lm * 0.04);
+    // tramos vacíos: se completan uniendo los vecinos con señal (en circuito, dando la vuelta)
+    for (let i = 0; i < B; i++) if (!P[i]) {
+      let a = -1, b = -1;
+      for (let k = 1; k < B; k++) { const j = cerrada ? (i - k + B) % B : i - k; if (j >= 0 && P[j] && llenos.includes(j)) { a = j; break; } if (!cerrada && j < 0) break; }
+      for (let k = 1; k < B; k++) { const j = cerrada ? (i + k) % B : i + k; if (j < B && P[j] && llenos.includes(j)) { b = j; break; } if (!cerrada && j >= B) break; }
+      if (a < 0 && b < 0) continue;
+      if (a < 0) P[i] = P[b].slice(); else if (b < 0) P[i] = P[a].slice();
+      else { const da = (i - a + B) % B, db = (b - i + B) % B, t = da / (da + db); P[i] = [P[a][0] + (P[b][0] - P[a][0]) * t, P[a][1] + (P[b][1] - P[a][1]) * t]; }
+    }
+    // suavizado (promedio móvil, dos pasadas)
+    for (let pasada = 0; pasada < 3; pasada++) {
+      const Q = P.map((p, i) => { let sx = 0, sy = 0, n = 0; for (let k = -4; k <= 4; k++) { let j = i + k; if (cerrada) j = (j + B) % B; else if (j < 0 || j >= B) continue; sx += P[j][0]; sy += P[j][1]; n++; } return [sx / n, sy / n]; });
+      P = Q;
+    }
+    return P;
+  };
+  pista = construir();
+  if (!pista) return null;
+  // 2) cada vuelta se encaja sobre el recorrido común (corrige el corrimiento de distancia) y se vuelve a armar
+  for (const V of vueltas) for (const o of V.pts) if (o.ok) {
+    const c0 = Math.floor(o.f * B), r = Math.max(3, Math.round(B * 0.06)); let best = c0, bd = Infinity;
+    for (let k = -r; k <= r; k++) { let j = c0 + k; if (cerrada) j = (j + B) % B; else if (j < 0 || j >= B) continue; const d = (pista[j][0] - o.q[0]) ** 2 + (pista[j][1] - o.q[1]) ** 2; if (d < bd) { bd = d; best = j; } }
+    o.f = (best + 0.5) / B;
+  }
+  pista = construir() || pista;
+  return { pista, cerrada, vueltas };
+}
+function datosInforme(c) {
+  const R = armarRecorrido(c);
+  const D = c.distanciaM || 0, T = c.tiempoIdealMs / 1000;
+  const out = { nombre: c.nombre, fecha: c.fecha, idealMs: c.tiempoIdealMs, distanciaM: D, cerrada: false, pista: [],
+                largadas: new Set(c.vueltas.map(v => v.largada || 1)).size,
+                vueltas: c.vueltas.map(v => ({ n: v.n, largada: v.largada || 1, medida: !!v.medida, realMs: v.realMs, difMs: v.difMs,
+                                               velPromKmh: v.velPromKmh ?? null, velMaxKmh: v.velMaxKmh ?? null, m: null, L: v.distM || D || 1 })) };
+  if (!R) return out;
+  // encuadre del dibujo en 364 × 330 (norte arriba)
+  const xs = R.pista.map(p => p[0]), ys = R.pista.map(p => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const esc = Math.min((364 - 40) / Math.max(1, x1 - x0), (330 - 40) / Math.max(1, y1 - y0));
+  const ox = (364 - (x1 - x0) * esc) / 2, oy = (330 - (y1 - y0) * esc) / 2;
+  const pant = q => [+(ox + (q[0] - x0) * esc).toFixed(1), +(330 - oy - (q[1] - y0) * esc).toFixed(1)];
+  out.pista = R.pista.map(pant); out.cerrada = R.cerrada;
+  const B = R.pista.length, enPista = f => { const x = f * B - 0.5, i = Math.floor(x), t = x - i; const a = R.pista[(i % B + B) % B], b = R.pista[((i + 1) % B + B) % B]; return pant(R.cerrada || (i >= 0 && i + 1 < B) ? [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t] : R.pista[Math.max(0, Math.min(B - 1, Math.round(x)))]); };
+  for (const V of R.vueltas) {
+    const i = c.vueltas.indexOf(V.v), P = V.pts;
+    const m = P.map((o, k) => {
+      const p = o.p, prev = P[k - 1], sig = P[k + 1];
+      let a = 0;   // aceleración suavizada con las lecturas vecinas
+      if (prev && sig && sig.p[0] > prev.p[0]) a = ((sig.p[2] - prev.p[2]) / 3.6) / (sig.p[0] - prev.p[0]);
+      else if (prev && p[0] > prev.p[0]) a = ((p[2] - prev.p[2]) / 3.6) / (p[0] - prev.p[0]);
+      const corte = prev && p[0] - prev.p[0] > 4;   // más de 4 s sin lecturas: sin señal
+      const ade = D > 0 && T > 0 ? p[1] / (D / T) - p[0] : 0;
+      const [x, y] = enPista(o.f);
+      return [p[0], p[1], p[2], +Math.max(-9, Math.min(9, a)).toFixed(2), +ade.toFixed(1), x, y, o.ok && !corte ? 1 : 0];
+    });
+    out.vueltas[i].m = m; out.vueltas[i].L = V.L;
+  }
+  return out;
+}
+function informeHTML(c) {
+  if (!window.INFORME_TPL) return null;
+  const datos = JSON.stringify(datosInforme(c)).replace(/</g, '\\u003c');
+  const esc = t => String(t).replace(/[&<>"]/g, x => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[x]);
+  return window.INFORME_TPL.replace('__DATOS__', () => datos).replace('__NOMBRE__', () => esc(c.nombre));
+}
+const archivoCarrera = c => 'betometro-' + c.fecha + '-' + c.nombre.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30);
+function abrirInforme(c) {
+  const html = informeHTML(c); if (!html) { avisar('No se pudo armar el informe'); return; }
+  const v = $('visor'); $('visorMarco').srcdoc = html; v.hidden = false; v._c = c;
+}
+function cerrarInforme() { $('visor').hidden = true; $('visorMarco').srcdoc = ''; }
 function csv(c) {
   const n = x => x === undefined || x === null ? '' : String(x).replace('.', ',');
   const filas = [['Largada', 'Vuelta', 'Tipo', 'Ideal (s)', 'Tiempo (s)', 'Diferencia (s)', 'Metros', 'Vel. promedio (km/h)', 'Vel. máxima (km/h)', 'Marca'].join(';')];
@@ -2447,6 +2575,8 @@ async function exportar(nombre, texto) {
   try { await navigator.clipboard.writeText(texto); avisar('Copiado al portapapeles'); } catch (e) { avisar('No se pudo copiar'); }
 }
 $('btnSalir').addEventListener('click', volver);
+$('visorVolver').addEventListener('click', cerrarInforme);
+$('visorCompartir').addEventListener('click', () => { const c = $('visor')._c; if (c) exportar(archivoCarrera(c) + '.html', informeHTML(c)); });
 $('mCarreras').addEventListener('click', () => mostrar('carreras'));
 const APK_URL = 'https://github.com/tvmaty2186/Betometro/releases/latest/download/betometro.apk';
 $('mCompartir').addEventListener('click', async () => {
