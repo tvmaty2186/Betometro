@@ -5,6 +5,7 @@ Lo que pidió Matías y cómo se resolvió. Lo más nuevo está arriba.
 | Versión | Qué cambió |
 |---|---|
 | **2.1.0** | Inicio del Avispón con cabecera (león y título cromado) y la foto de los pilotos con el auto. La foto es fija, no se puede cambiar. |
+| **2.1.0** | Foto de la app en el inicio (el piloto y el copiloto con el 404), la misma en **todos los temas**. Es fija: **no se puede cambiar** desde la app (decisión de Matías). En Avispón: cabecera verde con león, rayita, título cromado y rayas; la foto se funde en verde y el 101 va montado sobre la banda. |
 | **2.0.0** | **Tema Avispón Verde** (Peugeot 404 #101, león de Matías, cromo, banda 101, velocímetro crema). Al actualizar pasa a este tema **una sola vez**; después se respeta el tema elegido. Nuevo ajuste «Número del auto». |
 | 1.9.1 | Sin pitido del cero, la cuenta dice «cero» en voz. |
 | 1.9.0 | Abrir al prender el teléfono (apagado de fábrica). Clic mecánico al marcar. Pitido del cero apagado de fábrica. |
@@ -35,6 +36,7 @@ Lo que pidió Matías y cómo se resolvió. Lo más nuevo está arriba.
 - **Fijar la app:** no. Se probó y Matías lo hizo sacar.
 - **Exportar CSV/JSON:** no. Solo el informe HTML.
 - **Play Protect:** no apelar ni sacar permisos. Se instala apagando el análisis un momento.
+- **Foto del inicio:** fija (`www/img/inicio.jpg`), igual en todos los temas; no se puede elegir otra.
 - **Pitido del cero:** apagado de fábrica. El cero se dice en voz.
 - **Auriculares Bluetooth:** por ahora sin cambios en la app.
 - **ESP32:** por ahora no.

@@ -79,6 +79,13 @@ Está inspirado en el auto de Matías: **Peugeot 404 verde, #101, «el Avispón 
 - **Inicio con foto (2.1):** cabecera verde oscura (león | título cromado | rayas) con filete amarillo; debajo, la foto fija `www/img/inicio.jpg` (los dos pilotos con el 404, recortada desde arriba y fundida en verde) hasta la banda del 101. **La foto es fija: Matías no quiere que se pueda cambiar.**
 - **Elementos del inicio:** solo existen en este tema (clases `.av-*`; `#avNum` y `#avBanda` se ubican en `layoutInicio()`).
 
+## Foto del inicio (desde 2.1)
+
+- `www/img/inicio.jpg` (1200 px): el piloto y el copiloto apoyados en el 404. Es **la foto de la app**, fija e igual en todos los temas.
+- Va entre la cabecera (alto `--cab` = barra de estado + 98k) y la línea de los botones (`--ny` = `cy − 300k`, que fija `layoutInicio()`).
+- Se recorta desde arriba (`center top`) para no cortar las cabezas y abajo se funde con el fondo del tema.
+- En los otros temas lleva arriba un filete del color de acento; en Avispón, la cabecera verde con león, rayita, título cromado y rayas.
+
 ## Ícono
 
 Es un cronómetro/velocímetro con aro rojo sobre fondo oscuro (`docs/diseno/icono/`).

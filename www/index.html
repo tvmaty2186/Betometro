@@ -667,8 +667,15 @@ html, body { margin: 0; }
 .av-div { position: absolute; left: calc(126px * var(--ki, 1)); top: calc(var(--sup) + 16px * var(--ki, 1)); width: 2px; height: calc(66px * var(--ki, 1)); z-index: 2;
   background: linear-gradient(#fff0, #e8ebee 20%, #9aa1a8 80%, #fff0); transform: skewX(-12deg); }
 /* foto del auto: entre la cabecera y la banda del número, se funde en verde abajo */
-.av-foto { position: absolute; left: 0; right: 0; top: var(--cab); height: calc(var(--ny, 305px) - var(--cab)); background: #0d2a18 center top / cover no-repeat; }
-.av-foto::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.15) 0%, transparent 18%, transparent 62%, rgba(13,42,24,.9) 100%); }
+/* foto de la app (la misma en todos los temas): entre la cabecera y los botones, se funde con el fondo abajo */
+.foto-ini { position: absolute; left: 0; right: 0; top: var(--cab); height: calc(var(--ny, 305px) - var(--cab)); background: var(--idle) url("img/inicio.jpg") center top / cover no-repeat;
+  border-top: 3px solid var(--acc); }
+.foto-ini::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.15) 0%, transparent 18%, transparent 55%, var(--foto-fin, var(--idle)) 100%); }
+:root[data-tema="avispon"]:not(.sol) .foto-ini { border-top: 0; --foto-fin: rgba(13,42,24,.9); }
+.inicio-logo { top: calc(var(--sup) + 14px * var(--ki, 1)); }
+.inicio-logo b { font-size: calc(46px * var(--ki, 1)); }
+.inicio-logo small { margin-top: 4px; }
+.compartir-c { top: calc(var(--cab) + 10px); right: 10px; height: 34px; background: rgba(0,0,0,.6); color: #fff; box-shadow: 0 0 0 1px rgba(255,255,255,.35); }
 .av-banda { position: absolute; left: 0; right: 0; height: 18px; background: linear-gradient(180deg, #f7f7f2 0 34%, var(--av-ama) 34% 100%); box-shadow: 0 2px 4px rgba(0,0,0,.4); }
 .av-num, :root[data-tema="avispon"]:not(.sol) .av-num { position: absolute; display: grid; place-items: center; border-radius: 50%; font: italic 700 46px "Barlow Condensed", sans-serif; color: #1b5a33;
   background: radial-gradient(circle at 40% 30%, #ffffff, #d8dde1 45%, #9aa2a9 75%, #e3e6e9); box-shadow: 0 0 0 3px #f5f6f7, 0 0 0 5px #4b5258, 0 10px 18px rgba(0,0,0,.55); z-index: 1; }
@@ -682,7 +689,7 @@ html, body { margin: 0; }
 :root[data-tema="avispon"]:not(.sol) .inicio-logo small { font: italic 600 calc(9.5px * var(--ki, 1)) "Barlow", sans-serif; letter-spacing: .12em; color: #e6efe2; margin-top: 3px; }
 :root[data-tema="avispon"]:not(.sol) .inicio-logo .ver { font: italic 600 11px "Barlow", sans-serif; margin-top: 4px; }
 :root[data-tema="avispon"]:not(.sol) .inicio-logo .ver-act { color: var(--av-ama); text-decoration: underline; }
-:root[data-tema="avispon"]:not(.sol) .compartir-c { top: calc(var(--cab) + 10px); right: 10px; height: 34px; }
+
 :root[data-tema="avispon"]:not(.sol) .ico { font: italic 700 15px "Barlow", sans-serif; text-shadow: 0 2px 3px #000, 0 0 8px rgba(0,0,0,.7); z-index: 2; }
 :root[data-tema="avispon"]:not(.sol) .ico .disco { background: radial-gradient(circle at 45% 30%, #3c8a57, #14432a 55%, #0a2414);
   box-shadow: 0 0 0 4px #e9ecee, 0 0 0 5px #5d646b, 0 0 0 7px #b9bfc5, 0 8px 14px rgba(0,0,0,.6), inset 0 -8px 12px rgba(0,0,0,.45), inset 0 6px 10px rgba(255,255,255,.18); }
@@ -745,7 +752,7 @@ html, body { margin: 0; }
 <div class="pantalla" id="p-inicio">
   <div class="inicio" id="inicio">
     <div class="inicio-logo"><b>BETÓMETRO</b><small>Regularidad para el navegante</small><span class="ver"><span id="inicioVersion"></span><button class="ver-act" id="inicioAct" type="button" hidden>· Actualizar</button></span></div>
-    <div class="av av-foto" id="avFoto" style="background-image:url(img/inicio.jpg)"></div><div class="av av-cab"><div class="av-rayas"></div></div><img class="av av-leon" src="img/leon.png" alt=""><div class="av av-div"></div>
+    <div class="foto-ini" id="fotoIni"></div><div class="av av-cab"><div class="av-rayas"></div></div><img class="av av-leon" src="img/leon.png" alt=""><div class="av av-div"></div>
     <div class="av av-banda" id="avBanda"></div><div class="av-num" id="avNum" hidden>101</div><div class="av av-swoosh"></div>
     <button class="compartir-c" id="mCompartir" type="button" aria-label="Compartir Betómetro"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg><span>Compartir</span></button>
     <div class="w redondo w-velocimetro" id="inicioGauge"></div>
