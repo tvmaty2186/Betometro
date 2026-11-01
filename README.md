@@ -6,6 +6,12 @@ Cronómetro de regularidad para el navegante: vueltas medidas y de práctica, cu
 
 Descargá `betometro.apk` desde la última [versión publicada](https://github.com/tvmaty2186/betometro/releases/latest) e instalalo en el teléfono Android. Las siguientes actualizaciones se hacen desde la app: **Ajustes → Aplicación → Buscar actualización**.
 
+## Documentación
+
+- [CLAUDE.md](CLAUDE.md): punto de entrada (cómo trabajar y cómo publicar)
+- [docs/arquitectura.md](docs/arquitectura.md), [docs/diseno.md](docs/diseno.md), [docs/hardware.md](docs/hardware.md), [docs/historial.md](docs/historial.md)
+- [PENDIENTES.md](PENDIENTES.md)
+
 ## Cómo está armado
 
 - `www/index.html`: toda la app (pantalla, motor de cálculo, historial). El motor no depende de la plataforma.
