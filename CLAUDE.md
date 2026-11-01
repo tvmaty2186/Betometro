@@ -6,7 +6,7 @@ Leé esto al empezar cualquier sesión en este repositorio. El detalle está en 
 |---|---|
 | [docs/arquitectura.md](docs/arquitectura.md) | Cómo está hecha la app: código, motor, voz, GPS, widgets, informe, parte nativa |
 | [docs/diseno.md](docs/diseno.md) | Línea estética: temas, tema Avispón Verde, colores, tipografías, reglas de layout |
-| [docs/hardware.md](docs/hardware.md) | Equipo dedicado: caja con celular, Raspberry Pi, GPS, piezas compradas |
+| [docs/hardware.md](docs/hardware.md) | Equipo dedicado: Raspberry Pi (la caja con celular está cancelada), GPS, piezas compradas |
 | [docs/historial.md](docs/historial.md) | Qué se hizo en cada versión y por qué (decisiones de Matías) |
 | [PENDIENTES.md](PENDIENTES.md) | Lo que falta hacer |
 

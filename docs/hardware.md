@@ -1,8 +1,10 @@
 # Hardware: equipo dedicado de Betómetro
 
-Hay dos caminos. El primero ya está diseñado. El segundo tiene las piezas compradas en noviembre de 2026.
+Hubo dos caminos. **La caja con el A37 se canceló el 01/11/2026.** Sigue la Raspberry Pi, con las piezas compradas en noviembre de 2026.
 
-## A) Caja con celular dedicado (Samsung Galaxy A37)
+## A) Caja con celular dedicado (Samsung Galaxy A37) — CANCELADA
+
+Matías la canceló el 01/11/2026. Queda lo que sigue solo como referencia.
 
 **Celular:** uno dedicado, no el S23 Ultra personal de Matías. El Ulefone RugKing se descartó.
 

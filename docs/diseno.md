@@ -92,7 +92,9 @@ Es un cronómetro/velocímetro con aro rojo sobre fondo oscuro (`docs/diseno/ico
 
 **Idea pendiente, no pedida todavía:** un ícono con la estética Avispón.
 
-## Caja del equipo dedicado
+## Caja del equipo dedicado (cancelada)
+
+La caja con el A37 se canceló el 01/11/2026. El modelo queda como referencia.
 
 El modelo 3D interactivo y explotable está en `docs/diseno/caja/caja-betometro.html` (Three.js r128, un solo archivo). Se puede ver en línea en https://claude.ai/artifact/7CS6LmiuA6sTKc4nm5AFmt.
 

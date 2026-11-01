@@ -41,4 +41,5 @@ Lo que pidió Matías y cómo se resolvió. Lo más nuevo está arriba.
 - **Pitido del cero:** apagado de fábrica. El cero se dice en voz.
 - **Auriculares Bluetooth:** por ahora sin cambios en la app.
 - **ESP32:** por ahora no.
+- **Caja con Galaxy A37:** cancelada (01/11/2026). El equipo dedicado sigue por la Raspberry Pi.
 - **Antes de construir algo visual:** mostrar una imagen de muestra.
