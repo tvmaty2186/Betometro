@@ -1,6 +1,6 @@
 # Hardware: equipo dedicado de Betómetro
 
-Hubo dos caminos. **La caja con el A37 se canceló el 01/11/2026.** Sigue la Raspberry Pi, con las piezas compradas en noviembre de 2026.
+Hubo dos caminos. **La caja con el A37 se canceló el 01/11/2026.** Sigue la Raspberry Pi, en su propio repo.
 
 ## A) Caja con celular dedicado (Samsung Galaxy A37) — CANCELADA
 
@@ -33,28 +33,9 @@ Matías la canceló el 01/11/2026. Queda lo que sigue solo como referencia.
 
 **Modelo 3D:** `docs/diseno/caja/caja-betometro.html` ([versión en línea](https://claude.ai/artifact/7CS6LmiuA6sTKc4nm5AFmt)).
 
-## B) Raspberry Pi (piezas compradas)
+## B) Raspberry Pi
 
-**Compradas:**
-- Raspberry Pi 3 B+ (Element14);
-- Raspberry Pi Touch Display 2 de 7" (DSI);
-- microSD SanDisk Ultra de 16 GB;
-- módulo GPS **NEO-M8N** con SMA y micro USB;
-- antena GPS activa de 1 m, SMA macho.
-
-**Falta comprar (recomendado):**
-- fuente de 5 V 2,5 A micro-USB y cable USB-A a micro-USB;
-- amplificador **MAX98357A** (I2S) con un parlante de 3 W 4 Ω, para la voz;
-- cables dupont y un pulsador;
-- más adelante: convertidor de 12 V a 5 V 3 A, fichas GX12 y cable espiralado.
-
-**Software:** el diseño acordado está en [raspberry/docs/diseno-sistema.md](../raspberry/docs/diseno-sistema.md). Reemplaza la idea de abajo (kiosco con la web de la app), que quedó descartada.
-- guía de instalación;
-- un servicio que lea el GPS (NMEA por USB o UART), el pulsador (GPIO) y la voz;
-- la misma interfaz web en Chromium en modo kiosco;
-- sistema de archivos de solo lectura, para que no se rompa al cortar la corriente.
-
-**Descartado:** reutilizar `www/index.html` en Chromium. Matías quiere un sistema nativo hecho de cero, sin emular el celular.
+Se mudó a su propio repo: https://github.com/tvmaty2186/Betometro-Raspberry (piezas, cableado, sistema y pantallas).
 
 ## Descartado o evaluado
 

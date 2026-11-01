@@ -7,8 +7,7 @@ Actualizado el 01/11/2026. El detalle del hardware está en [docs/hardware.md](d
 - Idea opcional: un ícono de la app con la estética Avispón (no está pedido).
 
 ## Equipo dedicado
-- **Raspberry Pi 3 B+:** diseño del sistema acordado en [raspberry/docs/diseno-sistema.md](raspberry/docs/diseno-sistema.md) (Buildroot + Qt, nativo, autónomo). Muestras horizontales de las 12 pantallas aprobadas. Sigue: muestras en vertical; después, programar.
-- **Compras recomendadas que faltan:** fuente de 5 V 2,5 A, cable micro-USB, amplificador MAX98357A con parlante de 3 W 4 Ω, cables dupont, pulsador; más adelante, convertidor de 12 V a 5 V 3 A, fichas GX12 y cable espiralado.
+- **Raspberry Pi 3 B+:** se trabaja en su propio repo: https://github.com/tvmaty2186/Betometro-Raspberry (pendientes allá).
 
 ## Hecho
 - 1.9.0: abrir al prender el teléfono, clic al marcar, pitido del cero apagado de fábrica.

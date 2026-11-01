@@ -8,7 +8,6 @@ Leé esto al empezar cualquier sesión en este repositorio. El detalle está en 
 | [docs/diseno.md](docs/diseno.md) | Línea estética: temas, tema Avispón Verde, colores, tipografías, reglas de layout |
 | [docs/hardware.md](docs/hardware.md) | Equipo dedicado: Raspberry Pi (la caja con celular está cancelada), GPS, piezas compradas |
 | [docs/historial.md](docs/historial.md) | Qué se hizo en cada versión y por qué (decisiones de Matías) |
-| [raspberry/docs/diseno-sistema.md](raspberry/docs/diseno-sistema.md) | Betómetro para Raspberry Pi: sistema, cableado, pantallas aprobadas |
 | [PENDIENTES.md](PENDIENTES.md) | Lo que falta hacer |
 
 ## Qué es
@@ -31,8 +30,9 @@ El dueño es **Matías Russo** (tvmaty2186@gmail.com). Corre con un **Peugeot 40
 
 ## Raspberry Pi
 
-- Es un proyecto aparte, todo en `raspberry/`. **Prohibido tocar la app** (`www/`, `android/`) para trabajar en la Raspberry: la app funciona bien.
-- Diseño, cableado y pantallas en `raspberry/docs/diseno-sistema.md`.
+- Es un proyecto aparte, en su propio repo: [tvmaty2186/Betometro-Raspberry](https://github.com/tvmaty2186/Betometro-Raspberry). Ahí está todo (sistema, cableado, pantallas).
+- **Prohibido tocar la app** (`www/`, `android/`) para trabajar en la Raspberry: la app funciona bien.
+- Repos separados para que las versiones de la Raspberry no se mezclen con las de la app (el actualizador de la app usa la última *release* de este repo).
 
 ## Publicar una versión (receta)
 
