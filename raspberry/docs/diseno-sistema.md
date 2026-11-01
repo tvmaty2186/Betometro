@@ -1,6 +1,6 @@
 # Betómetro para Raspberry Pi — diseño del sistema
 
-Estado: **diseño acordado con Matías (01/11/2026). Todavía no se programó nada.**
+Estado: **diseño acordado con Matías (01/11/2026). Muestras horizontales aprobadas («están preciosas»). Todavía no se programó nada.**
 
 **Regla:** la app Android (`www/`, `android/`) **no se toca**. Todo lo de la Raspberry vive en `raspberry/`.
 
@@ -70,6 +70,31 @@ GitHub Actions arma la imagen completa (`.img`). La primera vez se graba en la t
 - Solo cuando el usuario quiere: Ajustes → Actualizar, o tocando la versión con el texto amarillo «· Actualizar» en el inicio.
 - Busca la última *release* de GitHub, descarga el paquete del sistema y lo instala en la otra copia (A/B). Reinicia en la versión nueva.
 
+## Pantallas (muestras aprobadas, horizontal 1280×720)
+
+Imágenes: [muestras-horizontal-1.png](muestras-horizontal-1.png), [-2](muestras-horizontal-2.png), [-3](muestras-horizontal-3.png).
+Fuente editable: [muestras/pantallas-horizontal.html](muestras/pantallas-horizontal.html) (usa las fuentes y las imágenes de `www/`, sin cambiarlas). Para regenerar, se abre con Playwright a 1280×720 y se saca captura de cada `#s1`…`#s12`.
+
+**Regla de estética:** los temas, colores, tipografías y componentes son **iguales a la app** en todo lo posible (ver `docs/diseno.md`).
+
+| # | Pantalla | Qué tiene |
+|---|---|---|
+| 1 | Inicio | Cabecera Avispón (león, título cromo, rayas, versión con «· Actualizar» amarillo). La foto de los pilotos ocupa casi toda la izquierda (a Matías le parece bien). 101 sobre la banda, nombre del auto y chips de GPS y wifi. Velocímetro crema a la derecha y los 5 botones en arco, con el nombre a la izquierda de cada disco (de abajo hacia arriba: Carreras, Práctica libre, Chequeo previo, Pantalla de carrera, Ajustes). |
+| 2 | Carreras | Bandas PRÓXIMAS y CORRIDAS, fecha en redondel cromado, LARGAR en cada próxima, Informe en cada corrida, «+ Nueva». |
+| 3 | Ficha de la carrera | A la izquierda los datos editables (nombre, fecha, vueltas, distancia, tiempo ideal, vueltas medidas, velocidad promedio). A la derecha el resumen, las vueltas medida/práctica y LARGAR grande. |
+| 4 | Carrera en curso | Arriba: tipo de vuelta (V3 MEDIDA), cuenta «Falta» enorme con metros y barra, Sugerida. Abajo: velocidad digital con barra, Última vuelta y MARCAR. Línea superior con la carrera, el estado del GPS y Terminar. |
+| 5 | Práctica libre | Tiempo ideal, distancia, vueltas medidas y LARGAR grande. |
+| 6 | Chequeo previo | GPS (satélites, precisión, lecturas por segundo, hora del GPS), pulsador, voz y volumen, wifi, lugar libre, TODO LISTO. |
+| 7 | Pantalla de carrera (editor) | Barra con Vertical/Horizontal, + Widget, De fábrica, Guardar. Widgets con borde punteado amarillo y ✎. |
+| 8 | Ajustes | Mi auto, Tema y pantalla (tema, **orientación**, modo sol, **brillo**), Cuenta regresiva, Conexión y sistema (**wifi**, **versión y Actualizar**, **Apagar el equipo**). |
+| 9 | Wifi | Lista de redes, clave y teclado en pantalla con ñ. |
+| 10 | Informe | Recorrido coloreado por velocidad, gráfico de velocidad, tabla de vueltas con error, Compartir. |
+| 11 | Compartir por QR | Código QR y los 3 pasos para bajarlo al celular en la misma red. |
+| 12 | Actualizar | Versión actual → nueva, qué trae, barra de descarga. Se instala en la copia de reserva; si falla vuelve sola a la anterior. |
+
+Lo nuevo respecto de la app: orientación, brillo, wifi, apagar el equipo, chequeo con hora del GPS y lugar libre, compartir por QR y la pantalla de actualizar.
+
 ## Pendiente de definir
 
-- Imágenes de muestra de las pantallas (inicio, carrera vertical y horizontal, ajustes, wifi, informe).
+- Muestras de las mismas pantallas en **vertical** (720×1280).
+- Después: empezar a programar (imagen Buildroot, motor en C++, pantallas en Qt).

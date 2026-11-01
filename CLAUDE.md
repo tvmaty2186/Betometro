@@ -8,6 +8,7 @@ Leé esto al empezar cualquier sesión en este repositorio. El detalle está en 
 | [docs/diseno.md](docs/diseno.md) | Línea estética: temas, tema Avispón Verde, colores, tipografías, reglas de layout |
 | [docs/hardware.md](docs/hardware.md) | Equipo dedicado: Raspberry Pi (la caja con celular está cancelada), GPS, piezas compradas |
 | [docs/historial.md](docs/historial.md) | Qué se hizo en cada versión y por qué (decisiones de Matías) |
+| [raspberry/docs/diseno-sistema.md](raspberry/docs/diseno-sistema.md) | Betómetro para Raspberry Pi: sistema, cableado, pantallas aprobadas |
 | [PENDIENTES.md](PENDIENTES.md) | Lo que falta hacer |
 
 ## Qué es
@@ -27,6 +28,11 @@ El dueño es **Matías Russo** (tvmaty2186@gmail.com). Corre con un **Peugeot 40
 - **Fotos de referencia:** cuando pasa fotos, prestá mucha atención a las posiciones y medidas.
 - **El león es suyo:** el león corriendo (melena azul, cuerpo amarillo) lo dibujó él. **No es el logo de Peugeot.** No uses la marca PEUGEOT ni logos de concesionarias.
 - **Play Protect:** a veces Google marca la app como «dañina» por los permisos que pide. Él no quiere apelar ni sacar permisos. La solución es apagar el análisis de Play Protect un momento, instalar y volver a prenderlo.
+
+## Raspberry Pi
+
+- Es un proyecto aparte, todo en `raspberry/`. **Prohibido tocar la app** (`www/`, `android/`) para trabajar en la Raspberry: la app funciona bien.
+- Diseño, cableado y pantallas en `raspberry/docs/diseno-sistema.md`.
 
 ## Publicar una versión (receta)
 
