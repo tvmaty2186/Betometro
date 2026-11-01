@@ -7,7 +7,7 @@ Actualizado el 01/11/2026. El detalle del hardware está en [docs/hardware.md](d
 - Idea opcional: un ícono de la app con la estética Avispón (no está pedido).
 
 ## Equipo dedicado
-- **Raspberry Pi 3 B+:** las piezas están compradas. El software (guía, servicio de GPS, pulsador y voz, modo kiosco, solo lectura) está ofrecido y espera el OK de Matías.
+- **Raspberry Pi 3 B+:** diseño del sistema acordado en [raspberry/docs/diseno-sistema.md](raspberry/docs/diseno-sistema.md) (Buildroot + Qt, nativo, autónomo). Sigue: imágenes de muestra de las pantallas.
 - **Compras recomendadas que faltan:** fuente de 5 V 2,5 A, cable micro-USB, amplificador MAX98357A con parlante de 3 W 4 Ω, cables dupont, pulsador; más adelante, convertidor de 12 V a 5 V 3 A, fichas GX12 y cable espiralado.
 
 ## Hecho

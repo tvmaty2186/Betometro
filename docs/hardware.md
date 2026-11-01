@@ -48,13 +48,13 @@ Matías la canceló el 01/11/2026. Queda lo que sigue solo como referencia.
 - cables dupont y un pulsador;
 - más adelante: convertidor de 12 V a 5 V 3 A, fichas GX12 y cable espiralado.
 
-**Software:** está ofrecido, todavía no empezado. Espera el OK de Matías.
+**Software:** el diseño acordado está en [raspberry/docs/diseno-sistema.md](../raspberry/docs/diseno-sistema.md). Reemplaza la idea de abajo (kiosco con la web de la app), que quedó descartada.
 - guía de instalación;
 - un servicio que lea el GPS (NMEA por USB o UART), el pulsador (GPIO) y la voz;
 - la misma interfaz web en Chromium en modo kiosco;
 - sistema de archivos de solo lectura, para que no se rompa al cortar la corriente.
 
-**La idea:** reutilizar `Motor` y la interfaz de `www/index.html` tal cual. Solo cambia la fuente de velocidad y la de marcas.
+**Descartado:** reutilizar `www/index.html` en Chromium. Matías quiere un sistema nativo hecho de cero, sin emular el celular.
 
 ## Descartado o evaluado
 
