@@ -76,6 +76,7 @@ Está inspirado en el auto de Matías: **Peugeot 404 verde, #101, «el Avispón 
 - **Fechas de la lista:** redondel cromado con número verde.
 - **Secciones:** «PRÓXIMAS» y «CORRIDAS» llevan una banda blanca y amarilla.
 - **Número del auto:** se cambia en Ajustes → «Número del auto» (`cfg.numeroAuto`, fábrica «101»).
+- **Inicio con foto (2.1):** cabecera verde oscura (león | título cromado | rayas) con filete amarillo; debajo, la foto fija `www/img/inicio.jpg` (los dos pilotos con el 404, recortada desde arriba y fundida en verde) hasta la banda del 101. **La foto es fija: Matías no quiere que se pueda cambiar.**
 - **Elementos del inicio:** solo existen en este tema (clases `.av-*`; `#avNum` y `#avBanda` se ubican en `layoutInicio()`).
 
 ## Ícono
