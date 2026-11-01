@@ -623,6 +623,80 @@ html, body { margin: 0; }
 .borrar-si { background: var(--mal); color: #fff; }
 .ayuda-c { margin: 0 2px; }
 :root[data-tema="rally"] .ayuda-c { color: #b9a98a; }
+
+/* ===================== 2.0: tema «Avispón Verde» (Peugeot 404 #101) ===================== */
+@font-face { font-family: "Barlow"; font-style: italic; font-weight: 600; font-display: swap; src: url("fuentes/barlow-latin-600-italic.woff2") format("woff2"); }
+@font-face { font-family: "Barlow"; font-style: italic; font-weight: 800; font-display: swap; src: url("fuentes/barlow-latin-800-italic.woff2") format("woff2"); }
+:root { --cromo: linear-gradient(180deg, #ffffff 0%, #c9ced3 30%, #6f777f 52%, #e8ebee 60%, #9aa1a8 100%); --av-ama: #f4c531; --av-crema: #f3ecd8; }
+:root[data-tema="avispon"]:not(.sol) {
+  --idle: #0d2a18; --panel: #123820; --panel-2: #1d5233; --ink: #f7f7f2; --ink-dim: rgba(247,247,242,.75); --lbl: rgba(214,230,210,.9);
+  --line: rgba(255,255,255,.2); --warn: #f4c531; --acento: #f3ecd8;
+  --font-num: "Barlow Condensed", "Arial Narrow", sans-serif; --peso-num: 700; --k: 190; --font-ui: "Barlow", "Segoe UI", Roboto, sans-serif; --radio: 14px;
+  --delta-bg: #f4c531; --delta-ink: #0b0d0c; --marcar-bg: #f4c531; --marcar-ink: #0b0d0c; --marcar-borde: #fff6d0;
+  --g-dial: rgba(255,255,255,.14); --g-tick: #f3ecd8; --g-req: #f4c531; --g-zona: #7fd36b; --g-aguja: #ffffff;
+  --aro1: #e9ecee; --aro2: #5d646b; --glow: rgba(0,0,0,.45); --cara1: #1f4a2f; --cara2: #08190e; --dig: #f3ecd8;
+  --fondo-crono: radial-gradient(120% 70% at 30% 0%, #3d8c57 0%, #1d5233 40%, #0d2a18 100%) fixed, #0d2a18;
+  --acc: #f4c531; --acc-ink: #0b0d0c; --card-bg: linear-gradient(180deg, rgba(64,140,90,.55), rgba(10,38,22,.92)); --card-borde: #cfd4d8;
+  --sub: #d6e6d2; --hueco: #08190e; --ok: #7fd36b; --medio: #f4c531; --mal: #ff6b5a;
+}
+/* velocímetro redondo: cara crema y bisel cromado */
+:root[data-tema="avispon"]:not(.sol) .w.redondo.w-velocimetro { --g-tick: #1d2a20; --g-aguja: #111; --g-dial: #d6caa9; --g-zona: #2f7a49; --g-req: #d9a20f; --dig: #1d5233; --lbl: #1d2a20; --ink: #1d2a20;
+  background: radial-gradient(circle at 45% 38%, #fffbef, #efe6cf 55%, #d6caa9);
+  box-shadow: 0 0 0 5px #e8ebee, 0 0 0 7px #5d646b, 0 0 0 10px #b9bfc5, 0 14px 30px rgba(0,0,0,.6), inset 0 0 20px rgba(0,0,0,.15); }
+:root[data-tema="avispon"]:not(.sol) .w { box-shadow: 0 0 0 2px #cfd4d8, 0 0 0 3px #4b5258, 0 10px 18px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.3), inset 0 -18px 30px rgba(0,0,0,.45);
+  background: radial-gradient(120% 90% at 50% 0%, #1f4a2f, #08190e); }
+:root[data-tema="avispon"]:not(.sol) .w-num, :root[data-tema="avispon"]:not(.sol) .marcar, :root[data-tema="avispon"]:not(.sol) .w-tipo .chip-vuelta { font-style: italic; }
+:root[data-tema="avispon"]:not(.sol) .marcar { background: linear-gradient(180deg, #ffe07a, #f4c531 45%, #d9a20f); font-family: "Barlow", sans-serif; font-weight: 800;
+  box-shadow: 0 0 0 2px #fff6d0, 0 0 0 3px #6b5200, 0 8px 14px rgba(0,0,0,.5), inset 0 -6px 10px rgba(0,0,0,.18); border: 0; }
+:root[data-tema="avispon"]:not(.sol) .marcar small { font-style: italic; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; font-size: 13px; }
+:root[data-tema="avispon"]:not(.sol) .marcar.hit { background: #fff1b0; }
+/* inicio */
+.av { display: none; }
+:root[data-tema="avispon"]:not(.sol) .av { display: block; }
+:root[data-tema="avispon"]:not(.sol) #p-inicio { background: var(--fondo-crono); }
+:root[data-tema="avispon"]:not(.sol) #p-inicio::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, rgba(255,255,255,.10) 0%, transparent 30%), repeating-conic-gradient(rgba(255,255,255,.055) 0 25%, transparent 0 50%) 0 0 / 46px 46px;
+  -webkit-mask: radial-gradient(70% 45% at 0% 30%, #000, transparent); mask: radial-gradient(70% 45% at 0% 30%, #000, transparent); }
+.av-rayas { position: absolute; top: -20px; right: 34vw; width: 60px; height: calc(env(safe-area-inset-top, 0px) + 110px); transform: skewX(-28deg);
+  background: linear-gradient(90deg, #f7f7f2 0 40%, transparent 40% 52%, var(--av-ama) 52% 100%); opacity: .95; }
+.av-leon { position: absolute; left: 6px; top: calc(env(safe-area-inset-top, 0px) + 6vh + 6px); width: min(38vw, 180px); filter: drop-shadow(0 4px 4px rgba(0,0,0,.45)); }
+.av-moldura { position: absolute; left: 0; right: 0; top: calc(env(safe-area-inset-top, 0px) + 6vh + 132px); height: 7px; background: var(--cromo); box-shadow: 0 3px 6px rgba(0,0,0,.5); }
+.av-banda { position: absolute; left: 0; right: 0; height: 18px; background: linear-gradient(180deg, #f7f7f2 0 34%, var(--av-ama) 34% 100%); box-shadow: 0 2px 4px rgba(0,0,0,.4); }
+.av-num, :root[data-tema="avispon"]:not(.sol) .av-num { position: absolute; display: grid; place-items: center; border-radius: 50%; font: italic 700 46px "Barlow Condensed", sans-serif; color: #1b5a33;
+  background: radial-gradient(circle at 40% 30%, #ffffff, #d8dde1 45%, #9aa2a9 75%, #e3e6e9); box-shadow: 0 0 0 3px #f5f6f7, 0 0 0 5px #4b5258, 0 10px 18px rgba(0,0,0,.55); z-index: 1; }
+:root[data-tema="avispon"]:not(.sol) .av-num { display: grid; }
+.av-num[hidden] { display: none !important; }
+.av-swoosh { position: absolute; left: -60px; right: -60px; bottom: -40px; height: 92px; border-radius: 50%; border-top: 14px solid var(--av-ama);
+  box-shadow: inset 0 10px 0 6px #f7f7f2; transform: rotate(-4deg); pointer-events: none; }
+:root[data-tema="avispon"]:not(.sol) .inicio-logo { padding-left: min(38vw, 180px); left: 0; }
+:root[data-tema="avispon"]:not(.sol) .inicio-logo b { font: italic 800 min(10.4vw, 52px) "Barlow", sans-serif; letter-spacing: .02em; background: var(--cromo);
+  -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; filter: drop-shadow(0 3px 2px rgba(0,0,0,.55)); }
+:root[data-tema="avispon"]:not(.sol) .inicio-logo small { font: italic 600 10px "Barlow", sans-serif; letter-spacing: .12em; color: #d6e6d2; }
+:root[data-tema="avispon"]:not(.sol) .inicio-logo .ver { font: italic 600 12px "Barlow", sans-serif; margin-top: 8px; }
+:root[data-tema="avispon"]:not(.sol) .inicio-logo .ver-act { color: var(--av-ama); text-decoration: underline; }
+:root[data-tema="avispon"]:not(.sol) .ico { font: italic 700 15px "Barlow", sans-serif; text-shadow: 0 2px 3px #000, 0 0 8px rgba(0,0,0,.7); z-index: 2; }
+:root[data-tema="avispon"]:not(.sol) .ico .disco { background: radial-gradient(circle at 45% 30%, #3c8a57, #14432a 55%, #0a2414);
+  box-shadow: 0 0 0 4px #e9ecee, 0 0 0 5px #5d646b, 0 0 0 7px #b9bfc5, 0 8px 14px rgba(0,0,0,.6), inset 0 -8px 12px rgba(0,0,0,.45), inset 0 6px 10px rgba(255,255,255,.18); }
+:root[data-tema="avispon"]:not(.sol) .compartir-c { background: rgba(0,0,0,.55); box-shadow: 0 0 0 1.5px #c9ced3; font: italic 700 14px "Barlow", sans-serif; }
+/* menús */
+:root[data-tema="avispon"]:not(.sol) .cab h2 { font: italic 800 28px "Barlow", sans-serif; text-transform: uppercase; letter-spacing: .02em; background: var(--cromo);
+  -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 3px 2px rgba(0,0,0,.55)); padding-right: 4px; }
+:root[data-tema="avispon"]:not(.sol) .cab .btn.sec { background: rgba(0,0,0,.4); box-shadow: 0 0 0 2px #cfd4d8; }
+:root[data-tema="avispon"]:not(.sol) .tarjeta-c, :root[data-tema="avispon"]:not(.sol) .hero-c, :root[data-tema="avispon"]:not(.sol) .config fieldset,
+:root[data-tema="avispon"]:not(.sol) .pantalla fieldset, :root[data-tema="avispon"]:not(.sol) .chk {
+  box-shadow: 0 0 0 2px #cfd4d8, 0 0 0 3px #4b5258, 0 10px 18px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.35); }
+:root[data-tema="avispon"]:not(.sol) .cuerpo-c > b, :root[data-tema="avispon"]:not(.sol) .config fieldset h3, :root[data-tema="avispon"]:not(.sol) .pantalla fieldset h3 { font-style: italic; font-weight: 800; }
+:root[data-tema="avispon"]:not(.sol) .cuerpo-c > span, :root[data-tema="avispon"]:not(.sol) .seccion-t { font-style: italic; }
+:root[data-tema="avispon"]:not(.sol) .fecha-c { width: 60px; height: 60px; align-self: center; border-radius: 50%; color: #1b5a33;
+  background: radial-gradient(circle at 40% 30%, #ffffff, #d8dde1 45%, #9aa2a9 75%, #e3e6e9); box-shadow: 0 0 0 2px #f5f6f7, 0 0 0 3px #4b5258, 0 6px 10px rgba(0,0,0,.45); }
+:root[data-tema="avispon"]:not(.sol) .fecha-c b { font-style: italic; font-size: 24px; } :root[data-tema="avispon"]:not(.sol) .fecha-c span { color: #1b5a33; font-size: 10px; font-style: italic; }
+:root[data-tema="avispon"]:not(.sol) .seccion-t::before { content: ""; display: inline-block; width: 22px; height: 9px; margin-right: 10px; vertical-align: 1px;
+  background: linear-gradient(180deg, #f7f7f2 0 34%, var(--av-ama) 34% 100%); }
+:root[data-tema="avispon"]:not(.sol) .btn.largar, :root[data-tema="avispon"]:not(.sol) .mas-c { background: linear-gradient(180deg, #ffe07a, #f4c531 45%, #d9a20f); font-style: italic; font-weight: 800;
+  box-shadow: 0 0 0 2px #fff6d0, 0 0 0 3px #6b5200, 0 8px 14px rgba(0,0,0,.5), inset 0 -6px 10px rgba(0,0,0,.18); }
+:root[data-tema="avispon"]:not(.sol) .btn.largar:disabled, :root[data-tema="avispon"]:not(.sol) .btn.largar.inhabilitado { background: var(--hueco); box-shadow: inset 0 0 0 1px var(--card-borde); }
+#numeroAuto { background: var(--hueco); color: var(--ink); border: 1px solid var(--card-borde); border-radius: 10px; padding: 8px 10px; font: 700 18px var(--font-ui); text-align: center; }
+:root[data-tema="avispon"]:not(.sol) .marcar, :root[data-tema="avispon"]:not(.sol) .marcar small, :root[data-tema="avispon"]:not(.sol) .marcar .m-txt { color: #0b0d0c !important; text-shadow: none; }
 </style>
 </head>
 <body>
@@ -662,6 +736,8 @@ html, body { margin: 0; }
 <div class="pantalla" id="p-inicio">
   <div class="inicio" id="inicio">
     <div class="inicio-logo"><b>BETÓMETRO</b><small>Regularidad para el navegante</small><span class="ver"><span id="inicioVersion"></span><button class="ver-act" id="inicioAct" type="button" hidden>· Actualizar</button></span></div>
+    <div class="av av-rayas"></div><img class="av av-leon" src="img/leon.png" alt=""><div class="av av-moldura"></div>
+    <div class="av av-banda" id="avBanda"></div><div class="av-num" id="avNum" hidden>101</div><div class="av av-swoosh"></div>
     <button class="compartir-c" id="mCompartir" type="button" aria-label="Compartir Betómetro"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg><span>Compartir</span></button>
     <div class="w redondo w-velocimetro" id="inicioGauge"></div>
     <button class="ico" id="mCarreras" type="button"><span class="disco"><svg viewBox="0 0 40 40"><path d="M8 36V5" stroke="var(--ink)" stroke-width="3"/><path d="M9 6h24v16H9z" fill="var(--ink)"/><path d="M9 6h6v4H9zm12 0h6v4h-6zM15 10h6v4h-6zm12 0h6v4h-6zM9 14h6v4H9zm12 0h6v4h-6zM15 18h6v4h-6zm12 0h6v4h-6z" fill="var(--cara2)"/></svg></span>Carreras</button>
@@ -769,10 +845,15 @@ html, body { margin: 0; }
       <div class="row">
         <label for="tema">Tema</label>
         <select id="tema">
+          <option value="avispon">Avispón Verde</option>
           <option value="rally">Rally clásico</option>
           <option value="sport">Deportivo moderno</option>
           <option value="cabina">Cabina de avión</option>
         </select>
+      </div>
+      <div class="row">
+        <label for="numeroAuto">Número del auto (tema Avispón Verde)</label>
+        <input id="numeroAuto" type="text" inputmode="numeric" maxlength="4" style="width:90px">
       </div>
       <div class="row">
         <label for="modoSol">Modo sol (fondo claro para pleno sol)</label>
@@ -1158,7 +1239,7 @@ const DEF = { tiempoIdealMs: 240000, distanciaM: 3200, patron: 'alt1', cuentaN: 
               anticipoMs: 250, avisoInicio: true, avisoProx: false, antirreboteMs: 3000, colMedida: '#b3132b', colPractica: '#0f6e3a',
               velActiva: true, fuenteVel: 'gps', pitidoCadaS: 0, simVelKmh: 48, umbralPrecisionM: 20,
               calibrar: true, teclas: null, teclaWeb: null, teclaNombre: '', pulsadorNombre: '',
-              modoCarrera: true, tema: 'sport', modoSol: 'auto', indicador: 'fondo', volumenMax: true, canalAudio: 'alarma', widgets: null };
+              modoCarrera: true, tema: 'avispon', numeroAuto: '101', modoSol: 'auto', indicador: 'fondo', volumenMax: true, canalAudio: 'alarma', widgets: null };
 if (NATIVO) DEF.anticipoMs = 40;   // en nativa los números ya están grabados: solo queda el silencio inicial del audio
 const cfg = Object.assign({}, DEF, Store.config || {});
 function fijarCfg() { if (!cfg.cero0) { cfg.pitidoCero = false; cfg.cero0 = true; }   // el pitido del cero pasó a venir apagado
@@ -1386,6 +1467,7 @@ function aplicarTema() {
   r.dataset.tema = cfg.tema || 'rally';
   r.classList.toggle('sol', cfg.modoSol === 'si' || (cfg.modoSol === 'auto' && solAuto));
   document.body.classList.toggle('ind-fondo', cfg.indicador === 'fondo');
+  const avN = document.getElementById('avNum'); if (avN) { avN.textContent = cfg.numeroAuto || '101'; avN.hidden = !(r.dataset.tema === 'avispon' && !r.classList.contains('sol')); }
   document.body.classList.toggle('ind-marco', cfg.indicador !== 'fondo');
   if (antes && antes !== r.dataset.tema && typeof pantalla !== 'undefined') { if (pantalla === 'carreras') dibujarCarreras(); if (pantalla === 'detalle') dibujarDetalle(); }
 }
@@ -1815,6 +1897,9 @@ function layoutInicio() {
   const W = innerWidth, H = innerHeight, k = Math.min(W / 390, H / 844);
   const cx = W - 60 * k, cy = H * 0.717, D = 330 * k, R = 262 * k;
   Object.assign($('inicioGauge').style, { left: (cx - D / 2) + 'px', top: (cy - D / 2) + 'px', width: D + 'px', height: D + 'px' });
+  const nd = 104 * k, ny = cy - 300 * k;   // tema Avispón: redondel del número sobre la banda blanca y amarilla
+  Object.assign($('avNum').style, { left: (80 * k - nd / 2) + 'px', top: (ny - nd / 2) + 'px', width: nd + 'px', height: nd + 'px', fontSize: (46 * k) + 'px' });
+  Object.assign($('avBanda').style, { top: (ny - 9 * k) + 'px', height: (18 * k) + 'px' });
   ['mCarreras', 'mPractica', 'mChequeo', 'mPantalla', 'mAjustes'].forEach((id, n) => {
     const a = (150 + 30 * n) * Math.PI / 180;
     Object.assign($(id).style, { left: (cx + R * Math.cos(a)) + 'px', top: (cy + R * Math.sin(a)) + 'px' });
@@ -2001,7 +2086,7 @@ function cargarForm() {
   $('antirrebote').value = cfg.antirreboteMs / 1000; $('colMedida').value = cfg.colMedida; $('colPractica').value = cfg.colPractica;
   $('velActiva').checked = cfg.velActiva; $('umbral').value = cfg.umbralPrecisionM; $('calibrar').checked = cfg.calibrar;
   $('pitidoCada').value = cfg.pitidoCadaS || 0;
-  $('tema').value = cfg.tema; $('modoSol').value = cfg.modoSol; $('indicador').value = cfg.indicador;
+  $('tema').value = cfg.tema; $('numeroAuto').value = cfg.numeroAuto || '101'; $('modoSol').value = cfg.modoSol; $('indicador').value = cfg.indicador;
   $('volumenMax').checked = cfg.volumenMax; $('canalAudio').value = cfg.canalAudio;
   infoUbicacion();
   estadoPantalla();
@@ -2030,7 +2115,7 @@ function leerForm() {
   cfg.velActiva = $('velActiva').checked; cfg.umbralPrecisionM = Math.round(num('umbral', cfg.umbralPrecisionM, 1, 200));
   cfg.calibrar = $('calibrar').checked; cfg.pitidoCadaS = Math.round(num('pitidoCada', 0, 0, 600));
   const antes = { vel: cfg.velActiva, sol: cfg.modoSol, canal: cfg.canalAudio };
-  cfg.tema = $('tema').value; cfg.modoSol = $('modoSol').value; cfg.indicador = $('indicador').value;
+  cfg.tema = $('tema').value; cfg.numeroAuto = ($('numeroAuto').value || '').trim().slice(0, 4) || '101'; aplicarTema(); cfg.modoSol = $('modoSol').value; cfg.indicador = $('indicador').value;
   cfg.volumenMax = $('volumenMax').checked; cfg.canalAudio = $('canalAudio').value; cfg.modoCarrera = $('modoCarreraChk').checked;
   setTimeout(() => {   // efectos que dependen de lo que cambió
     if (antes.sol !== cfg.modoSol) actualizarSensorLuz();
@@ -2711,6 +2796,8 @@ requestAnimationFrame(dibujar);
 (async () => {
   await Store.cargar();
   Object.assign(cfg, DEF, Store.config || {}); fijarCfg();
+  if (!(Store.config && Store.config.avispon1)) { cfg.tema = 'avispon'; cfg.avispon1 = true; Store.setConfig(cfg); }   // 2.0: una sola vez pasa al tema Avispón Verde; después se respeta lo que elija el usuario
+  aplicarTema();
   aplicarColores(); infoPulsador(); aplicarTeclasNativas(); actualizarFuente(); construirTablero(); actualizarSensorLuz();
   if (Beto && cfg.canalAudio !== 'alarma') Beto.configurarAudio({ canal: cfg.canalAudio }).catch(() => {});
   if (Beto && cfg.velActiva) setTimeout(async () => { if ((await ubicacionPrecisa()) === false) pedirUbicacionPrecisa(); }, 1500);
