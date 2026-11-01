@@ -2814,7 +2814,7 @@ requestAnimationFrame(dibujar);
 (async () => {
   await Store.cargar();
   Object.assign(cfg, DEF, Store.config || {}); fijarCfg();
-  if (!(Store.config && Store.config.avispon1)) { cfg.tema = 'avispon'; cfg.avispon1 = true; Store.setConfig(cfg); }   // 2.0: una sola vez pasa al tema Avispón Verde; después se respeta lo que elija el usuario
+  if (!(Store.config && Store.config.avispon21)) { cfg.tema = 'avispon'; cfg.avispon1 = cfg.avispon21 = true; Store.setConfig(cfg); }   // 2.1.1: otra vez, una sola vez, arranca en Avispón Verde   // 2.0: una sola vez pasa al tema Avispón Verde; después se respeta lo que elija el usuario
   aplicarTema();
   aplicarColores(); infoPulsador(); aplicarTeclasNativas(); actualizarFuente(); construirTablero(); actualizarSensorLuz();
   if (Beto && cfg.canalAudio !== 'alarma') Beto.configurarAudio({ canal: cfg.canalAudio }).catch(() => {});

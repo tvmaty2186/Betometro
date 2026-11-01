@@ -46,8 +46,8 @@ Buscá los encabezados `/* ===== … ===== */` con grep.
   - Siempre deja además un respaldo completo `betometro.json`.
   - Funciones: `setConfig`, `guardarCarrera`, `agregarVuelta`, `buscar`.
 - **CONFIGURACIÓN:** `DEF` son los valores de fábrica que eligió Matías. `cfg = Object.assign({}, DEF, Store.config)`.
-  - **Migraciones de una sola vez:** se marcan con banderas en `cfg` (`cero0`, `cuenta20`, `avispon1`).
-  - `avispon1` se fija en el arranque asíncrono, después de `Store.cargar()`, y se guarda enseguida: pone el tema Avispón **una sola vez** y después se respeta el tema que elija el usuario.
+  - **Migraciones de una sola vez:** se marcan con banderas en `cfg` (`cero0`, `cuenta20`, `avispon1`, `avispon21`).
+  - `avispon21` (antes `avispon1`) se fija en el arranque asíncrono, después de `Store.cargar()`, y se guarda enseguida: pone el tema Avispón **una sola vez** y después se respeta el tema que elija el usuario.
   - Para una migración nueva, copiá ese patrón (comprobá `Store.config.bandera`, no `cfg`).
 - **AUDIO:**
   - En la app nativa los números se pregraban con TextToSpeech (`Beto.prepararVoz`) y se reproducen sin demora. En la web se usa `speechSynthesis`, con voz es-AR si hay.

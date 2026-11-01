@@ -4,6 +4,7 @@ Lo que pidió Matías y cómo se resolvió. Lo más nuevo está arriba.
 
 | Versión | Qué cambió |
 |---|---|
+| **2.1.1** | Al actualizar arranca otra vez en Avispón Verde, una sola vez (bandera `avispon21`). |
 | **2.1.0** | Inicio del Avispón con cabecera (león y título cromado) y la foto de los pilotos con el auto. La foto es fija, no se puede cambiar. |
 | **2.1.0** | Foto de la app en el inicio (el piloto y el copiloto con el 404), la misma en **todos los temas**. Es fija: **no se puede cambiar** desde la app (decisión de Matías). En Avispón: cabecera verde con león, rayita, título cromado y rayas; la foto se funde en verde y el 101 va montado sobre la banda. |
 | **2.0.0** | **Tema Avispón Verde** (Peugeot 404 #101, león de Matías, cromo, banda 101, velocímetro crema). Al actualizar pasa a este tema **una sola vez**; después se respeta el tema elegido. Nuevo ajuste «Número del auto». |
