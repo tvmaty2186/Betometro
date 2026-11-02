@@ -104,6 +104,13 @@ Buscá los encabezados `/* ===== … ===== */` con grep.
 - No hay cantidad de vueltas. Una carrera queda «finalizada» cuando se toca Terminar con al menos una vuelta (`c.terminada`, columna SQL `terminada`). Las carreras viejas con `vueltasTotal` siguen funcionando.
 - El error total suma solo `v.medida`. Cambiar el tipo de una vuelta: el informe (abierto en la app con `informeHTML(c, true)`) manda `postMessage({beto:'tipoVuelta', i, medida})`; la app actualiza `v.medida`, guarda lo del patrón en `v.medidaPatron` y graba con `Store.guardarVuelta`. El informe compartido no permite cambiar nada.
 
+## Unir vueltas y restablecer (2.4)
+
+- `unirConSiguiente(c, i)` es copia de `Carrera::unirConSiguiente` (repo Betometro-Raspberry, `app/nucleo/modelo.cpp`). Funciona con la traza cruda (`v.traza`) y con el recorrido ya armado de las importadas (`v.mi`).
+- Mensajes del informe a la app: `tipoVuelta`, `unir` y `restablecer`. Después de unir o restablecer se reescriben las vueltas de la carrera (`Store.reescribirVueltas`) y se vuelve a abrir el informe.
+- `c.original` (columna SQL `original`): JSON de las vueltas antes del primer cambio. «Restablecer» las vuelve a poner y borra la copia.
+- `estadoLargada`: solo las importadas quedan cerradas; las demás pasan a «Corridas» por fecha (`fecha < hoy`).
+
 ## Carreras importadas (2.3)
 
 - `importarInforme(html)` toma el JSON que va después de `const C=` en el informe (vale para informes viejos también) y crea una carrera con `importada: true`, `terminada: true` e `imp: { pista, cerrada }`. Cada vuelta guarda su recorrido ya procesado en `v.mi`.

@@ -29,7 +29,8 @@ main{padding-right:30px}
 table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
 th,td{padding:8px 4px;text-align:right;border-top:1px solid #2a2e33}th{color:var(--sub);font-size:9px;letter-spacing:.1em;font-weight:700;border-top:0}
 td:first-child,th:first-child,td:nth-child(2),th:nth-child(2){text-align:left}
-tr.sel td{background:#d7263d22}tr.clic{cursor:pointer}
+tr.sel td{background:#d7263d22}tr.clic,tr.u{cursor:pointer}tr.usel td{background:#f5c51826}
+.unir{display:block;width:100%;margin:0 0 8px;padding:10px;border-radius:10px;border:0;background:var(--ama);color:#111;font:800 14px system-ui,sans-serif;letter-spacing:.04em}.unir.arm{background:var(--rojo);color:#fff}.unir[hidden]{display:none}.unir.rest{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--sub)}.unir.rest.arm{background:var(--rojo);color:#fff;box-shadow:none}
 .tag{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
 .tot td{font-weight:800;border-top:2px solid #444}
 .tipo{font:800 10px system-ui,sans-serif;letter-spacing:.08em;border-radius:20px;padding:5px 9px;border:0;color:#fff;white-space:nowrap}
@@ -50,7 +51,7 @@ tr.sel td{background:#d7263d22}tr.clic{cursor:pointer}
   <div class="lg"><span><i style="background:var(--verde)"></i>acelera</span><span><i style="background:var(--rojo)"></i>frena</span></div></div>
 <div class="pie" style="margin:0 0 12px">tocá o deslizá el dedo sobre el mapa o los gráficos</div>
 </div>
-<div class="card"><div class="t">Todas las vueltas<b id="totInfo"></b></div><div class="ayuda" id="ayudaTipo" hidden>Tocá MEDIDA o LIBRE para cambiar el tipo de una vuelta. Las vueltas libres no suman error.</div><div id="tabla"></div></div>
+<div class="card"><div class="t">Todas las vueltas<b id="totInfo"></b></div><div class="ayuda" id="ayudaTipo">Tocá MEDIDA o LIBRE para cambiar el tipo de una vuelta. Las vueltas libres no suman error.</div><button type="button" class="unir" id="unir" hidden></button><button type="button" class="unir rest" id="rest" hidden>Restablecer la carrera original</button><div id="tabla"></div></div>
 <div class="pie">Generado con Betómetro</div>
 </main>
 <div class="barra" id="barra"><i></i></div>
@@ -76,17 +77,31 @@ const LEY={vel:[['var(--azul)','muy lento'],['var(--verde)','en sugerida'],['var
  ade:[['var(--verde)','±1 s'],['var(--ama)','1 a 3 s'],['var(--rojo)','más de 3 s'],['#555','sin señal']]};
 const color=p=>modo==='vel'?colVel(p[2]):modo==='ace'?colAce(p[3]):colAde(p[4]);
 const nombreV=v=>'V'+v.n+(C.largadas>1?' L'+v.largada:'');
-// tabla con todas las vueltas (en la app se puede pasar una vuelta a libre o a medida tocando su tipo)
+// tabla con todas las vueltas: MEDIDA/LIBRE se cambia tocándolo (se guarda en la app; en el archivo compartido solo recalcula).
+// En la app, tocar una vuelta ofrece unirla con la siguiente (una marca de más la partió en dos).
+let uSel=-1,uArm=null;
+const unible=i=>{const a=C.vueltas[i],b=C.vueltas[i+1];return C.editable&&a&&b&&a.largada===b.largada&&!a.interrumpida&&!b.interrumpida};
+function barraUnir(){const u=$('unir');clearTimeout(uArm);uArm=null;u.classList.remove('arm');
+  if(uSel<0||!unible(uSel)){u.hidden=true;return}u.hidden=false;u.textContent='Unir '+nombreV(C.vueltas[uSel])+' con '+nombreV(C.vueltas[uSel+1]);}
+$('unir').onclick=()=>{const u=$('unir');if(!uArm){u.classList.add('arm');u.textContent='¿Seguro? Tocá de nuevo';uArm=setTimeout(barraUnir,3000);return}
+  clearTimeout(uArm);uArm=null;try{parent.postMessage({beto:'unir',i:uSel},'*')}catch(e){}};
 function tabla(){let h='<table><tr><th>VUELTA</th><th>TIPO</th><th>TIEMPO</th><th>DIF.</th><th>PROM</th><th>MÁX</th></tr>';
-  C.vueltas.forEach((v,i)=>{const t=v.medida?'MEDIDA':'LIBRE',cl='tipo '+(v.medida?'m':'l');h+=`<tr data-i="${i}" class="${v.m?'clic':''}"><td><b>${nombreV(v)}</b></td><td>${C.editable?`<button type="button" class="${cl}" data-t="${i}">${t}</button>`:`<span class="${cl}">${t}</span>`}</td><td>${tfmt(v.realMs)}</td><td style="color:${v.medida?colAde(v.difMs/1000):'var(--sub)'}">${dif(v.difMs)}</td><td>${v.velPromKmh!=null?nf(v.velPromKmh,1):'–'}</td><td>${v.velMaxKmh!=null?Math.round(v.velMaxKmh):'–'}</td></tr>`});
-  const med=C.vueltas.filter(v=>v.medida);$('totInfo').textContent='';
-  if(med.length){const s=med.reduce((a,v)=>a+Math.abs(v.difMs),0);h+=`<tr class="tot"><td colspan="3">Error total · ${med.length} medida${med.length>1?'s':''}</td><td colspan="3">${dur(s)}</td></tr>`;$('totInfo').textContent='promedio '+dur(s/med.length);}
+  C.vueltas.forEach((v,i)=>{const t=v.medida?'MEDIDA':'LIBRE',cl='tipo '+(v.medida?'m':'l');h+=`<tr data-i="${i}" class="${v.m?'clic ':''}${C.editable?'u ':''}${i===uSel?'usel':''}"><td><b>${nombreV(v)}</b></td><td>${v.interrumpida?`<span class="${cl}">${t}</span>`:`<button type="button" class="${cl}" data-t="${i}">${t}</button>`}</td><td>${tfmt(v.realMs)}</td><td style="color:${v.medida?colAde(v.difMs/1000):'var(--sub)'}">${dif(v.difMs)}</td><td>${v.velPromKmh!=null?nf(v.velPromKmh,1):'–'}</td><td>${v.velMaxKmh!=null?Math.round(v.velMaxKmh):'–'}</td></tr>`});
+  const med=C.vueltas.filter(v=>v.medida&&!v.interrumpida);$('totInfo').textContent='';
+  if(med.length){const s=med.reduce((a,v)=>a+Math.abs(v.difMs),0),mej=Math.min(...med.map(v=>Math.abs(v.difMs)));h+=`<tr class="tot"><td colspan="3">Error total · ${med.length} medida${med.length>1?'s':''}</td><td colspan="3">${dur(s)}</td></tr>`;$('totInfo').textContent='prom. '+dur(s/med.length)+' · mejor '+dur(mej);}
   $('tabla').innerHTML=h+'</table>';
-  $('tabla').querySelectorAll('tr.clic').forEach(r=>r.onclick=()=>{lap=+r.dataset.i;sel=null;dibujar();scrollTo({top:0,behavior:'smooth'})});
+  $('tabla').querySelectorAll('tr[data-i]').forEach(r=>r.onclick=()=>{const i=+r.dataset.i;
+    if(C.editable){uSel=uSel===i?-1:i;barraUnir();$('tabla').querySelectorAll('tr[data-i]').forEach(x=>x.classList.toggle('usel',+x.dataset.i===uSel))}
+    if(C.vueltas[i].m&&typeof dibujar==='function'&&lap>=0){lap=i;sel=null;dibujar()}});
   $('tabla').querySelectorAll('button.tipo').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const i=+b.dataset.t,v=C.vueltas[i];v.medida=!v.medida;
-    try{parent.postMessage({beto:'tipoVuelta',i,medida:v.medida},'*')}catch(e){}
+    if(C.editable){C.modificada=true;verRest();try{parent.postMessage({beto:'tipoVuelta',i,medida:v.medida},'*')}catch(e){}}
     tabla();document.querySelectorAll('#vueltas .chip[data-i="'+i+'"] small').forEach(s=>s.textContent=v.medida?'medida':'libre');});}
-$('ayudaTipo').hidden=!C.editable;tabla();
+let rArm=null;const rest=$('rest');
+function verRest(){rest.hidden=!(C.editable&&C.modificada)}
+rest.onclick=()=>{if(!rArm){rest.classList.add('arm');rest.textContent='¿Seguro? Se pierden los cambios. Tocá de nuevo';rArm=setTimeout(()=>{rArm=null;rest.classList.remove('arm');rest.textContent='Restablecer la carrera original'},3000);return}
+  clearTimeout(rArm);rArm=null;try{parent.postMessage({beto:'restablecer'},'*')}catch(e){}};
+tabla();verRest();
+
 if(lap<0){$('conRecorrido').innerHTML='<div class="card aviso">Esta carrera no tiene el recorrido grabado. Se graba con el GPS en las carreras corridas desde la versión 1.8 de Betómetro.</div>';}
 else{
 conT.forEach(i=>{const v=C.vueltas[i],b=document.createElement('button');b.className='chip';b.dataset.i=i;b.innerHTML=nombreV(v)+'<small>'+(v.medida?'medida':'libre')+'</small>';b.onclick=()=>{lap=i;sel=null;dibujar()};$('vueltas').append(b)});

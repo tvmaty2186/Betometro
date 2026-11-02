@@ -129,6 +129,7 @@ body.ind-marco.practica .tipo-nombre { background: var(--practica); color: #fff;
          font-size: min(80cqh, calc(var(--k) * 1cqw / var(--n, 4))); }
 .w-cuenta .w-num { color: var(--acento); font-size: min(92cqh, calc(var(--k) * 1.05cqw / var(--n, 6))); }
 .w-num.over, .w-num.atr { color: var(--warn); }
+.w-num.over.pasado { color: var(--mal, #e10600); }
 .w-ideal { position: absolute; top: 6px; right: 12px; font: 600 clamp(9px, 9cqh, 13px) var(--font-ui); letter-spacing: .06em; color: var(--lbl); opacity: .85; white-space: nowrap; pointer-events: none; }
 .w-sub { font-size: clamp(11px, 13cqh, 18px); color: var(--ink-dim); font-weight: 600; font-variant-numeric: tabular-nums; }
 .w-svg { width: 100%; height: 100%; display: block; }
@@ -1178,7 +1179,7 @@ const Store = (() => {
   const q = (statement, values) => SQL.query({ database: BASE, statement, values: values || [], readonly: false }).then(r => r.values || []);
   const run = (statement, values) => SQL.run({ database: BASE, statement, values: values || [], transaction: true, readonly: false });
   const COLS = ['id', 'nombre', 'fecha', 'lugar', 'notas', 'piloto', 'navegante', 'auto', 'numero', 'categoria',
-                'tiempoIdealMs', 'distanciaM', 'patron', 'practica', 'creada', 'vueltasTotal', 'terminada', 'importada', 'imp'];
+                'tiempoIdealMs', 'distanciaM', 'patron', 'practica', 'creada', 'vueltasTotal', 'terminada', 'importada', 'imp', 'original'];
   async function abrirSql() {
     try { await SQL.createConnection({ database: BASE, version: 1, encrypted: false, mode: 'no-encryption', readonly: false }); }
     catch (e) { if (!/already exists/i.test(String(e && e.message))) throw e; }
@@ -1191,7 +1192,7 @@ const Store = (() => {
       CREATE TABLE IF NOT EXISTS vueltas (carreraId TEXT, largada INTEGER, n INTEGER, datos TEXT, PRIMARY KEY (carreraId, largada, n));` });
     try { await SQL.execute({ database: BASE, transaction: true, readonly: false, statements: 'ALTER TABLE carreras ADD COLUMN vueltasTotal INTEGER;' }); } catch (e) { }
     try { await SQL.execute({ database: BASE, transaction: true, readonly: false, statements: 'ALTER TABLE carreras ADD COLUMN terminada INTEGER;' }); } catch (e) { }   // 2.2
-    for (const col of ['importada INTEGER', 'imp TEXT']) try { await SQL.execute({ database: BASE, transaction: true, readonly: false, statements: 'ALTER TABLE carreras ADD COLUMN ' + col + ';' }); } catch (e) { }   // 2.3   // bases de la 1.1 a 1.3
+    for (const col of ['importada INTEGER', 'imp TEXT', 'original TEXT']) try { await SQL.execute({ database: BASE, transaction: true, readonly: false, statements: 'ALTER TABLE carreras ADD COLUMN ' + col + ';' }); } catch (e) { }   // 2.3   // bases de la 1.1 a 1.3
   }
   const sqlCarrera = c => run('INSERT OR REPLACE INTO carreras (' + COLS.join(',') + ') VALUES (' + COLS.map(() => '?').join(',') + ')',
                               COLS.map(k => k === 'practica' || k === 'terminada' || k === 'importada' ? (c[k] ? 1 : 0) : k === 'imp' ? (c.imp ? JSON.stringify(c.imp) : null) : (c[k] === undefined ? null : c[k])));
@@ -1243,6 +1244,11 @@ const Store = (() => {
     agregarVuelta(c, v) {
       c.vueltas.push(v);
       if (motorDb === 'sqlite') sqlSeguro(sqlVuelta(c, v)); else lsGuardar();
+      respaldo();
+    },
+    reescribirVueltas(c) {   // después de unir vueltas: cambian los números
+      if (motorDb === 'sqlite') sqlSeguro((async () => { await run('DELETE FROM vueltas WHERE carreraId = ?', [c.id]); for (const v of c.vueltas) await sqlVuelta(c, v); })());
+      else lsGuardar();
       respaldo();
     },
     guardarVuelta(c, v) {   // cambiar una vuelta ya guardada (por ejemplo, pasarla a libre)
@@ -1519,8 +1525,8 @@ function avisar(txt) {
 
 /* ================= WIDGETS (1.3: posición y tamaño libres, forma real) ================= */
 const TIPOS_W = {
-  tipo: { nombre: 'Vuelta y tipo (medida o práctica)', formas: false },
-  cuenta: { nombre: 'Tiempo de vuelta (progresiva o regresiva)', estilos: { numeros: 'Números', anillo: 'Anillo' }, extra: true },
+  tipo: { nombre: 'Vuelta y tipo (medida o libre)', formas: false },
+  cuenta: { nombre: 'Cronómetro de la vuelta', estilos: { numeros: 'Números', anillo: 'Anillo' }, extra: true },
   delta: { nombre: 'Adelantado / atrasado', estilos: { numero: 'Número', barra: 'Barra' }, vel: true },
   velocimetro: { nombre: 'Velocímetro', vel: true, extra: true },   // redondo = analógico, cuadrado = digital
   necesaria: { nombre: 'Velocidad sugerida', vel: true, extra: true },
@@ -1622,7 +1628,7 @@ function crearWidget(def) {
   const progresiva = def.modo !== 'regresiva';   // 2.2: de fábrica cuenta para arriba como un cronómetro
   const txtCuenta = v => {
     const over = v.restanteMs < 0;
-    if (progresiva) { ponerTxt(lbl, 'Tiempo de vuelta'); ponerNum(num, fmt(v.transMs || 0)); }
+    if (progresiva) { ponerTxt(lbl, over ? 'Pasado el ideal' : 'Vuelta'); ponerNum(num, fmt(v.transMs || 0)); num.classList.toggle('pasado', over); }
     else { ponerTxt(lbl, over ? 'Pasado' : 'Falta'); ponerNum(num, over ? '+' + fmt(-v.restanteMs) : fmt(v.restanteMs, v.enCurso)); }
     num.classList.toggle('over', over);
   };
@@ -1636,7 +1642,7 @@ function crearWidget(def) {
     }
     case 'cuenta': {
       const ideal = el('span', '', 'w-ideal'); box.append(ideal);   // el tiempo ideal siempre a la vista, chiquito
-      const updIdeal = v => ponerTxt(ideal, 'IDEAL ' + fmt(v.T || 0));
+      const updIdeal = v => ponerTxt(ideal, 'IDEAL ' + fmt(v.T || 0).replace('.', ','));
       if (def.e !== 'anillo') box.append(num);   // el número va antes que el dato extra
       const fx = conExt(v => v.restanteM === null || v.restanteM === undefined || !v.D ? 'faltan – m' : 'faltan ' + Math.max(0, Math.round(v.restanteM)).toLocaleString('es-AR') + ' m');
       if (def.e === 'anillo') {
@@ -1770,7 +1776,7 @@ function dibujarEdicion() {
     if (def.forma === 'redondo') { def.forma = undefined; def.h = def.w * W / H; }
     else { const d = Math.min(def.w * W, def.h * H); def.forma = 'redondo'; def.w = d / W; }
   });
-  if (def.t === 'cuenta') b(def.modo === 'regresiva' ? 'Cuenta: regresiva ⇄' : 'Cuenta: progresiva ⇄', () => { def.modo = def.modo === 'regresiva' ? undefined : 'regresiva'; });
+  if (def.t === 'cuenta') b(def.modo === 'regresiva' ? 'Cambiar a cuenta progresiva' : 'Cambiar a cuenta regresiva', () => { def.modo = def.modo === 'regresiva' ? undefined : 'regresiva'; });
   if (tipo.extra) b(def.extra ? 'Sin dato extra' : 'Dato extra', () => { def.extra = !def.extra; });
   if ((def.t === 'cuenta' && def.e !== 'anillo') || (def.t === 'velocimetro' && def.forma !== 'redondo')) b(def.barra === false ? 'Barra ±' : 'Sin barra ±', () => { def.barra = def.barra === false ? undefined : false; });
   const conNumero = !['marcar', 'simulador'].includes(def.t) && !(def.t === 'velocimetro' && def.forma === 'redondo') && !(def.t === 'delta' && def.e === 'barra');
@@ -2092,13 +2098,11 @@ $('btnTerminar').addEventListener('click', () => {
 function terminarCarrera(motivo) {
   if (!motor || !motor.enCurso) return;
   motor.terminar();
-  if (seleccion && !seleccion.practica && seleccion.vueltas.length) { seleccion.terminada = true; Store.guardarCarrera(seleccion); }
   if (wakeLock) { try { wakeLock.release(); } catch (e) {} }
   if (KeepAwake) KeepAwake.allowSleep().catch(() => {});
   if (Beto) Beto.volumenCarrera({ activo: false }).catch(() => {});
   modoCarrera(false);
-  avisar(motivo + ': ' + carrera.vueltas.length + ' vueltas guardadas');
-  if (motivo === 'Carrera completa') Audio.hablar('Carrera completa');
+  avisar(motivo + ': ' + carrera.vueltas.length + (carrera.vueltas.length === 1 ? ' vuelta guardada' : ' vueltas guardadas'));
   mostrar('detalle');
 }
 
@@ -2409,11 +2413,7 @@ function botonesExportar(c) {
   return acc;
 }
 function estadoLargada(c) {
-  if (c.terminada || c.importada) return { fin: true };   // 2.2: termina cuando se toca «Terminar» (ya no hay cantidad de vueltas)
-  if (c.vueltasTotal) {   // carreras viejas: alguna largada completó todas las vueltas
-    const n = {}; c.vueltas.forEach(v => { const l = v.largada || 1; n[l] = (n[l] || 0) + 1; });
-    if (Object.values(n).some(x => x >= c.vueltasTotal)) return { fin: true };
-  }
+  if (c.importada) return { fin: true };   // 2.4: sin límite de vueltas; pasa a «Corridas» cuando pasa la fecha y el mismo día se puede volver a largar
   if (c.practica || c.fecha === hoyISO()) return { ok: true };
   const d = diasHasta(c.fecha);
   return { ok: false, motivo: d > 0 ? 'Se larga el ' + fechaCorta(c.fecha) : 'La fecha de la carrera ya pasó' };
@@ -2547,14 +2547,14 @@ function armarRecorrido(c) {
 }
 function datosInforme(c, editable) {
   const D = c.distanciaM || 0, T = c.tiempoIdealMs / 1000;
-  if (c.imp) return { editable: !!editable, nombre: c.nombre, fecha: c.fecha, idealMs: c.tiempoIdealMs, distanciaM: D, cerrada: !!c.imp.cerrada, pista: c.imp.pista || [],
+  if (c.imp) return { editable: !!editable, modificada: !!(editable && c.original), nombre: c.nombre, fecha: c.fecha, idealMs: c.tiempoIdealMs, distanciaM: D, cerrada: !!c.imp.cerrada, pista: c.imp.pista || [],
     largadas: new Set(c.vueltas.map(v => v.largada || 1)).size,
-    vueltas: c.vueltas.map(v => ({ n: v.n, largada: v.largada || 1, medida: !!v.medida, realMs: v.realMs, difMs: v.difMs, velPromKmh: v.velPromKmh ?? null, velMaxKmh: v.velMaxKmh ?? null,
+    vueltas: c.vueltas.map(v => ({ n: v.n, largada: v.largada || 1, medida: !!v.medida, interrumpida: !!v.interrumpida, realMs: v.realMs, difMs: v.difMs, velPromKmh: v.velPromKmh ?? null, velMaxKmh: v.velMaxKmh ?? null,
                                    m: v.mi || null, L: v.distM || D || 1 })) };
   const R = armarRecorrido(c);
-  const out = { editable: !!editable, nombre: c.nombre, fecha: c.fecha, idealMs: c.tiempoIdealMs, distanciaM: D, cerrada: false, pista: [],
+  const out = { editable: !!editable, modificada: !!(editable && c.original), nombre: c.nombre, fecha: c.fecha, idealMs: c.tiempoIdealMs, distanciaM: D, cerrada: false, pista: [],
                 largadas: new Set(c.vueltas.map(v => v.largada || 1)).size,
-                vueltas: c.vueltas.map(v => ({ n: v.n, largada: v.largada || 1, medida: !!v.medida, realMs: v.realMs, difMs: v.difMs,
+                vueltas: c.vueltas.map(v => ({ n: v.n, largada: v.largada || 1, medida: !!v.medida, interrumpida: !!v.interrumpida, realMs: v.realMs, difMs: v.difMs,
                                                velPromKmh: v.velPromKmh ?? null, velMaxKmh: v.velMaxKmh ?? null, m: null, L: v.distM || D || 1 })) };
   if (!R) return out;
   // encuadre del dibujo en 364 × 330 (norte arriba)
@@ -2642,10 +2642,55 @@ addEventListener('message', ev => {   // desde el informe abierto en la app: pas
   const m = ev.data, c = $('visor')._c;
   if (!m || m.beto !== 'tipoVuelta' || !c || ev.source !== $('visorMarco').contentWindow) return;
   const v = c.vueltas[m.i]; if (!v) return;
+  copiaOriginal(c);
   if (v.medidaPatron === undefined) v.medidaPatron = !!v.medida;   // lo que decía el patrón, por si se quiere volver
   v.medida = !!m.medida; Store.guardarVuelta(c, v);
   if (pantalla === 'detalle') dibujarDetalle();
 });
+addEventListener('message', ev => {   // 2.4: unir una vuelta con la siguiente (una marca de más partió la vuelta en dos)
+  const m = ev.data, c = $('visor')._c;
+  if (!m || m.beto !== 'unir' || !c || ev.source !== $('visorMarco').contentWindow) return;
+  const copia = !c.original && JSON.stringify(c.vueltas);
+  if (!unirConSiguiente(c, m.i)) { avisar('Esas vueltas no se pueden unir'); return; }
+  if (copia) { c.original = copia; Store.guardarCarrera(c); }
+  Store.reescribirVueltas(c); avisar('Vueltas unidas');
+  abrirInforme(c); if (pantalla === 'detalle') dibujarDetalle();
+});
+function copiaOriginal(c) {   // 2.4: antes del primer cambio se guarda la carrera tal como se corrió
+  if (c.original) return; c.original = JSON.stringify(c.vueltas); Store.guardarCarrera(c);
+}
+addEventListener('message', ev => {   // «Restablecer»: vuelve a la carrera original (tipos y vueltas unidas)
+  const m = ev.data, c = $('visor')._c;
+  if (!m || m.beto !== 'restablecer' || !c || !c.original || ev.source !== $('visorMarco').contentWindow) return;
+  c.vueltas = JSON.parse(c.original); c.original = null;
+  Store.guardarCarrera(c); Store.reescribirVueltas(c); avisar('Carrera restablecida');
+  abrirInforme(c); if (pantalla === 'detalle') dibujarDetalle();
+});
+// Copia de Carrera::unirConSiguiente (Betometro-Raspberry, app/nucleo/modelo.cpp)
+function unirConSiguiente(c, i) {
+  const a = c.vueltas[i], b = c.vueltas[i + 1];
+  if (!a || !b || (a.largada || 1) !== (b.largada || 1) || a.interrumpida || b.interrumpida) return false;
+  const r1 = x => Math.round(x * 10) / 10, segA = a.realMs / 1000;
+  const ultD = t => (Array.isArray(t) && t.length ? t[t.length - 1][1] : 0);
+  const dA = a.distM != null ? a.distM : ultD(a.traza || a.mi);
+  if (Array.isArray(b.traza)) a.traza = (a.traza || []).concat(b.traza.map(f => { const g = f.slice(); g[0] = r1(f[0] + segA); g[1] = r1(f[1] + dA); return g; }));   // la traza de la segunda sigue a la de la primera
+  if (Array.isArray(b.mi)) {   // carrera importada: recorrido ya armado [s, m, km/h, acel, adelanto, x, y, ok]
+    const ideal = (a.idealMs || c.tiempoIdealMs) / 1000, vb = c.distanciaM && ideal ? c.distanciaM / ideal : 0;
+    a.mi = (a.mi || []).concat(b.mi.map(f => { const g = f.slice(); g[0] = r1(f[0] + segA); g[1] = r1(f[1] + dA); if (vb) g[4] = r1(g[1] / vb - g[0]); return g; }));
+  }
+  a.realMs += b.realMs;
+  a.difMs = a.realMs - (a.idealMs || c.tiempoIdealMs);
+  if (b.fuente !== undefined) a.fuente = b.fuente;
+  if (b.fin !== undefined) a.fin = b.fin;
+  a.distM = a.distM != null && b.distM != null ? r1(a.distM + b.distM) : null;
+  a.velPromKmh = a.distM && a.realMs > 0 ? r1(a.distM / (a.realMs / 1000) * 3.6) : null;
+  if (a.velMaxKmh != null || b.velMaxKmh != null) a.velMaxKmh = Math.max(a.velMaxKmh || 0, b.velMaxKmh || 0);
+  delete a.factorVuelta;   // era de cada pedazo: ya no vale
+  const larg = a.largada || 1;
+  c.vueltas.splice(i + 1, 1);
+  for (let k = i + 1; k < c.vueltas.length; k++) if ((c.vueltas[k].largada || 1) === larg) c.vueltas[k].n--;
+  return true;
+}
 function cerrarInforme() { $('visor').hidden = true; $('visorMarco').srcdoc = ''; }
 
 /* ---------- Chequeo previo ---------- */
@@ -2783,7 +2828,7 @@ function importarInforme(html) {
               tiempoIdealMs: Math.round(C.idealMs), distanciaM: Math.round(C.distanciaM || 0), patron: 'todas', practica: false, importada: true, terminada: true,
               creada: new Date().toISOString(), imp: { pista: Array.isArray(C.pista) ? C.pista : [], cerrada: !!C.cerrada }, vueltas: [] };
   Store.guardarCarrera(c);
-  for (const v of C.vueltas) Store.agregarVuelta(c, { n: v.n, largada: v.largada || 1, medida: !!v.medida, realMs: v.realMs, difMs: v.difMs,
+  for (const v of C.vueltas) Store.agregarVuelta(c, { n: v.n, largada: v.largada || 1, medida: !!v.medida, interrumpida: !!v.interrumpida, realMs: v.realMs, difMs: v.difMs,
     velPromKmh: v.velPromKmh ?? null, velMaxKmh: v.velMaxKmh ?? null, distM: v.L || null, mi: Array.isArray(v.m) ? v.m : null });
   return c;
 }
