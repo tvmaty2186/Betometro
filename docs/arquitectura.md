@@ -73,7 +73,7 @@ Buscá los encabezados `/* ===== … ===== */` con grep.
 
 - **Tipos (`TIPOS_W`):**
   - `tipo`: vuelta y si es medida o práctica
-  - `cuenta`: estilos números o anillo; su dato extra son los metros que faltan
+  - `cuenta` (tiempo de vuelta): `def.modo` progresiva (fábrica, `undefined`) o `'regresiva'`; estilos números o anillo; dato extra = metros que faltan; barra ±; siempre muestra «IDEAL m:ss.d» chiquito (`.w-ideal`)
   - `delta`: adelantado/atrasado, en número o barra
   - `velocimetro`: redondo = analógico 0–160; cuadrado = digital con barra contra la sugerida
   - `necesaria`: «Velocidad sugerida»
@@ -98,6 +98,11 @@ Buscá los encabezados `/* ===== … ===== */` con grep.
 - **Velocímetro:** centro en `cx = W − 60k`, `cy = 0,717·H`, diámetro `330k`.
 - **Íconos:** van en un arco de radio `262k`, a 150°, 180°, 210°, 240° y 270°, en este orden: Carreras, Práctica libre, Chequeo previo, Pantalla de carrera, Ajustes. Ajustes queda justo arriba del centro del velocímetro.
 - **Tema Avispón:** el redondel del número está en `(80k, cy − 300k)`, mide `104k` y va sobre la banda blanca y amarilla.
+
+## Carreras y vueltas (2.2)
+
+- No hay cantidad de vueltas. Una carrera queda «finalizada» cuando se toca Terminar con al menos una vuelta (`c.terminada`, columna SQL `terminada`). Las carreras viejas con `vueltasTotal` siguen funcionando.
+- El error total suma solo `v.medida`. Cambiar el tipo de una vuelta: el informe (abierto en la app con `informeHTML(c, true)`) manda `postMessage({beto:'tipoVuelta', i, medida})`; la app actualiza `v.medida`, guarda lo del patrón en `v.medidaPatron` y graba con `Store.guardarVuelta`. El informe compartido no permite cambiar nada.
 
 ## Informe de carrera
 

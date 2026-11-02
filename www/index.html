@@ -129,6 +129,7 @@ body.ind-marco.practica .tipo-nombre { background: var(--practica); color: #fff;
          font-size: min(80cqh, calc(var(--k) * 1cqw / var(--n, 4))); }
 .w-cuenta .w-num { color: var(--acento); font-size: min(92cqh, calc(var(--k) * 1.05cqw / var(--n, 6))); }
 .w-num.over, .w-num.atr { color: var(--warn); }
+.w-ideal { position: absolute; top: 6px; right: 12px; font: 600 clamp(9px, 9cqh, 13px) var(--font-ui); letter-spacing: .06em; color: var(--lbl); opacity: .85; white-space: nowrap; pointer-events: none; }
 .w-sub { font-size: clamp(11px, 13cqh, 18px); color: var(--ink-dim); font-weight: 600; font-variant-numeric: tabular-nums; }
 .w-svg { width: 100%; height: 100%; display: block; }
 .w-cuenta.e-anillo .w-num { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; font-size: min(26cqh, calc(var(--k) * .45cqw / var(--n, 6))); }
@@ -778,9 +779,7 @@ html, body { margin: 0; }
     <div class="cab"><button class="btn sec" id="editorCancelar" type="button">Volver</button><h2 id="editorTitulo">Nueva carrera</h2></div>
     <div class="form">
       <label class="f f-2" for="e-nombre"><span><i>⚑</i>Nombre de la carrera</span><input type="text" id="e-nombre" maxlength="80" autocomplete="off"></label>
-      <label class="f" for="e-fecha"><span><i>▦</i>Fecha</span><input type="date" id="e-fecha"></label>
-      <div class="f"><span><i>↻</i>Vueltas</span>
-        <div class="stepper"><button type="button" data-paso="-1" data-campo="e-vueltas" aria-label="Una vuelta menos">−</button><input type="number" id="e-vueltas" min="1" max="300" inputmode="numeric"><button type="button" data-paso="1" data-campo="e-vueltas" aria-label="Una vuelta más">+</button></div></div>
+      <label class="f f-2" for="e-fecha"><span><i>▦</i>Fecha</span><input type="date" id="e-fecha"></label>
       <label class="f f-2" for="e-distancia"><span><i>↔</i>Distancia por vuelta (metros)</span><input type="number" id="e-distancia" min="0" step="1" inputmode="numeric"></label>
       <div class="f f-2"><span><i>⏱</i>Tiempo ideal por vuelta</span><div class="reloj-c"><div class="t-campo"><input type="text" pattern="[0-9]*" autocomplete="off" id="e-min" min="0" max="99" inputmode="numeric" aria-label="Minutos" placeholder="0">:<input type="text" pattern="[0-9]*" autocomplete="off" id="e-seg" min="0" max="59" inputmode="numeric" aria-label="Segundos" placeholder="00">.<input type="text" pattern="[0-9]*" autocomplete="off" id="e-dec" min="0" max="9" inputmode="numeric" aria-label="Décimas" placeholder="0"></div><div class="reloj-u"><span>MIN</span><span>SEG</span><span>DÉC</span></div></div></div>
       <p class="hint f-2" id="e-velBase"></p>
@@ -1176,7 +1175,7 @@ const Store = (() => {
   const q = (statement, values) => SQL.query({ database: BASE, statement, values: values || [], readonly: false }).then(r => r.values || []);
   const run = (statement, values) => SQL.run({ database: BASE, statement, values: values || [], transaction: true, readonly: false });
   const COLS = ['id', 'nombre', 'fecha', 'lugar', 'notas', 'piloto', 'navegante', 'auto', 'numero', 'categoria',
-                'tiempoIdealMs', 'distanciaM', 'patron', 'practica', 'creada', 'vueltasTotal'];
+                'tiempoIdealMs', 'distanciaM', 'patron', 'practica', 'creada', 'vueltasTotal', 'terminada'];
   async function abrirSql() {
     try { await SQL.createConnection({ database: BASE, version: 1, encrypted: false, mode: 'no-encryption', readonly: false }); }
     catch (e) { if (!/already exists/i.test(String(e && e.message))) throw e; }
@@ -1187,10 +1186,11 @@ const Store = (() => {
         navegante TEXT, auto TEXT, numero TEXT, categoria TEXT, tiempoIdealMs INTEGER, distanciaM INTEGER, patron TEXT,
         practica INTEGER, creada TEXT);
       CREATE TABLE IF NOT EXISTS vueltas (carreraId TEXT, largada INTEGER, n INTEGER, datos TEXT, PRIMARY KEY (carreraId, largada, n));` });
-    try { await SQL.execute({ database: BASE, transaction: true, readonly: false, statements: 'ALTER TABLE carreras ADD COLUMN vueltasTotal INTEGER;' }); } catch (e) { }   // bases de la 1.1 a 1.3
+    try { await SQL.execute({ database: BASE, transaction: true, readonly: false, statements: 'ALTER TABLE carreras ADD COLUMN vueltasTotal INTEGER;' }); } catch (e) { }
+    try { await SQL.execute({ database: BASE, transaction: true, readonly: false, statements: 'ALTER TABLE carreras ADD COLUMN terminada INTEGER;' }); } catch (e) { }   // 2.2   // bases de la 1.1 a 1.3
   }
   const sqlCarrera = c => run('INSERT OR REPLACE INTO carreras (' + COLS.join(',') + ') VALUES (' + COLS.map(() => '?').join(',') + ')',
-                              COLS.map(k => k === 'practica' ? (c.practica ? 1 : 0) : (c[k] === undefined ? null : c[k])));
+                              COLS.map(k => k === 'practica' || k === 'terminada' ? (c[k] ? 1 : 0) : (c[k] === undefined ? null : c[k])));
   const sqlVuelta = (c, v) => run('INSERT OR REPLACE INTO vueltas (carreraId, largada, n, datos) VALUES (?,?,?,?)', [c.id, v.largada || 1, v.n, JSON.stringify(v)]);
   async function cargarSql() {
     await abrirSql();
@@ -1208,7 +1208,7 @@ const Store = (() => {
     for (const f of vs) (porCarrera[f.carreraId] = porCarrera[f.carreraId] || []).push(JSON.parse(f.datos));
     const cfgFila = await q("SELECT valor FROM config WHERE clave = 'config'");
     return { schemaVersion: 2, config: cfgFila.length ? JSON.parse(cfgFila[0].valor) : null,
-             carreras: filas.map(f => Object.assign(f, { practica: !!f.practica, vueltas: porCarrera[f.id] || [] })) };
+             carreras: filas.map(f => Object.assign(f, { practica: !!f.practica, terminada: !!f.terminada, vueltas: porCarrera[f.id] || [] })) };
   }
 
   const sqlSeguro = p => { p.catch(e => console.error('SQLite', e)); };
@@ -1238,6 +1238,10 @@ const Store = (() => {
     },
     agregarVuelta(c, v) {
       c.vueltas.push(v);
+      if (motorDb === 'sqlite') sqlSeguro(sqlVuelta(c, v)); else lsGuardar();
+      respaldo();
+    },
+    guardarVuelta(c, v) {   // cambiar una vuelta ya guardada (por ejemplo, pasarla a libre)
       if (motorDb === 'sqlite') sqlSeguro(sqlVuelta(c, v)); else lsGuardar();
       respaldo();
     },
@@ -1338,7 +1342,7 @@ let largadaN = 1;
 function nuevaCarrera() {   // datos de la carrera elegida → lo que necesita el motor para esta largada
   const c = seleccion;
   largadaN = c.vueltas.reduce((m, v) => Math.max(m, v.largada || 1), 0) + 1;
-  carrera = { tiempoIdealMs: c.tiempoIdealMs, distanciaM: c.distanciaM, patron: c.patron, antirreboteMs: cfg.antirreboteMs, vueltasTotal: c.vueltasTotal || 0,
+  carrera = { tiempoIdealMs: c.tiempoIdealMs, distanciaM: c.distanciaM, patron: c.patron, antirreboteMs: cfg.antirreboteMs, 
               umbralPrecisionM: cfg.umbralPrecisionM, calibrar: cfg.calibrar, congelarMs: Math.max(cfg.cuentaN, 3) * 1000,
               factorGps: 1, vueltas: [] };
   motor = Motor.crear(carrera, alEvento);
@@ -1427,14 +1431,11 @@ function alEvento(tipo, d) {
   if (tipo === 'vuelta') {
     velMaxVuelta = 0; traza = []; trazaInicio = d.inicio;
     resetVueltaAudio();
-    const tot = carrera && carrera.vueltasTotal;
-    if (tot && d.n > tot) return;   // la carrera ya terminó
-    if (cfg.avisoInicio) Audio.hablar((tot && d.n === tot ? 'Última vuelta' : 'Vuelta ' + d.n) + ', ' + (d.medida ? 'medida' : 'práctica'));
+    if (cfg.avisoInicio) Audio.hablar('Vuelta ' + d.n + ', ' + (d.medida ? 'medida' : 'libre'));   // 2.2: sin cantidad de vueltas (la organización puede agregar)
   } else if (tipo === 'cerrada') {
     if (traza.length >= 5) d.traza = traza.slice();
     Store.agregarVuelta(seleccion, Object.assign({ largada: largadaN }, d));
     mostrarUltima(d);
-    if (carrera.vueltasTotal && d.n >= carrera.vueltasTotal) setTimeout(() => terminarCarrera('Carrera completa'), 0);
   } else if (tipo === 'ignorada') {
     avisar('Marca ignorada (antirrebote)');
   }
@@ -1515,7 +1516,7 @@ function avisar(txt) {
 /* ================= WIDGETS (1.3: posición y tamaño libres, forma real) ================= */
 const TIPOS_W = {
   tipo: { nombre: 'Vuelta y tipo (medida o práctica)', formas: false },
-  cuenta: { nombre: 'Cuenta regresiva', estilos: { numeros: 'Números', anillo: 'Anillo' }, extra: true },
+  cuenta: { nombre: 'Tiempo de vuelta (progresiva o regresiva)', estilos: { numeros: 'Números', anillo: 'Anillo' }, extra: true },
   delta: { nombre: 'Adelantado / atrasado', estilos: { numero: 'Número', barra: 'Barra' }, vel: true },
   velocimetro: { nombre: 'Velocímetro', vel: true, extra: true },   // redondo = analógico, cuadrado = digital
   necesaria: { nombre: 'Velocidad sugerida', vel: true, extra: true },
@@ -1614,22 +1615,24 @@ function crearWidget(def) {
   const lbl = el('span', '', 'lbl'), num = el('div', '', 'w-num'), ext = el('div', '', 'w-extra');
   box.append(lbl);
   const conExt = (f) => { if (conExtra) box.append(ext); return v => ponerTxt(ext, f(v)); };
+  const progresiva = def.modo !== 'regresiva';   // 2.2: de fábrica cuenta para arriba como un cronómetro
   const txtCuenta = v => {
     const over = v.restanteMs < 0;
-    ponerTxt(lbl, over ? 'Pasado' : 'Falta');
-    ponerNum(num, over ? '+' + fmt(-v.restanteMs) : fmt(v.restanteMs, v.enCurso));
+    if (progresiva) { ponerTxt(lbl, 'Tiempo de vuelta'); ponerNum(num, fmt(v.transMs || 0)); }
+    else { ponerTxt(lbl, over ? 'Pasado' : 'Falta'); ponerNum(num, over ? '+' + fmt(-v.restanteMs) : fmt(v.restanteMs, v.enCurso)); }
     num.classList.toggle('over', over);
   };
   let upd = () => {};
   switch (def.t) {
     case 'tipo': {
       box.innerHTML = ''; const chip = el('span', '', 'chip-vuelta'); box.append(num, chip);
-      upd = v => { const tot = v.enCurso ? (carrera && carrera.vueltasTotal) : (seleccion && seleccion.vueltasTotal);
-                   ponerNum(num, v.enCurso ? 'VUELTA ' + v.n + (tot ? '/' + tot : '') : (tot ? tot + ' VUELTAS' : 'LISTO')); ponerTxt(chip, v.medida ? 'MEDIDA' : 'PRÁCTICA');
+      upd = v => { ponerNum(num, v.enCurso ? 'VUELTA ' + v.n : 'LISTO'); ponerTxt(chip, v.medida ? 'MEDIDA' : 'LIBRE');
                    box.classList.toggle('es-medida', !!v.medida); box.classList.toggle('es-practica', !v.medida); };
       break;
     }
     case 'cuenta': {
+      const ideal = el('span', '', 'w-ideal'); box.append(ideal);   // el tiempo ideal siempre a la vista, chiquito
+      const updIdeal = v => ponerTxt(ideal, 'IDEAL ' + fmt(v.T || 0));
       if (def.e !== 'anillo') box.append(num);   // el número va antes que el dato extra
       const fx = conExt(v => v.restanteM === null || v.restanteM === undefined || !v.D ? 'faltan – m' : 'faltan ' + Math.max(0, Math.round(v.restanteM)).toLocaleString('es-AR') + ' m');
       if (def.e === 'anillo') {
@@ -1639,15 +1642,15 @@ function crearWidget(def) {
         const arc = svgEl('circle', { cx: 100, cy: 100, r: 86, class: 'g-req', 'stroke-width': 12, fill: 'none', 'stroke-linecap': 'round',
                                       transform: 'rotate(-90 100 100)', 'stroke-dasharray': L.toFixed(1) }, svg);
         box.append(num);
-        upd = v => { arc.setAttribute('stroke-dashoffset', (L * (1 - Math.max(0, Math.min(1, v.restanteMs / v.T)))).toFixed(1)); txtCuenta(v); fx(v); };
+        upd = v => { const p = progresiva ? (v.transMs || 0) / v.T : v.restanteMs / v.T; arc.setAttribute('stroke-dashoffset', (L * (1 - Math.max(0, Math.min(1, p)))).toFixed(1)); txtCuenta(v); fx(v); updIdeal(v); };
       } else if (def.barra !== false) {   // barra delicada: rojo-amarillo-verde-amarillo-rojo, el cursor marca adelantado (→) / atrasado (←)
         box.classList.add('con-barra');
         const barra = el('div', undefined, 'w-barra'), cur = el('i'); barra.append(cur); box.append(barra);
-        upd = v => { txtCuenta(v); fx(v);
+        upd = v => { txtCuenta(v); fx(v); updIdeal(v);
           const rango = Math.max(1, (v.T || 0) / 1000 * PROP_BARRA);   // se ajusta solo a cada vuelta
           const d = v.deltaS === null || v.deltaS === undefined ? 0 : Math.max(-rango, Math.min(rango, v.deltaS));
           cur.style.left = (50 + d / rango * 50).toFixed(1) + '%'; barra.classList.toggle('sin-dato', v.deltaS === null || v.deltaS === undefined); };
-      } else { upd = v => { txtCuenta(v); fx(v); }; }
+      } else { upd = v => { txtCuenta(v); fx(v); updIdeal(v); }; }
       break;
     }
     case 'delta': {
@@ -1698,7 +1701,7 @@ function crearWidget(def) {
       upd = v => { ponerNum(num, v.restanteM === null || v.restanteM === undefined ? '–' : Math.max(0, Math.round(v.restanteM)).toLocaleString('es-AR') + ' m'); fx(v); }; break; }
     case 'transcurrido': ponerTxt(lbl, 'Transcurrido'); box.append(num); upd = v => ponerNum(num, fmt(v.transMs)); break;
     case 'ideal': ponerTxt(lbl, 'Ideal'); box.append(num); upd = v => ponerNum(num, fmt(v.T)); break;
-    case 'proxima': ponerTxt(lbl, 'Próxima vuelta'); box.append(num); upd = v => ponerNum(num, v.proxMedida ? 'MEDIDA' : 'PRÁCTICA'); break;
+    case 'proxima': ponerTxt(lbl, 'Próxima vuelta'); box.append(num); upd = v => ponerNum(num, v.proxMedida ? 'MEDIDA' : 'LIBRE'); break;
     case 'ultima': {
       // el tiempo real medido de la última vuelta corrida; el dato extra es la diferencia con el ideal
       ponerTxt(lbl, 'Última vuelta'); box.append(num); const fx = conExt(() => ultimaVuelta ? difDur(ultimaVuelta.difMs) + ' del ideal' : '');
@@ -1763,6 +1766,7 @@ function dibujarEdicion() {
     if (def.forma === 'redondo') { def.forma = undefined; def.h = def.w * W / H; }
     else { const d = Math.min(def.w * W, def.h * H); def.forma = 'redondo'; def.w = d / W; }
   });
+  if (def.t === 'cuenta') b(def.modo === 'regresiva' ? 'Cuenta: regresiva ⇄' : 'Cuenta: progresiva ⇄', () => { def.modo = def.modo === 'regresiva' ? undefined : 'regresiva'; });
   if (tipo.extra) b(def.extra ? 'Sin dato extra' : 'Dato extra', () => { def.extra = !def.extra; });
   if ((def.t === 'cuenta' && def.e !== 'anillo') || (def.t === 'velocimetro' && def.forma !== 'redondo')) b(def.barra === false ? 'Barra ±' : 'Sin barra ±', () => { def.barra = def.barra === false ? undefined : false; });
   const conNumero = !['marcar', 'simulador'].includes(def.t) && !(def.t === 'velocimetro' && def.forma === 'redondo') && !(def.t === 'delta' && def.e === 'barra');
@@ -2084,6 +2088,7 @@ $('btnTerminar').addEventListener('click', () => {
 function terminarCarrera(motivo) {
   if (!motor || !motor.enCurso) return;
   motor.terminar();
+  if (seleccion && !seleccion.practica && seleccion.vueltas.length) { seleccion.terminada = true; Store.guardarCarrera(seleccion); }
   if (wakeLock) { try { wakeLock.release(); } catch (e) {} }
   if (KeepAwake) KeepAwake.allowSleep().catch(() => {});
   if (Beto) Beto.volumenCarrera({ activo: false }).catch(() => {});
@@ -2292,7 +2297,7 @@ function tarjetaTablero(c) {
   const [, m, d] = c.fecha.split('-'), t = boton('', 'tarjeta-c', () => { seleccion = c; mostrar('detalle'); });
   const f = el('div', undefined, 'fecha-c'); f.append(el('b', d), el('span', MESES[+m - 1]));
   const cu = el('div', undefined, 'cuerpo-c');
-  cu.append(el('b', c.nombre), el('span', [c.lugar, c.vueltasTotal ? c.vueltasTotal + ' vueltas' : null, fmt(c.tiempoIdealMs)].filter(Boolean).join(' · ')));
+  cu.append(el('b', c.nombre), el('span', [c.lugar, fmt(c.tiempoIdealMs)].filter(Boolean).join(' · ')));
   if (c.vueltas.some(v => v.medida)) cu.append(miniBarras(c));
   const e = estadoCarrera(c);
   t.append(f, cu, el('span', e.txt, 'estado-c ' + e.cls));
@@ -2313,7 +2318,7 @@ function tarjetaCarnet(c) {
   } else {
     const lin = el('div', undefined, 'carnet-lin');
     const it = (k, v) => { const x = el('div'); x.append(el('span', k), document.createTextNode(v)); lin.append(x); };
-    it(c.lugar ? 'LUGAR' : 'FECHA', c.lugar || fechaCorta(c.fecha)); it('VUELTAS', c.vueltasTotal ? String(c.vueltasTotal) : '–'); it('IDEAL', fmt(c.tiempoIdealMs));
+    it(c.lugar ? 'LUGAR' : 'FECHA', c.lugar || fechaCorta(c.fecha)); it('IDEAL', fmt(c.tiempoIdealMs));
     t.append(lin);
   }
   return t;
@@ -2348,20 +2353,16 @@ function abrirEditor(c) {
   const corrida = !!(c && c.vueltas.length);
   for (const id of ['e-min', 'e-seg', 'e-dec', 'e-distancia', 'e-patron']) $(id).disabled = corrida;
   $('e-configHint').hidden = !corrida;
-  $('e-vueltas').value = d.vueltasTotal || '';
   velEditor(); mostrar('editor');
 }
 function guardarEditor() {
   const v = id => $(id).value.trim();
   if (!v('e-nombre')) { $('editorError').textContent = 'Poné un nombre a la carrera.'; $('e-nombre').focus(); return; }
   if (!v('e-fecha')) { $('editorError').textContent = 'Elegí la fecha de la carrera.'; return; }
-  const nV = Math.round(+v('e-vueltas') || 0);
-  if (nV < 1) { $('editorError').textContent = 'Poné la cantidad de vueltas de la carrera.'; $('e-vueltas').focus(); return; }
   const T = ((+v('e-min') || 0) * 60 + (+v('e-seg') || 0)) * 1000 + (+v('e-dec') || 0) * 100;
   if (T < 5000) { $('editorError').textContent = 'El tiempo ideal tiene que ser de al menos 5 segundos.'; return; }
   const c = editando || { id: nuevaId(), practica: false, creada: new Date().toISOString(), vueltas: [] };
   for (const k of CAMPOS) c[k] = v('e-' + k);
-  c.vueltasTotal = nV;
   if (!c.vueltas.length) { c.tiempoIdealMs = Math.round(T); c.distanciaM = Math.max(0, Math.round(+v('e-distancia') || 0)); c.patron = $('e-patron').value; }
   Store.guardarCarrera(c);
   seleccion = c; mostrar('detalle');
@@ -2404,7 +2405,8 @@ function botonesExportar(c) {
   return acc;
 }
 function estadoLargada(c) {
-  if (c.vueltasTotal) {   // terminada: alguna largada completó todas las vueltas
+  if (c.terminada) return { fin: true };   // 2.2: termina cuando se toca «Terminar» (ya no hay cantidad de vueltas)
+  if (c.vueltasTotal) {   // carreras viejas: alguna largada completó todas las vueltas
     const n = {}; c.vueltas.forEach(v => { const l = v.largada || 1; n[l] = (n[l] || 0) + 1; });
     if (Object.values(n).some(x => x >= c.vueltasTotal)) return { fin: true };
   }
@@ -2439,7 +2441,7 @@ function dibujarDetalle() {
   if (r.medidas) {
     hero.append(el('span', 'Error total · vueltas medidas', 'et'), el('b', dur(r.sumaMs), 'grande n-' + nivelErr(r.promMs / 1000)));
     const sub = el('div', undefined, 'sub'); const d = (k, v) => { const x = el('div'); x.append(el('span', k), el('b', v)); sub.append(x); };
-    d('Promedio', dur(r.promMs)); d('Mejor', dur(r.mejorMs)); d('Vueltas', r.total + (c.vueltasTotal ? '/' + c.vueltasTotal : ''));
+    d('Promedio', dur(r.promMs)); d('Mejor', dur(r.mejorMs)); d('Vueltas', String(r.total));
     hero.append(sub);
   } else {
     const dd = diasHasta(c.fecha);
@@ -2448,7 +2450,7 @@ function dibujarDetalle() {
   // tira de 3 datos iguales, centrados
   const tira = el('div', undefined, 'tira-c');
   const dato = (k, val, u) => { const d = el('div'); const b = el('b', val); if (u) b.append(el('small', ' ' + u)); d.append(b, el('span', k)); tira.append(d); };
-  if (r.medidas) dato('Ideal', fmt(c.tiempoIdealMs)); else dato('Vueltas', c.vueltasTotal ? String(c.vueltasTotal) : '∞');
+  if (r.medidas) dato('Ideal', fmt(c.tiempoIdealMs)); else dato('Vueltas', c.vueltas.length ? String(c.vueltas.length) : '–');
   dato('Distancia', c.distanciaM ? c.distanciaM.toLocaleString('es-AR') : '–', c.distanciaM ? 'm' : '');
   dato('Vel. promedio', c.distanciaM ? (c.distanciaM / (c.tiempoIdealMs / 1000) * 3.6).toFixed(1).replace('.', ',') : '–', c.distanciaM ? 'km/h' : '');
   hero.append(tira);
@@ -2463,7 +2465,7 @@ function detalleCarnet(c, cont) {
   const cab = el('div', undefined, 'carnet-cab'); cab.append(el('span', 'CARNET DE RUTA'), el('span', d + '/' + m, 'carnet-num')); k.append(cab);
   const ren = (et, val, nodo) => { const x = el('div', undefined, 'renglon'); x.append(el('span', et)); const b = el('b', val); if (nodo) b.prepend(nodo); x.append(b); k.append(x); };
   ren('CARRERA', c.nombre); ren('FECHA', fechaCorta(c.fecha)); if (c.lugar) ren('LUGAR', c.lugar);
-  ren('VUELTAS', c.vueltasTotal ? String(c.vueltasTotal) : '–'); ren('IDEAL / VUELTA', fmt(c.tiempoIdealMs));
+  ren('IDEAL / VUELTA', fmt(c.tiempoIdealMs));
   if (c.distanciaM) ren('DISTANCIA', c.distanciaM.toLocaleString('es-AR') + ' m');
   ren('MEDIDAS', ' ' + (c.patron === 'todas' ? 'todas' : c.patron === 'alt1' ? 'alternadas, 1.ª medida' : 'alternadas, 1.ª de práctica'), dotsPatron(c.patron));
   if (c.notas) ren('NOTAS', c.notas);
@@ -2539,10 +2541,10 @@ function armarRecorrido(c) {
   pista = construir() || pista;
   return { pista, cerrada, vueltas };
 }
-function datosInforme(c) {
+function datosInforme(c, editable) {
   const R = armarRecorrido(c);
   const D = c.distanciaM || 0, T = c.tiempoIdealMs / 1000;
-  const out = { nombre: c.nombre, fecha: c.fecha, idealMs: c.tiempoIdealMs, distanciaM: D, cerrada: false, pista: [],
+  const out = { editable: !!editable, nombre: c.nombre, fecha: c.fecha, idealMs: c.tiempoIdealMs, distanciaM: D, cerrada: false, pista: [],
                 largadas: new Set(c.vueltas.map(v => v.largada || 1)).size,
                 vueltas: c.vueltas.map(v => ({ n: v.n, largada: v.largada || 1, medida: !!v.medida, realMs: v.realMs, difMs: v.difMs,
                                                velPromKmh: v.velPromKmh ?? null, velMaxKmh: v.velMaxKmh ?? null, m: null, L: v.distM || D || 1 })) };
@@ -2571,14 +2573,14 @@ function datosInforme(c) {
   }
   return out;
 }
-function informeHTML(c) {
+function informeHTML(c, editable) {
   if (!window.INFORME_TPL) return null;
-  const datos = JSON.stringify(datosInforme(c)).replace(/</g, '\\u003c');
+  const datos = JSON.stringify(datosInforme(c, editable)).replace(/</g, '\\u003c');
   const esc = t => String(t).replace(/[&<>"]/g, x => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[x]);
   return window.INFORME_TPL.replace('__DATOS__', () => datos).replace('__NOMBRE__', () => esc(c.nombre));
 }
 function abrirInforme(c) {
-  const html = informeHTML(c); if (!html) { avisar('No se pudo armar el informe'); return; }
+  const html = informeHTML(c, true); if (!html) { avisar('No se pudo armar el informe'); return; }
   const v = $('visor'); $('visorMarco').srcdoc = html; v.hidden = false; v._c = c;
 }
 // Imagen de vista previa (1080 × 1080) para mandar junto con el informe
@@ -2606,7 +2608,7 @@ function imagenInforme(c) {
     g.fillStyle = '#8a929b'; g.font = '600 26px ' + F; g.textAlign = 'center'; g.fillText('Vuelta ' + D.vueltas[iv].n + ' · coloreada por velocidad', 540, 845); g.textAlign = 'left';
   } else { g.fillStyle = '#8a929b'; g.font = '600 32px ' + F; g.textAlign = 'center'; g.fillText('Resultados de la carrera', 540, 530); g.textAlign = 'left'; }
   // tres datos
-  const r = resumen(c), datos = [[c.vueltas.length + (c.vueltasTotal ? '/' + c.vueltasTotal : ''), 'VUELTAS'],
+  const r = resumen(c), datos = [[String(c.vueltas.length), 'VUELTAS'],
     [r.medidas ? dur(r.sumaMs) : '–', 'ERROR TOTAL'], [r.medidas ? dur(r.mejorMs) : '–', 'MEJOR VUELTA']];
   datos.forEach(([v, et], i) => {
     const x = 60 + i * 330; g.fillStyle = '#1b1e22'; g.strokeStyle = '#2c3137'; g.lineWidth = 3;
@@ -2628,6 +2630,14 @@ async function compartirInforme(c) {
     await Share.share({ title: base, files });
   } catch (e) { if (!/cancel/i.test(String(e && e.message))) avisar('No se pudo compartir'); }
 }
+addEventListener('message', ev => {   // desde el informe abierto en la app: pasar una vuelta a libre o a medida
+  const m = ev.data, c = $('visor')._c;
+  if (!m || m.beto !== 'tipoVuelta' || !c || ev.source !== $('visorMarco').contentWindow) return;
+  const v = c.vueltas[m.i]; if (!v) return;
+  if (v.medidaPatron === undefined) v.medidaPatron = !!v.medida;   // lo que decía el patrón, por si se quiere volver
+  v.medida = !!m.medida; Store.guardarVuelta(c, v);
+  if (pantalla === 'detalle') dibujarDetalle();
+});
 function cerrarInforme() { $('visor').hidden = true; $('visorMarco').srcdoc = ''; }
 
 /* ---------- Chequeo previo ---------- */

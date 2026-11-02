@@ -32,6 +32,9 @@ td:first-child,th:first-child,td:nth-child(2),th:nth-child(2){text-align:left}
 tr.sel td{background:#d7263d22}tr.clic{cursor:pointer}
 .tag{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
 .tot td{font-weight:800;border-top:2px solid #444}
+.tipo{font:800 10px system-ui,sans-serif;letter-spacing:.08em;border-radius:20px;padding:5px 9px;border:0;color:#fff;white-space:nowrap}
+.tipo.m{background:var(--rojo)}.tipo.l{background:var(--verde)}button.tipo{box-shadow:0 0 0 1.5px #fff6;cursor:pointer}button.tipo::after{content:' ⇄';opacity:.8}
+.ayuda{color:var(--sub);font-size:11px;margin:-2px 0 8px}
 .aviso{color:var(--sub);font-size:13px;text-align:center;padding:16px 6px}
 .pie{text-align:center;color:var(--sub);font-size:11px;margin-top:14px}
 </style></head><body><main>
@@ -47,7 +50,7 @@ tr.sel td{background:#d7263d22}tr.clic{cursor:pointer}
   <div class="lg"><span><i style="background:var(--verde)"></i>acelera</span><span><i style="background:var(--rojo)"></i>frena</span></div></div>
 <div class="pie" style="margin:0 0 12px">tocá o deslizá el dedo sobre el mapa o los gráficos</div>
 </div>
-<div class="card"><div class="t">Todas las vueltas<b id="totInfo"></b></div><div id="tabla"></div></div>
+<div class="card"><div class="t">Todas las vueltas<b id="totInfo"></b></div><div class="ayuda" id="ayudaTipo" hidden>Tocá MEDIDA o LIBRE para cambiar el tipo de una vuelta. Las vueltas libres no suman error.</div><div id="tabla"></div></div>
 <div class="pie">Generado con Betómetro</div>
 </main>
 <div class="barra" id="barra"><i></i></div>
@@ -73,16 +76,20 @@ const LEY={vel:[['var(--azul)','muy lento'],['var(--verde)','en sugerida'],['var
  ade:[['var(--verde)','±1 s'],['var(--ama)','1 a 3 s'],['var(--rojo)','más de 3 s'],['#555','sin señal']]};
 const color=p=>modo==='vel'?colVel(p[2]):modo==='ace'?colAce(p[3]):colAde(p[4]);
 const nombreV=v=>'V'+v.n+(C.largadas>1?' L'+v.largada:'');
-// tabla con todas las vueltas
-(()=>{let h='<table><tr><th>VUELTA</th><th>TIPO</th><th>TIEMPO</th><th>DIF.</th><th>PROM</th><th>MÁX</th></tr>';
-  C.vueltas.forEach((v,i)=>{h+=`<tr data-i="${i}" class="${v.m?'clic':''}"><td><b>${nombreV(v)}</b></td><td><span class="tag" style="background:${v.medida?'var(--rojo)':'var(--verde)'}"></span>${v.medida?'medida':'práctica'}</td><td>${tfmt(v.realMs)}</td><td style="color:${colAde(v.difMs/1000)}">${dif(v.difMs)}</td><td>${v.velPromKmh!=null?nf(v.velPromKmh,1):'–'}</td><td>${v.velMaxKmh!=null?Math.round(v.velMaxKmh):'–'}</td></tr>`});
-  const med=C.vueltas.filter(v=>v.medida);
+// tabla con todas las vueltas (en la app se puede pasar una vuelta a libre o a medida tocando su tipo)
+function tabla(){let h='<table><tr><th>VUELTA</th><th>TIPO</th><th>TIEMPO</th><th>DIF.</th><th>PROM</th><th>MÁX</th></tr>';
+  C.vueltas.forEach((v,i)=>{const t=v.medida?'MEDIDA':'LIBRE',cl='tipo '+(v.medida?'m':'l');h+=`<tr data-i="${i}" class="${v.m?'clic':''}"><td><b>${nombreV(v)}</b></td><td>${C.editable?`<button type="button" class="${cl}" data-t="${i}">${t}</button>`:`<span class="${cl}">${t}</span>`}</td><td>${tfmt(v.realMs)}</td><td style="color:${v.medida?colAde(v.difMs/1000):'var(--sub)'}">${dif(v.difMs)}</td><td>${v.velPromKmh!=null?nf(v.velPromKmh,1):'–'}</td><td>${v.velMaxKmh!=null?Math.round(v.velMaxKmh):'–'}</td></tr>`});
+  const med=C.vueltas.filter(v=>v.medida);$('totInfo').textContent='';
   if(med.length){const s=med.reduce((a,v)=>a+Math.abs(v.difMs),0);h+=`<tr class="tot"><td colspan="3">Error total · ${med.length} medida${med.length>1?'s':''}</td><td colspan="3">${dur(s)}</td></tr>`;$('totInfo').textContent='promedio '+dur(s/med.length);}
   $('tabla').innerHTML=h+'</table>';
-  $('tabla').querySelectorAll('tr.clic').forEach(r=>r.onclick=()=>{lap=+r.dataset.i;sel=null;dibujar();scrollTo({top:0,behavior:'smooth'})});})();
+  $('tabla').querySelectorAll('tr.clic').forEach(r=>r.onclick=()=>{lap=+r.dataset.i;sel=null;dibujar();scrollTo({top:0,behavior:'smooth'})});
+  $('tabla').querySelectorAll('button.tipo').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const i=+b.dataset.t,v=C.vueltas[i];v.medida=!v.medida;
+    try{parent.postMessage({beto:'tipoVuelta',i,medida:v.medida},'*')}catch(e){}
+    tabla();document.querySelectorAll('#vueltas .chip[data-i="'+i+'"] small').forEach(s=>s.textContent=v.medida?'medida':'libre');});}
+$('ayudaTipo').hidden=!C.editable;tabla();
 if(lap<0){$('conRecorrido').innerHTML='<div class="card aviso">Esta carrera no tiene el recorrido grabado. Se graba con el GPS en las carreras corridas desde la versión 1.8 de Betómetro.</div>';}
 else{
-conT.forEach(i=>{const v=C.vueltas[i],b=document.createElement('button');b.className='chip';b.dataset.i=i;b.innerHTML=nombreV(v)+'<small>'+(v.medida?'medida':'práctica')+'</small>';b.onclick=()=>{lap=i;sel=null;dibujar()};$('vueltas').append(b)});
+conT.forEach(i=>{const v=C.vueltas[i],b=document.createElement('button');b.className='chip';b.dataset.i=i;b.innerHTML=nombreV(v)+'<small>'+(v.medida?'medida':'libre')+'</small>';b.onclick=()=>{lap=i;sel=null;dibujar()};$('vueltas').append(b)});
 for(const k in MODOS){if(k==='ade'&&!C.distanciaM)continue;const b=document.createElement('button');b.className='chip modo';b.dataset.m=k;b.textContent=MODOS[k];b.onclick=()=>{modo=k;dibujar()};$('modos').append(b)}
 dibujar();}
 function X(d,W){return 30+(W-36)*d/C.vueltas[lap].L}

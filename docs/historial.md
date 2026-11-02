@@ -4,6 +4,7 @@ Lo que pidió Matías y cómo se resolvió. Lo más nuevo está arriba.
 
 | Versión | Qué cambió |
 |---|---|
+| **2.2.0** | **Sin cantidad de vueltas**: la organización puede agregar vueltas en carrera; la carrera termina cuando se toca «Terminar» (`c.terminada`). **Vuelta libre a mano**: en el informe abierto en la app, el tipo de cada vuelta (MEDIDA/LIBRE) es un botón que la cambia y se guarda; las libres no suman error. El widget de tiempo de vuelta cuenta **progresiva** de fábrica (se cambia a regresiva en el editor, «Cuenta: progresiva ⇄») y siempre muestra el **tiempo ideal** chiquito arriba a la derecha. «Práctica» pasa a decirse «libre» en la pantalla de carrera, la voz y el informe. |
 | **2.1.1** | Al actualizar arranca otra vez en Avispón Verde, una sola vez (bandera `avispon21`). |
 | **2.1.0** | Inicio del Avispón con cabecera (león y título cromado) y la foto de los pilotos con el auto. La foto es fija, no se puede cambiar. |
 | **2.1.0** | Foto de la app en el inicio (el piloto y el copiloto con el 404), la misma en **todos los temas**. Es fija: **no se puede cambiar** desde la app (decisión de Matías). En Avispón: cabecera verde con león, rayita, título cromado y rayas; la foto se funde en verde y el 101 va montado sobre la banda. |
@@ -38,6 +39,8 @@ Lo que pidió Matías y cómo se resolvió. Lo más nuevo está arriba.
 - **Exportar CSV/JSON:** no. Solo el informe HTML.
 - **Play Protect:** no apelar ni sacar permisos. Se instala apagando el análisis un momento.
 - **Foto del inicio:** fija (`www/img/inicio.jpg`), igual en todos los temas; no se puede elegir otra.
+- **Cantidad de vueltas:** no existe más (nos perjudicó cuando la organización agregó vueltas).
+- **Vueltas libres:** nunca suman error, sean del patrón o marcadas a mano.
 - **Pitido del cero:** apagado de fábrica. El cero se dice en voz.
 - **Auriculares Bluetooth:** por ahora sin cambios en la app.
 - **ESP32:** por ahora no.
