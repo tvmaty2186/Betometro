@@ -4,6 +4,7 @@ Lo que pidió Matías y cómo se resolvió. Lo más nuevo está arriba.
 
 | Versión | Qué cambió |
 |---|---|
+| **2.3.1** | El botón de importar pasa a ser redondo, igual al +, a su derecha, con el ícono de importar (Matías: el anterior era «horrible»). |
 | **2.3.0** | **Importar carrera**: en Carreras, «⤓ Importar el informe de un amigo» lee el informe HTML (busca `const C=` en el archivo) y crea una carrera `importada` (columnas SQL `importada` e `imp`, con el recorrido ya armado). Va a «Corridas» con la etiqueta IMPORTADA; no se larga ni se edita; se pueden pasar vueltas a libre. Si se importa dos veces, avisa y abre la que ya estaba. |
 | **2.2.0** | **Sin cantidad de vueltas**: la organización puede agregar vueltas en carrera; la carrera termina cuando se toca «Terminar» (`c.terminada`). **Vuelta libre a mano**: en el informe abierto en la app, el tipo de cada vuelta (MEDIDA/LIBRE) es un botón que la cambia y se guarda; las libres no suman error. El widget de tiempo de vuelta cuenta **progresiva** de fábrica (se cambia a regresiva en el editor, «Cuenta: progresiva ⇄») y siempre muestra el **tiempo ideal** chiquito arriba a la derecha. «Práctica» pasa a decirse «libre» en la pantalla de carrera, la voz y el informe. |
 | **2.1.1** | Al actualizar arranca otra vez en Avispón Verde, una sola vez (bandera `avispon21`). |

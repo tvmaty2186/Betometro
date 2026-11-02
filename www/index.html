@@ -450,6 +450,8 @@ html, body { margin: 0; }
 .cab .btn.sec { order: -1; flex: none; width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 50%; border: 0; background: rgba(255,255,255,.08); font-size: 0; color: var(--ink); }
 .cab .btn.sec::before { content: "‹"; font-size: 30px; line-height: 1; position: relative; top: -2px; }
 :root.sol .cab .btn.sec { background: #000; color: #fff; }
+.mas-c.imp-r { display: grid; place-items: center; padding: 0; }
+.mas-c.imp-r svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 .imp-c { display: block; margin: 4px 0 2px auto; height: 38px; padding: 0 12px; border-radius: 999px; border: 0; background: rgba(0,0,0,.35); box-shadow: 0 0 0 1.5px var(--card-borde); color: var(--ink); font: 700 13px var(--font-ui); cursor: pointer; white-space: nowrap; }
 .mas-c { flex: none; width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--acc); color: var(--acc-ink); font: 700 30px var(--font-ui); line-height: 1; box-shadow: 0 0 16px color-mix(in srgb, var(--acc) 60%, transparent); cursor: pointer; }
 .seccion-t { font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--sub); margin: 10px 2px 0; font-family: var(--font-ui); }
@@ -769,7 +771,7 @@ html, body { margin: 0; }
 <!-- ===== Carreras ===== -->
 <div class="pantalla" id="p-carreras" hidden>
   <div class="config-in">
-    <div class="cab"><button class="btn sec" id="carrerasVolver" type="button">Volver</button><h2>Carreras</h2><input type="file" id="importarArchivo" accept=".html,.htm,text/html" hidden><button class="mas-c" id="carrerasNueva" type="button" aria-label="Nueva carrera">+</button></div>
+    <div class="cab"><button class="btn sec" id="carrerasVolver" type="button">Volver</button><h2>Carreras</h2><input type="file" id="importarArchivo" accept=".html,.htm,text/html" hidden><button class="mas-c" id="carrerasNueva" type="button" aria-label="Nueva carrera">+</button><button class="mas-c imp-r" id="carrerasImportar" type="button" aria-label="Importar el informe de un amigo"><svg viewBox="0 0 24 24"><path d="M12 3v11M7 9.5l5 5 5-5M4 15v4.5h16V15"/></svg></button></div>
     <div id="carrerasLista"></div>
   </div>
 </div>
@@ -2331,7 +2333,6 @@ function dibujarCarreras() {
   const prox = Store.carreras.filter(pendiente).sort((a, b) => a.fecha.localeCompare(b.fecha));
   const ant = Store.carreras.filter(c => !pendiente(c))
     .sort((a, b) => b.fecha.localeCompare(a.fecha) || String(b.creada).localeCompare(String(a.creada)));
-  cont.append(boton('⤓ Importar el informe de un amigo', 'imp-c', () => $('importarArchivo').click()));   // 2.3
   if (!prox.length && !ant.length) { cont.append(el('p', 'Todavía no hay carreras. Tocá + para cargar la primera.', 'vacio')); return; }
   cont.append(el('p', 'Mantené apretada una carrera para borrarla.', 'hint ayuda-c'));
   const carnet = esCarnet();
@@ -2765,6 +2766,7 @@ $('inicioAct').addEventListener('click', () => { if (ultimaRel) instalarActualiz
 $('carrerasVolver').addEventListener('click', volver);
 $('carrerasNueva').addEventListener('click', () => abrirEditor(null));
 /* ---------- 2.3: importar la carrera de un amigo desde su informe HTML ---------- */
+$('carrerasImportar').addEventListener('click', () => $('importarArchivo').click());   // botón redondo al lado del +
 $('importarArchivo').addEventListener('change', async ev => {
   const a = ev.target.files && ev.target.files[0]; ev.target.value = ''; if (!a) return;
   try { const c = importarInforme(await a.text()); seleccion = c; avisar(c._ya ? 'Esa carrera ya estaba importada' : 'Carrera importada: ' + c.nombre); delete c._ya; mostrar('detalle'); }
