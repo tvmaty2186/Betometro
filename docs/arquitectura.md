@@ -104,6 +104,12 @@ Buscá los encabezados `/* ===== … ===== */` con grep.
 - No hay cantidad de vueltas. Una carrera queda «finalizada» cuando se toca Terminar con al menos una vuelta (`c.terminada`, columna SQL `terminada`). Las carreras viejas con `vueltasTotal` siguen funcionando.
 - El error total suma solo `v.medida`. Cambiar el tipo de una vuelta: el informe (abierto en la app con `informeHTML(c, true)`) manda `postMessage({beto:'tipoVuelta', i, medida})`; la app actualiza `v.medida`, guarda lo del patrón en `v.medidaPatron` y graba con `Store.guardarVuelta`. El informe compartido no permite cambiar nada.
 
+## Carreras importadas (2.3)
+
+- `importarInforme(html)` toma el JSON que va después de `const C=` en el informe (vale para informes viejos también) y crea una carrera con `importada: true`, `terminada: true` e `imp: { pista, cerrada }`. Cada vuelta guarda su recorrido ya procesado en `v.mi`.
+- `datosInforme(c)` usa `c.imp` y `v.mi` directamente (no hay trazas GPS crudas).
+- **Cuidado:** si se cambia el formato de `C` en la plantilla del informe, mantener `nombre`, `fecha`, `idealMs`, `distanciaM`, `pista`, `cerrada` y `vueltas[]` (`n`, `largada`, `medida`, `realMs`, `difMs`, `velPromKmh`, `velMaxKmh`, `m`, `L`) y la línea siguiente `const NS=`, o la importación deja de funcionar.
+
 ## Informe de carrera
 
 - **Recorrido:** se arma con **todas** las vueltas.

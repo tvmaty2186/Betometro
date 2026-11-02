@@ -450,6 +450,7 @@ html, body { margin: 0; }
 .cab .btn.sec { order: -1; flex: none; width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 50%; border: 0; background: rgba(255,255,255,.08); font-size: 0; color: var(--ink); }
 .cab .btn.sec::before { content: "‹"; font-size: 30px; line-height: 1; position: relative; top: -2px; }
 :root.sol .cab .btn.sec { background: #000; color: #fff; }
+.imp-c { display: block; margin: 4px 0 2px auto; height: 38px; padding: 0 12px; border-radius: 999px; border: 0; background: rgba(0,0,0,.35); box-shadow: 0 0 0 1.5px var(--card-borde); color: var(--ink); font: 700 13px var(--font-ui); cursor: pointer; white-space: nowrap; }
 .mas-c { flex: none; width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--acc); color: var(--acc-ink); font: 700 30px var(--font-ui); line-height: 1; box-shadow: 0 0 16px color-mix(in srgb, var(--acc) 60%, transparent); cursor: pointer; }
 .seccion-t { font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--sub); margin: 10px 2px 0; font-family: var(--font-ui); }
 .btn.largar { background: var(--acc); color: var(--acc-ink); box-shadow: 0 0 16px color-mix(in srgb, var(--acc) 45%, transparent); font-family: var(--font-ui); font-weight: 700; letter-spacing: .08em; border-radius: 14px; }
@@ -768,7 +769,7 @@ html, body { margin: 0; }
 <!-- ===== Carreras ===== -->
 <div class="pantalla" id="p-carreras" hidden>
   <div class="config-in">
-    <div class="cab"><button class="btn sec" id="carrerasVolver" type="button">Volver</button><h2>Carreras</h2><button class="mas-c" id="carrerasNueva" type="button" aria-label="Nueva carrera">+</button></div>
+    <div class="cab"><button class="btn sec" id="carrerasVolver" type="button">Volver</button><h2>Carreras</h2><input type="file" id="importarArchivo" accept=".html,.htm,text/html" hidden><button class="mas-c" id="carrerasNueva" type="button" aria-label="Nueva carrera">+</button></div>
     <div id="carrerasLista"></div>
   </div>
 </div>
@@ -1175,7 +1176,7 @@ const Store = (() => {
   const q = (statement, values) => SQL.query({ database: BASE, statement, values: values || [], readonly: false }).then(r => r.values || []);
   const run = (statement, values) => SQL.run({ database: BASE, statement, values: values || [], transaction: true, readonly: false });
   const COLS = ['id', 'nombre', 'fecha', 'lugar', 'notas', 'piloto', 'navegante', 'auto', 'numero', 'categoria',
-                'tiempoIdealMs', 'distanciaM', 'patron', 'practica', 'creada', 'vueltasTotal', 'terminada'];
+                'tiempoIdealMs', 'distanciaM', 'patron', 'practica', 'creada', 'vueltasTotal', 'terminada', 'importada', 'imp'];
   async function abrirSql() {
     try { await SQL.createConnection({ database: BASE, version: 1, encrypted: false, mode: 'no-encryption', readonly: false }); }
     catch (e) { if (!/already exists/i.test(String(e && e.message))) throw e; }
@@ -1187,10 +1188,11 @@ const Store = (() => {
         practica INTEGER, creada TEXT);
       CREATE TABLE IF NOT EXISTS vueltas (carreraId TEXT, largada INTEGER, n INTEGER, datos TEXT, PRIMARY KEY (carreraId, largada, n));` });
     try { await SQL.execute({ database: BASE, transaction: true, readonly: false, statements: 'ALTER TABLE carreras ADD COLUMN vueltasTotal INTEGER;' }); } catch (e) { }
-    try { await SQL.execute({ database: BASE, transaction: true, readonly: false, statements: 'ALTER TABLE carreras ADD COLUMN terminada INTEGER;' }); } catch (e) { }   // 2.2   // bases de la 1.1 a 1.3
+    try { await SQL.execute({ database: BASE, transaction: true, readonly: false, statements: 'ALTER TABLE carreras ADD COLUMN terminada INTEGER;' }); } catch (e) { }   // 2.2
+    for (const col of ['importada INTEGER', 'imp TEXT']) try { await SQL.execute({ database: BASE, transaction: true, readonly: false, statements: 'ALTER TABLE carreras ADD COLUMN ' + col + ';' }); } catch (e) { }   // 2.3   // bases de la 1.1 a 1.3
   }
   const sqlCarrera = c => run('INSERT OR REPLACE INTO carreras (' + COLS.join(',') + ') VALUES (' + COLS.map(() => '?').join(',') + ')',
-                              COLS.map(k => k === 'practica' || k === 'terminada' ? (c[k] ? 1 : 0) : (c[k] === undefined ? null : c[k])));
+                              COLS.map(k => k === 'practica' || k === 'terminada' || k === 'importada' ? (c[k] ? 1 : 0) : k === 'imp' ? (c.imp ? JSON.stringify(c.imp) : null) : (c[k] === undefined ? null : c[k])));
   const sqlVuelta = (c, v) => run('INSERT OR REPLACE INTO vueltas (carreraId, largada, n, datos) VALUES (?,?,?,?)', [c.id, v.largada || 1, v.n, JSON.stringify(v)]);
   async function cargarSql() {
     await abrirSql();
@@ -1208,7 +1210,7 @@ const Store = (() => {
     for (const f of vs) (porCarrera[f.carreraId] = porCarrera[f.carreraId] || []).push(JSON.parse(f.datos));
     const cfgFila = await q("SELECT valor FROM config WHERE clave = 'config'");
     return { schemaVersion: 2, config: cfgFila.length ? JSON.parse(cfgFila[0].valor) : null,
-             carreras: filas.map(f => Object.assign(f, { practica: !!f.practica, terminada: !!f.terminada, vueltas: porCarrera[f.id] || [] })) };
+             carreras: filas.map(f => Object.assign(f, { practica: !!f.practica, terminada: !!f.terminada, importada: !!f.importada, imp: f.imp ? JSON.parse(f.imp) : null, vueltas: porCarrera[f.id] || [] })) };
   }
 
   const sqlSeguro = p => { p.catch(e => console.error('SQLite', e)); };
@@ -2297,7 +2299,7 @@ function tarjetaTablero(c) {
   const [, m, d] = c.fecha.split('-'), t = boton('', 'tarjeta-c', () => { seleccion = c; mostrar('detalle'); });
   const f = el('div', undefined, 'fecha-c'); f.append(el('b', d), el('span', MESES[+m - 1]));
   const cu = el('div', undefined, 'cuerpo-c');
-  cu.append(el('b', c.nombre), el('span', [c.lugar, fmt(c.tiempoIdealMs)].filter(Boolean).join(' · ')));
+  cu.append(el('b', c.nombre), el('span', [c.importada ? 'IMPORTADA' : null, c.lugar, fmt(c.tiempoIdealMs)].filter(Boolean).join(' · ')));
   if (c.vueltas.some(v => v.medida)) cu.append(miniBarras(c));
   const e = estadoCarrera(c);
   t.append(f, cu, el('span', e.txt, 'estado-c ' + e.cls));
@@ -2329,6 +2331,7 @@ function dibujarCarreras() {
   const prox = Store.carreras.filter(pendiente).sort((a, b) => a.fecha.localeCompare(b.fecha));
   const ant = Store.carreras.filter(c => !pendiente(c))
     .sort((a, b) => b.fecha.localeCompare(a.fecha) || String(b.creada).localeCompare(String(a.creada)));
+  cont.append(boton('⤓ Importar el informe de un amigo', 'imp-c', () => $('importarArchivo').click()));   // 2.3
   if (!prox.length && !ant.length) { cont.append(el('p', 'Todavía no hay carreras. Tocá + para cargar la primera.', 'vacio')); return; }
   cont.append(el('p', 'Mantené apretada una carrera para borrarla.', 'hint ayuda-c'));
   const carnet = esCarnet();
@@ -2405,7 +2408,7 @@ function botonesExportar(c) {
   return acc;
 }
 function estadoLargada(c) {
-  if (c.terminada) return { fin: true };   // 2.2: termina cuando se toca «Terminar» (ya no hay cantidad de vueltas)
+  if (c.terminada || c.importada) return { fin: true };   // 2.2: termina cuando se toca «Terminar» (ya no hay cantidad de vueltas)
   if (c.vueltasTotal) {   // carreras viejas: alguna largada completó todas las vueltas
     const n = {}; c.vueltas.forEach(v => { const l = v.largada || 1; n[l] = (n[l] || 0) + 1; });
     if (Object.values(n).some(x => x >= c.vueltasTotal)) return { fin: true };
@@ -2417,13 +2420,13 @@ function estadoLargada(c) {
 let borrarFicha = null;
 function accionesCarrera(c) {
   const acc = el('div', undefined, 'acciones'), e = estadoLargada(c);
-  if (e.fin) acc.append(el('div', 'CARRERA FINALIZADA', 'finalizada-c'));
+  if (e.fin) acc.append(el('div', c.importada ? 'CARRERA IMPORTADA' : 'CARRERA FINALIZADA', 'finalizada-c'));
   else {
     const b = boton(e.ok ? 'LARGAR' : e.motivo, 'btn largar ancho' + (e.ok ? '' : ' inhabilitado'), () => { if (e.ok) irACrono(c); });
     b.disabled = !e.ok; acc.append(b);
   }
-  if (!c.practica) acc.append(boton('Editar', 'btn sec', () => abrirEditor(c)));
-  const bb = boton('Borrar', 'btn sec borrar-btn' + (c.practica ? ' ancho' : ''), () => {
+  if (!c.practica && !c.importada) acc.append(boton('Editar', 'btn sec', () => abrirEditor(c)));
+  const bb = boton('Borrar', 'btn sec borrar-btn' + (c.practica || c.importada ? ' ancho' : ''), () => {
     if (!borrarFicha) { bb.textContent = 'Tocá otra vez para borrar'; borrarFicha = setTimeout(() => { borrarFicha = null; bb.textContent = 'Borrar'; }, 3000); return; }
     clearTimeout(borrarFicha); borrarFicha = null; Store.borrarCarrera(c.id); seleccion = null; mostrar('carreras');
   });
@@ -2455,7 +2458,7 @@ function dibujarDetalle() {
   dato('Vel. promedio', c.distanciaM ? (c.distanciaM / (c.tiempoIdealMs / 1000) * 3.6).toFixed(1).replace('.', ',') : '–', c.distanciaM ? 'km/h' : '');
   hero.append(tira);
   const pm = el('div', undefined, 'pm-c'); pm.append(dotsPatron(c.patron), el('b', c.patron === 'todas' ? 'Todas las vueltas medidas' : c.patron === 'alt1' ? 'Alternadas · la 1.ª medida' : 'Alternadas · la 1.ª de práctica'));
-  hero.append(pm);
+  if (!c.importada) hero.append(pm);   // de una importada no se sabe el patrón
   cont.append(hero, accionesCarrera(c));
   if (c.notas) cont.append(el('p', c.notas, 'hint'));
   if (c.vueltas.length) { cont.append(el('h3', 'Vuelta por vuelta', 'seccion-t'), graficoVueltas(c), botonesExportar(c)); }
@@ -2542,8 +2545,12 @@ function armarRecorrido(c) {
   return { pista, cerrada, vueltas };
 }
 function datosInforme(c, editable) {
-  const R = armarRecorrido(c);
   const D = c.distanciaM || 0, T = c.tiempoIdealMs / 1000;
+  if (c.imp) return { editable: !!editable, nombre: c.nombre, fecha: c.fecha, idealMs: c.tiempoIdealMs, distanciaM: D, cerrada: !!c.imp.cerrada, pista: c.imp.pista || [],
+    largadas: new Set(c.vueltas.map(v => v.largada || 1)).size,
+    vueltas: c.vueltas.map(v => ({ n: v.n, largada: v.largada || 1, medida: !!v.medida, realMs: v.realMs, difMs: v.difMs, velPromKmh: v.velPromKmh ?? null, velMaxKmh: v.velMaxKmh ?? null,
+                                   m: v.mi || null, L: v.distM || D || 1 })) };
+  const R = armarRecorrido(c);
   const out = { editable: !!editable, nombre: c.nombre, fecha: c.fecha, idealMs: c.tiempoIdealMs, distanciaM: D, cerrada: false, pista: [],
                 largadas: new Set(c.vueltas.map(v => v.largada || 1)).size,
                 vueltas: c.vueltas.map(v => ({ n: v.n, largada: v.largada || 1, medida: !!v.medida, realMs: v.realMs, difMs: v.difMs,
@@ -2757,6 +2764,27 @@ $('mAjustes').addEventListener('click', () => { cargarForm(); $('config').hidden
 $('inicioAct').addEventListener('click', () => { if (ultimaRel) instalarActualizacion(); else $('mAjustes').click(); });   // instala directo
 $('carrerasVolver').addEventListener('click', volver);
 $('carrerasNueva').addEventListener('click', () => abrirEditor(null));
+/* ---------- 2.3: importar la carrera de un amigo desde su informe HTML ---------- */
+$('importarArchivo').addEventListener('change', async ev => {
+  const a = ev.target.files && ev.target.files[0]; ev.target.value = ''; if (!a) return;
+  try { const c = importarInforme(await a.text()); seleccion = c; avisar(c._ya ? 'Esa carrera ya estaba importada' : 'Carrera importada: ' + c.nombre); delete c._ya; mostrar('detalle'); }
+  catch (e) { avisar(e.message || 'No se pudo importar'); }
+});
+function importarInforme(html) {
+  const i = html.indexOf('const C='), j = i < 0 ? -1 : html.indexOf(';\nconst NS=', i);
+  if (i < 0 || j < 0) throw new Error('Ese archivo no es un informe de Betómetro');
+  const C = JSON.parse(html.slice(i + 8, j));
+  if (!C || !Array.isArray(C.vueltas) || !C.nombre || !C.idealMs) throw new Error('El informe no tiene los datos de la carrera');
+  const ya = Store.carreras.find(x => x.importada && x.nombre === C.nombre && x.fecha === C.fecha && x.vueltas.length === C.vueltas.length);
+  if (ya) { ya._ya = true; return ya; }
+  const c = { id: nuevaId(), nombre: String(C.nombre).slice(0, 80), fecha: /^\d{4}-\d{2}-\d{2}$/.test(C.fecha) ? C.fecha : hoyISO(), notas: '',
+              tiempoIdealMs: Math.round(C.idealMs), distanciaM: Math.round(C.distanciaM || 0), patron: 'todas', practica: false, importada: true, terminada: true,
+              creada: new Date().toISOString(), imp: { pista: Array.isArray(C.pista) ? C.pista : [], cerrada: !!C.cerrada }, vueltas: [] };
+  Store.guardarCarrera(c);
+  for (const v of C.vueltas) Store.agregarVuelta(c, { n: v.n, largada: v.largada || 1, medida: !!v.medida, realMs: v.realMs, difMs: v.difMs,
+    velPromKmh: v.velPromKmh ?? null, velMaxKmh: v.velMaxKmh ?? null, distM: v.L || null, mi: Array.isArray(v.m) ? v.m : null });
+  return c;
+}
 $('editorCancelar').addEventListener('click', volver);
 $('e-guardar').addEventListener('click', guardarEditor);
 $('e-borrar').addEventListener('click', borrarEditor);
