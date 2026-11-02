@@ -2656,6 +2656,20 @@ addEventListener('message', ev => {   // 2.4: unir una vuelta con la siguiente (
   Store.reescribirVueltas(c); avisar('Vueltas unidas');
   abrirInforme(c); if (pantalla === 'detalle') dibujarDetalle();
 });
+addEventListener('message', ev => {   // menú ⋮ del informe: compartir o guardar en el teléfono
+  const m = ev.data, c = $('visor')._c;
+  if (!m || !c || ev.source !== $('visorMarco').contentWindow) return;
+  if (m.beto === 'compartir') compartirInforme(c);
+  if (m.beto === 'guardar') guardarInforme(c);
+});
+async function guardarInforme(c) {   // queda en Documentos/Betometro del teléfono
+  const html = informeHTML(c); if (!html) { avisar('No se pudo armar el informe'); return; }
+  const f = new Date(c.fecha + 'T12:00'), dd = String(f.getDate()).padStart(2, '0') + '-' + String(f.getMonth() + 1).padStart(2, '0') + '-' + f.getFullYear();
+  const base = c.nombre.replace(/[\\/:*?"<>|]+/g, ' ').trim().slice(0, 40) + ' ' + dd + '.html';
+  if (!(NATIVO && FS)) { exportar(base, html); return; }
+  try { await FS.writeFile({ path: 'Betometro/' + base, data: html, directory: 'DOCUMENTS', encoding: 'utf8', recursive: true }); avisar('Guardado en Documentos/Betometro'); }
+  catch (e) { avisar('No se pudo guardar: se abre compartir'); compartirInforme(c); }
+}
 function copiaOriginal(c) {   // 2.4: antes del primer cambio se guarda la carrera tal como se corrió
   if (c.original) return; c.original = JSON.stringify(c.vueltas); Store.guardarCarrera(c);
 }
